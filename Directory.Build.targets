@@ -1,0 +1,22 @@
+<Project>
+  <Target Name="CopyDotNetRuntimeNotices" AfterTargets="Publish"
+          Condition="'$(MSBuildProjectName)' == 'SuikodenRandomizer.SeedTool' and '$(SelfContained)' == 'true'">
+    <ItemGroup>
+      <_SrrRuntimePack Include="@(ResolvedRuntimePack)">
+        <LicensePath>%(PackageDirectory)/LICENSE.TXT</LicensePath>
+        <LicensePath Condition="!Exists('%(PackageDirectory)/LICENSE.TXT')">%(PackageDirectory)/LICENSE.txt</LicensePath>
+      </_SrrRuntimePack>
+      <_SrrRuntimeNotice Include="@(_SrrRuntimePack->'%(LicensePath)')" />
+      <_SrrRuntimeNotice Include="@(_SrrRuntimePack->'%(PackageDirectory)/THIRD-PARTY-NOTICES.TXT')" />
+      <_SrrRuntimeNotice Remove="@(_SrrRuntimeNotice)" Condition="!Exists('%(Identity)')" />
+      <!-- Multiple packs use the same filenames; keep their notice destinations distinct. -->
+      <_SrrRuntimeNotice Update="@(_SrrRuntimeNotice)">
+        <NoticeDirectory>$(PublishDir)licenses/runtime-packs/%(NuGetPackageId)/%(NuGetPackageVersion)</NoticeDirectory>
+        <NoticeDirectory Condition="'%(FrameworkName)' == 'Microsoft.NETCore.App'">$(PublishDir)licenses/dotnet-runtime</NoticeDirectory>
+      </_SrrRuntimeNotice>
+      <_SrrCoreRuntimeNotice Include="@(_SrrRuntimeNotice)" Condition="'%(FrameworkName)' == 'Microsoft.NETCore.App'" />
+    </ItemGroup>
+    <Error Condition="'@(_SrrCoreRuntimeNotice->Count())' != '2'" Text="Both Microsoft.NETCore.App runtime license notice files must be present." />
+    <Copy SourceFiles="@(_SrrRuntimeNotice)" DestinationFiles="@(_SrrRuntimeNotice->'%(NoticeDirectory)/%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

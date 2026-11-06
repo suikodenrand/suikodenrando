@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Inspect the source shipped with this gate, never load the game assembly. -->
+    <EmbeddedResource Include="../../src/SuikodenRandomizer.AvatarPlugin/*.cs">
+      <LogicalName>AvatarSource.%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>

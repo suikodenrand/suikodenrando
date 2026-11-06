@@ -1,0 +1,36 @@
+  Determining projects to restore...
+  Restored /workspace/scratch/d6f908a8b251/avatar084-source/tests/SuikodenRandomizer.AvatarParty.Tests/SuikodenRandomizer.AvatarParty.Tests.csproj (in 128 ms).
+  1 of 2 projects are up-to-date for restore.
+  SuikodenRandomizer.Core -> /workspace/scratch/d6f908a8b251/avatar084-source/src/SuikodenRandomizer.Core/bin/Release/netstandard2.1/SuikodenRandomizer.Core.dll
+  SuikodenRandomizer.AvatarParty.Tests -> /workspace/scratch/d6f908a8b251/avatar084-source/tests/SuikodenRandomizer.AvatarParty.Tests/bin/Release/net10.0/SuikodenRandomizer.AvatarParty.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:03.19
+PASS Five loaded residents with only Tir active are a valid opening layout
+PASS Permuted order selects resident slots rather than character IDs
+PASS Staged residents can exist with no active party
+PASS Empty native layout supports zero active members
+PASS Full six-member party preserves its active order
+PASS Unused order entries do not contribute membership
+PASS Inactive duplicate resident codes are ignored
+PASS Inactive empty and stale invalid codes are ignored
+PASS A short resident array is valid when all active slots exist
+PASS All canonical character classes are valid active identities
+PASS Negative active count is rejected
+PASS Active count above six is rejected
+PASS Active count longer than its order prefix is rejected
+PASS Resident capacity above six is rejected
+PASS Negative active slot is rejected
+PASS Active slot outside native capacity is rejected
+PASS Active slot beyond the available resident array is rejected
+PASS Empty active resident code is rejected
+PASS Out-of-range active character code is rejected
+PASS Duplicate active resident slot is rejected
+PASS Duplicate active canonical identity is rejected
+PASS Null code and order inputs are rejected explicitly
+PASS Resolving membership never mutates native layout snapshots
+23/23 native-party layout checks passed.
+Scope: pure native-layout semantics; native resident/base bindings are checked separately by the adapter.

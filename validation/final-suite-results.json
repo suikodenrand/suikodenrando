@@ -1,0 +1,34 @@
+[
+  {
+    "suite": "SuikodenRandomizer.Core.SmokeTests",
+    "exitCode": 0
+  },
+  {
+    "suite": "SuikodenRandomizer.Avatar.Tests",
+    "exitCode": 0
+  },
+  {
+    "suite": "SuikodenRandomizer.AvatarShuffle.Tests",
+    "exitCode": 0
+  },
+  {
+    "suite": "SuikodenRandomizer.AvatarPresentation.Tests",
+    "exitCode": 0
+  },
+  {
+    "suite": "SuikodenRandomizer.AvatarRuntime.Tests",
+    "exitCode": 0
+  },
+  {
+    "suite": "SuikodenRandomizer.AvatarParty.Tests",
+    "exitCode": 0
+  },
+  {
+    "suite": "SuikodenRandomizer.AvatarUnite.Tests",
+    "exitCode": 0
+  },
+  {
+    "suite": "SuikodenRandomizer.Avatar.Contracts",
+    "exitCode": 0
+  }
+]

@@ -1,0 +1,196 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  SuikodenRandomizer.Avatar.Contracts -> /workspace/scratch/d6f908a8b251/avatar084-source/tests/SuikodenRandomizer.Avatar.Contracts/bin/Release/net10.0/SuikodenRandomizer.Avatar.Contracts.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:01.00
+PASS public source type AnimeSPRITE
+PASS public source type AnimeSpriteManager
+PASS public source type BattleBase
+PASS public source type CHARACTER_ID
+PASS public source type ChapterManager
+PASS public source type Event_c
+PASS public source type Fhuman_c
+PASS public source type GameInit
+PASS public source type GlobalWork
+PASS public source type OldSrcBase
+PASS public source type PLAYER_BASE
+PASS public source type PLAYER_BATTLE_SO
+PASS public source type PLAYER_BATTLE_SO+ActionCommand
+PASS public source type PLAYER_BUKI
+PASS public source type PLAYER_DATA
+PASS public source type PLAYER_FACE
+PASS public source type PLAYER_FIELD
+PASS public source type PLAYER_ITEM
+PASS public source type PLAYER_MONSYO
+PASS public source type P_player_c
+PASS public source type PlayerManager
+PASS public source type SaveDataManager
+PASS public source type SaveDataManager+SaveData
+PASS public source type TitleChapter
+PASS public source type TitleChapter+State
+PASS public source type Village_c
+PASS public source type Ws_face_c
+PASS TitleChapter.TitleMain instance Int32(Int32)
+PASS ChapterManager.GetGameStepSeq static Int32(Int32)
+PASS ChapterManager.get_GR1Instance static ChapterManager()
+PASS GameInit.LoadPlayerData instance Int32(Int32)
+PASS PlayerManager.GetPlayerData instance PLAYER_DATA(CHARACTER_ID)
+PASS PlayerManager.get_player_cache instance Il2CppSystem.Collections.Generic.Dictionary`2<Int32,PLAYER_DATA>()
+PASS GlobalWork.get_player_manager instance PlayerManager()
+PASS OldSrcBase.get_game_work static GAME_WORK()
+PASS P_player_c.LoadPlayer static Int32(Int32)
+PASS P_player_c.AddPlayer static Int32(Int32)
+PASS BattleBase.initialize_battle static Int32(Int32)
+PASS BattleBase.player_initialize static Void()
+PASS BattleBase.calc_exp static Void()
+PASS BattleBase.battle_end_free static Int32(Int32)
+PASS BattleBase.get_battle_work static BATTLE_WORK()
+PASS BATTLE_WORK.get_p_battle_data instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray`1<P_BATTLE_DATA>()
+PASS P_BATTLE_DATA.get_player_data instance PLAYER_DATA()
+PASS BattleBase.check_kyoryoku static Int32(Int32) [parameter 0=player_no]
+PASS BattleBase.make_command_data static Int32(Int32) [parameter 0=player_no]
+PASS BattleBase.make_kyoryoku_window static Int32(Int32) [parameter 0=player_no]
+PASS BattleBase.command_kyoryoku static Int32(Int32) [parameter 0=step_level]
+PASS BattleBase.command_kyoryoku01 static Int32(Int32) [parameter 0=step_level]
+PASS BattleBase.command_kyoryoku02 static Int32(Int32) [parameter 0=step_level]
+PASS BattleBase.command_kyoryoku10 static Int32(Int32) [parameter 0=step_level]
+PASS BattleBase.get_kyoryoku_data_table static Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray`1<KYORYOKU_DATA>()
+PASS KYORYOKU_DATA.get_player_kazu instance Byte()
+PASS KYORYOKU_DATA.get_player_id instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Byte>()
+PASS Event_c.GoEventCommand instance Byte()
+PASS Event_c.ClrEventRenzoku instance Void()
+PASS SaveDataManager.SaveGameWork static Boolean(String,Il2CppSystem.Action`2<Boolean,SaveDataManager+SaveData>,Boolean) [parameter 1=callback]
+PASS SaveDataManager.CopyGameWorkToSaveData static Boolean(GAME_WORK,SaveDataManager+SaveData) [parameter 1=save_data]
+PASS SaveDataManager.CopySaveDataToGameWork static Boolean(SaveDataManager+SaveData,GAME_WORK) [parameter 0=save_data]
+PASS SaveDataManager+SaveData.get_playerName instance String()
+PASS SaveDataManager+SaveData.get_playerCName instance String()
+PASS SaveDataManager+SaveData.get_date_time_now instance String()
+PASS SaveDataManager+SaveData.get_playTime instance UInt32()
+PASS SaveDataManager+SaveData.get_member_flag instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Byte>()
+PASS SaveDataManager+SaveData.get_storyFlagS instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Byte>()
+PASS SaveDataManager+SaveData.get_tmpEventFlagS instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Byte>()
+PASS SaveDataManager+SaveData.get_party_data instance PARTY_DATA()
+PASS SaveDataManager+SaveData.get_player_base instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray`1<PLAYER_BASE>()
+PASS PARTY_DATA.get_vil_no instance Byte()
+PASS PARTY_DATA.get_map_no instance Byte()
+PASS PARTY_DATA.get_area_no instance Byte()
+PASS PARTY_DATA.get_player_kazu instance Byte()
+PASS PARTY_DATA.get_x instance Int32()
+PASS PARTY_DATA.get_y instance Int32()
+PASS PARTY_DATA.get_mochi_kin instance Int32()
+PASS PARTY_DATA.get_chara_code instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Int16>()
+PASS PARTY_DATA.get_narabi instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<SByte>()
+PASS PARTY_DATA.get_b_chara instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<SByte>()
+PASS GAME_WORK.get_party_data instance PARTY_DATA()
+PASS GAME_WORK.get_player_base instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray`1<PLAYER_BASE>()
+PASS GAME_WORK.get_player_data instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray`1<PLAYER_DATA>()
+PASS GAME_WORK.get_member_flag instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Byte>()
+PASS PLAYER_DATA..ctor instance Void()
+PASS PLAYER_BASE..ctor instance Void()
+PASS PLAYER_ITEM..ctor instance Void()
+PASS PLAYER_BUKI..ctor instance Void()
+PASS PLAYER_MONSYO..ctor instance Void()
+PASS PLAYER_FIELD..ctor instance Void()
+PASS PLAYER_BATTLE_SO..ctor instance Void()
+PASS PLAYER_BATTLE_SO+ActionCommand..ctor instance Void()
+PASS PLAYER_FACE..ctor instance Void()
+PASS PLAYER_DATA.get_chara_id instance Byte()
+PASS PLAYER_DATA.set_chara_id instance Void(Byte)
+PASS PLAYER_DATA.get_n_2 instance Byte()
+PASS PLAYER_DATA.set_n_2 instance Void(Byte)
+PASS PLAYER_DATA.get_sex instance Byte()
+PASS PLAYER_DATA.set_sex instance Void(Byte)
+PASS PLAYER_DATA.get_soubi_type instance Byte()
+PASS PLAYER_DATA.set_soubi_type instance Void(Byte)
+PASS PLAYER_DATA.get_chara_name instance UInt32()
+PASS PLAYER_DATA.set_chara_name instance Void(UInt32)
+PASS PLAYER_DATA.get_n_1 instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Byte>()
+PASS PLAYER_DATA.set_n_1 instance Void(Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Byte>)
+PASS PLAYER_DATA.get_monsyu_type instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Byte>()
+PASS PLAYER_DATA.set_monsyu_type instance Void(Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Byte>)
+PASS PLAYER_DATA.get_seicho_type instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Byte>()
+PASS PLAYER_DATA.set_seicho_type instance Void(Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Byte>)
+PASS PLAYER_DATA.get_player_base instance PLAYER_BASE()
+PASS PLAYER_DATA.set_player_base instance Void(PLAYER_BASE)
+PASS PLAYER_DATA.get_battle_data instance PLAYER_BATTLE_SO()
+PASS PLAYER_DATA.set_battle_data instance Void(PLAYER_BATTLE_SO)
+PASS PLAYER_DATA.get_field_data instance PLAYER_FIELD()
+PASS PLAYER_DATA.set_field_data instance Void(PLAYER_FIELD)
+PASS PLAYER_DATA.get_face_data instance PLAYER_FACE()
+PASS PLAYER_DATA.set_face_data instance Void(PLAYER_FACE)
+PASS PLAYER_BASE.get_chara_no instance Int32()
+PASS PLAYER_BASE.set_chara_no instance Void(Int32)
+PASS PLAYER_BASE.get_max_hp instance UInt16()
+PASS PLAYER_BASE.set_max_hp instance Void(UInt16)
+PASS PLAYER_BASE.get_hp instance UInt16()
+PASS PLAYER_BASE.set_hp instance Void(UInt16)
+PASS PLAYER_BASE.get_exp instance UInt16()
+PASS PLAYER_BASE.set_exp instance Void(UInt16)
+PASS PLAYER_BASE.get_status instance UInt16()
+PASS PLAYER_BASE.set_status instance Void(UInt16)
+PASS PLAYER_BASE.get_level instance Byte()
+PASS PLAYER_BASE.set_level instance Void(Byte)
+PASS PLAYER_BASE.get_item_kazu instance Byte()
+PASS PLAYER_BASE.set_item_kazu instance Void(Byte)
+PASS PLAYER_BASE.get_magic_point instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Byte>()
+PASS PLAYER_BASE.set_magic_point instance Void(Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Byte>)
+PASS PLAYER_BASE.get_noryoku instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Byte>()
+PASS PLAYER_BASE.set_noryoku instance Void(Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Byte>)
+PASS PLAYER_BASE.get_seicho_type instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Byte>()
+PASS PLAYER_BASE.set_seicho_type instance Void(Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Byte>)
+PASS PLAYER_BASE.get_item instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray`1<PLAYER_ITEM>()
+PASS PLAYER_BASE.set_item instance Void(Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray`1<PLAYER_ITEM>)
+PASS PLAYER_BASE.get_buki_data instance PLAYER_BUKI()
+PASS PLAYER_BASE.set_buki_data instance Void(PLAYER_BUKI)
+PASS PLAYER_BASE.get_monsyo_data instance PLAYER_MONSYO()
+PASS PLAYER_BASE.set_monsyo_data instance Void(PLAYER_MONSYO)
+PASS PLAYER_ITEM.get_item_id instance UInt16()
+PASS PLAYER_ITEM.set_item_id instance Void(UInt16)
+PASS PLAYER_ITEM.get_soubi instance Byte()
+PASS PLAYER_ITEM.set_soubi instance Void(Byte)
+PASS PLAYER_ITEM.get_data instance Byte()
+PASS PLAYER_ITEM.set_data instance Void(Byte)
+PASS PLAYER_BUKI.get_buki_id instance Byte()
+PASS PLAYER_BUKI.set_buki_id instance Void(Byte)
+PASS PLAYER_BUKI.get_level instance Byte()
+PASS PLAYER_BUKI.set_level instance Void(Byte)
+PASS PLAYER_BUKI.get_monsyo instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Byte>()
+PASS PLAYER_BUKI.set_monsyo instance Void(Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Byte>)
+PASS PLAYER_MONSYO.get_monsyo_id instance Byte()
+PASS PLAYER_MONSYO.set_monsyo_id instance Void(Byte)
+PASS PLAYER_MONSYO.get_monsyo_level instance Byte()
+PASS PLAYER_MONSYO.set_monsyo_level instance Void(Byte)
+PASS PLAYER_MONSYO.get_monsyo_exp instance UInt16()
+PASS PLAYER_MONSYO.set_monsyo_exp instance Void(UInt16)
+PASS PLAYER_FIELD.get_opd_data instance OPD_DATA()
+PASS PLAYER_FIELD.set_opd_data instance Void(OPD_DATA)
+PASS PLAYER_BATTLE_SO.get_action_table instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray`1<PLAYER_BATTLE_SO+ActionCommand>()
+PASS PLAYER_BATTLE_SO.set_action_table instance Void(Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray`1<PLAYER_BATTLE_SO+ActionCommand>)
+PASS PLAYER_BATTLE_SO.get_action_function_index instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Int16>()
+PASS PLAYER_BATTLE_SO.set_action_function_index instance Void(Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Int16>)
+PASS PLAYER_BATTLE_SO.get_opd_data instance OPD_DATA()
+PASS PLAYER_BATTLE_SO.set_opd_data instance Void(OPD_DATA)
+PASS PLAYER_BATTLE_SO+ActionCommand.get_action_cmd instance Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Int16>()
+PASS PLAYER_BATTLE_SO+ActionCommand.set_action_cmd instance Void(Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1<Int16>)
+PASS Fhuman_c.GetCharacterName static String(Int32,Boolean)
+PASS Fhuman_c.GetCharacterNameTextID static Int32(Int32,Boolean)
+PASS Ws_face_c.CharacterIDConvertToFaceIDStatic static Int16(UInt16)
+PASS Ws_face_c.CharacterIDConvertToFaceID instance Int16(UInt16)
+PASS Ws_face_c.GetFaceSprite instance Il2CppSystem.Collections.IEnumerator(Int16,Il2CppSystem.Action`1<UnityEngine.Sprite>)
+PASS Village_c.h2DACreate instance AnimeSPRITE(Int32,Int32)
+PASS Village_c.Create2DAnimeHuman instance AnimeSPRITE(OPD_DATA,Int32)
+PASS AnimeSpriteManager.Destroy2DAnime static Void(AnimeSPRITE&)
+PASS AnimeSPRITE.get_opd_data instance OPD_DATA()
+PASS AnimeSPRITE.get_opd_sprite instance OPDSprite()
+PASS AnimeSPRITE.get_anime_no instance Int32()
+PASS AnimeSPRITE.get_pattern_kazu instance Int32()
+PASS AnimeSPRITE.get_pattern_no instance Int32()
+PASS AnimeSPRITE.get_pattern_table instance OPD_DATA+PatternTable()
+PASS TitleChapter+State.DifficultyInit public static literal Int32=19
+Interop SHA256=3786218d881eae9c0966e2f2b825b448161cc519fb3e5fbd12239ae3e6e2cefe
+156/156 avatar GSD1 method/property/constructor contracts and 1/1 New Game enum contract verified; 27 public source type references verified without native execution.
+Scope: GSD1 metadata only. External SystemSave.Save/cb, Unity Object cloning, SOBase, Framework.Chapter.activeChapter, inherited GlobalWork.Instance and OPDSprite.data are not verified here. Native detours and gameplay require game-start/runtime checks.

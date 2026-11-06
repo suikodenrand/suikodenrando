@@ -1,0 +1,52 @@
+  Determining projects to restore...
+  Restored /workspace/scratch/d6f908a8b251/avatar084-source/tests/SuikodenRandomizer.Avatar.Tests/SuikodenRandomizer.Avatar.Tests.csproj (in 138 ms).
+  1 of 2 projects are up-to-date for restore.
+  SuikodenRandomizer.Core -> /workspace/scratch/d6f908a8b251/avatar084-source/src/SuikodenRandomizer.Core/bin/Release/netstandard2.1/SuikodenRandomizer.Core.dll
+  SuikodenRandomizer.Avatar.Tests -> /workspace/scratch/d6f908a8b251/avatar084-source/tests/SuikodenRandomizer.Avatar.Tests/bin/Release/net10.0/SuikodenRandomizer.Avatar.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:03.19
+PASS Pilot is an explicit canonical Cleo role with Eileen donor
+PASS Profile fingerprint covers pair and start/replay policy
+PASS Protagonist guests supports and identity donation rejected
+PASS Canonical code data and base are never projected to donor identity
+PASS Empty and full parties preserve their actual canonical identities
+PASS Resident duplicates mismatched bindings and overflow rejected
+PASS Donor live starting values copy once while identity and plot stay canonical
+PASS Replay copies templates and preserves saved canonical progression
+PASS Copied mutable templates are independent of donor cache
+PASS Policy distinguishes New Game initialization from bound replay
+PASS Fresh initialization is admitted only once
+PASS Unbound existing save cannot enable avatar mutation
+PASS Pending initialization cannot save or replay
+PASS Capture binds initialized profile to same native snapshot and build
+PASS Bound load never reopens one-time donor starting progression
+PASS Loaded campaign rejects live profile swap before callback
+PASS Wrong save build profile version or incomplete initialization rejected
+PASS Malformed policy identity and fingerprint fields cannot be rebound
+PASS Rejected canonical identity never invokes donor copy callback
+PASS Failed copy transaction blocks save and retry
+PASS Exceptions during mutation mark campaign failed and propagate
+PASS Reentrant save and initialization blocked while transaction runs
+PASS Replay with changed identity rejected before any copy
+PASS Role copy exception restores exact target snapshot and leaves donor untouched
+PASS Replay progression overwrite is detected and rolled back
+PASS Donor cache mutation restores both snapshots and records failed stage
+PASS Failed rollback remains fatal after both restoration attempts
+PASS Silent incomplete restoration is rejected by snapshot verification
+PASS Snapshot capture failure prevents mutation and has explicit preflight record
+PASS Snapshot DTO mutation cannot swap a live campaign profile
+PASS Malformed native save build and policy enum values rejected
+PASS Shared avatar codec roundtrips exact initialized binding metadata
+PASS Shared avatar codec rejects legacy seed and foreign document formats
+PASS Shared avatar codec requires every field instead of accepting DTO defaults
+PASS Shared avatar codec rejects duplicate escaped aliases case aliases and unknown fields
+PASS Shared avatar codec rejects null wrong types and noncanonical numeric aliases
+PASS Shared avatar codec validates progression start profile save and build matches
+PASS Shared avatar codec cannot save fresh unbound failed or staged initialization
+PASS Shared avatar codec stores no native HP MP experience inventory or templates
+PASS Shared avatar codec bounds UTF8 payload and nesting before restore
+40/40 role-avatar checks passed.

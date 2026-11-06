@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>SuikodenRandomizer</AssemblyName>
+    <RootNamespace>SuikodenRandomizer.AvatarPlugin</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+
+    <GameRegistryPath>HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 1932640</GameRegistryPath>
+    <GamePath Condition="'$(GamePath)' == '' and '$(OS)' == 'Windows_NT'">$([MSBuild]::GetRegistryValueFromView('$(GameRegistryPath)', 'InstallLocation', null, RegistryView.Registry32))</GamePath>
+    <GamePath Condition="'$(GamePath)' == '' and '$(OS)' == 'Windows_NT'">$([MSBuild]::GetRegistryValueFromView('$(GameRegistryPath)', 'InstallLocation', null, RegistryView.Registry64))</GamePath>
+
+    <!-- Building only reads game references. Installation is an explicit step. -->
+    <BepInExPath Condition="'$(BepInExPath)' == '' and '$(GamePath)' != ''">$(GamePath)/BepInEx</BepInExPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../SuikodenRandomizer.Core/SuikodenRandomizer.Core.csproj" />
+    <Compile Include="../SuikodenRandomizer.Plugin/Runtime/BuildCompatibility.cs" Link="BuildCompatibility.cs" />
+    <Compile Include="../Shared/AvatarShuffleBindingJson.cs" Link="Serialization/AvatarShuffleBindingJson.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>$(BepInExPath)/core/0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="BepInEx.Core">
+      <HintPath>$(BepInExPath)/core/BepInEx.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="BepInEx.Unity.IL2CPP">
+      <HintPath>$(BepInExPath)/core/BepInEx.Unity.IL2CPP.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Il2CppInterop.Runtime">
+      <HintPath>$(BepInExPath)/core/Il2CppInterop.Runtime.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="$(BepInExPath)/interop/*.dll" Exclude="$(BepInExPath)/interop/GSD1.dll;$(BepInExPath)/interop/GSD2.dll">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="GSD1">
+      <HintPath>$(BepInExPath)/interop/GSD1.dll</HintPath>
+      <Private>false</Private>
+      <Aliases>GSD1</Aliases>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="RequireGameReferences" BeforeTargets="ResolveReferences">
+    <Error Condition="'$(BepInExPath)' == ''" Text="Pass -p:GamePath=&quot;C:\path\to\Suikoden I and II HD Remaster&quot; or -p:BepInExPath=&quot;C:\path\to\BepInEx&quot;." />
+    <Error Condition="!Exists('$(BepInExPath)/core/BepInEx.Unity.IL2CPP.dll')" Text="BepInEx 6 IL2CPP core references were not found in $(BepInExPath)/core." />
+    <Error Condition="!Exists('$(BepInExPath)/interop/GSD1.dll')" Text="GSD1 interop references were not found. Start the unmodified game with BepInEx once so its interop folder is generated." />
+  </Target>
+</Project>

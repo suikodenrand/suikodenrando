@@ -1,0 +1,55 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  SuikodenRandomizer.Core -> /workspace/scratch/d6f908a8b251/avatar084-source/src/SuikodenRandomizer.Core/bin/Release/netstandard2.1/SuikodenRandomizer.Core.dll
+  FakeGsd1 -> /workspace/scratch/d6f908a8b251/avatar084-source/tests/SuikodenRandomizer.AvatarUnite.Tests/FakeGsd1/bin/Release/net10.0/AvatarUnite.TestDoubles.GSD1.dll
+  SuikodenRandomizer.AvatarUnite.Tests -> /workspace/scratch/d6f908a8b251/avatar084-source/tests/SuikodenRandomizer.AvatarUnite.Tests/bin/Release/net10.0/SuikodenRandomizer.AvatarUnite.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:01.40
+PASS Talisman: changed participant blocked and exact requirements restored
+PASS Fisherman: changed participant blocked and exact requirements restored
+PASS Couple: changed participant blocked and exact requirements restored
+PASS Trick: changed participant blocked and exact requirements restored
+PASS Master Pupil: changed participant blocked and exact requirements restored
+PASS Wild Arrow Sylvina: changed participant blocked and exact requirements restored
+PASS Wild Arrow Stallion: changed participant blocked and exact requirements restored
+PASS Wild Arrow Rubi: changed participant blocked and exact requirements restored
+PASS Kobold: changed participant blocked and exact requirements restored
+PASS Bandit: changed participant blocked and exact requirements restored
+PASS Fatal: changed participant blocked and exact requirements restored
+PASS Carpenter: changed participant blocked and exact requirements restored
+PASS Bumpy: changed participant blocked and exact requirements restored
+PASS Warrior: changed participant blocked and exact requirements restored
+PASS Dragon Knight: changed participant blocked and exact requirements restored
+PASS Family: changed participant blocked and exact requirements restored
+PASS Elf: changed participant blocked and exact requirements restored
+PASS Kobold +1: changed participant blocked and exact requirements restored
+PASS Pirate: changed participant blocked and exact requirements restored
+PASS Flash: changed participant blocked and exact requirements restored
+PASS Ninja: changed participant blocked and exact requirements restored
+PASS Pretty Boy: changed participant blocked and exact requirements restored
+PASS Pretty Girl: changed participant blocked and exact requirements restored
+PASS Martial Arts: changed participant blocked and exact requirements restored
+PASS Beauty Valeria: changed participant blocked and exact requirements restored
+PASS Beauty Sonya: changed participant blocked and exact requirements restored
+PASS Blacksmith: changed participant blocked and exact requirements restored
+PASS Every listed unchanged combination remains native eligible
+PASS Compatible pair retained beside incompatible triple sharing a native array
+PASS Shared native requirement arrays are snapshotted before mutation and restored once
+PASS Nested hook scopes do not remap or restore the outer scope early
+PASS Original native exception is retained while finalizer restores requirements
+PASS Preflight validates every record before any native mutation
+PASS Partial masking failure rolls back all attempted native writes
+PASS Restore failure marks the runtime faulted and prevents future native fallback
+PASS Null and native disabled sentinel records remain intact
+PASS All populated battle-player slots are excluded from the substitute requirement
+PASS Null battle-player holes do not contribute an identity
+PASS Inactive and missing runtimes leave native calls and result untouched
+PASS Missing battle data and invalid native IDs fail before eligibility executes
+PASS Safety hooks target all seven candidate builders and leave native cancellation unpatched
+PASS Repeated candidate checks do not spam safety logs
+42/42 avatar Unite safety managed checks passed.
+Scope: actual production table scope and Harmony callbacks with explicit native models; 27 supplied participant combinations. Native matching, detours and full-plugin compilation are not executed.
