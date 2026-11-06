@@ -5,6 +5,8 @@
   <ProjectReference Include="../AvatarRuntime.TestDoubles/AvatarRuntime.TestDoubles.csproj" Aliases="GSD1" />
   <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/AvatarRuntime.cs" Link="Production/AvatarRuntime.cs" />
   <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/AvatarRuntime.FixedRoster.cs" Link="Production/AvatarRuntime.FixedRoster.cs" />
+  <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/ViktorCheckpointData.cs" Link="Production/ViktorCheckpointData.cs" />
+  <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/ViktorStart.cs" Link="Production/ViktorStart.cs" />
   <Compile Include="../../src/Shared/AvatarShuffleBindingJson.cs" Link="Production/AvatarShuffleBindingJson.cs" />
  </ItemGroup>
 </Project>

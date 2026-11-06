@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-internal static class Program
+internal static partial class Program
 {
  private static int _passed;
  private static void Check(bool condition,string message){if(!condition)throw new Exception(message);}
@@ -327,6 +327,7 @@ internal static class Program
      &&w.Game.player_data[4]?.Pointer==tedProxy?.Pointer&&w.Cache[108]?.Pointer==tedProxy?.Pointer
      &&w.Runtime.CanonicalLayoutFingerprint()==layout,"Failed transfer partially changed bases, pointers, or layout");
    });
+   RunViktorStartChecks();
    Console.WriteLine(_passed+"/"+_passed+" production-runtime managed adapter checks passed.");
    Console.WriteLine("Scope: actual linked AvatarRuntime with managed native test doubles; not full-plugin compilation or native gameplay.");
   }

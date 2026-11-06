@@ -20,7 +20,14 @@ internal static class AvatarNewGamePatch
             int step = GSD1.ChapterManager.GetGameStepSeq(__0);
             if (_instance == __instance.Pointer && _step == step) return;
             _instance = __instance.Pointer; _step = step;
-            if (step == (int)GSD1.TitleChapter.State.DifficultyInit) AvatarRuntime.Current?.BeginNewGame();
+            if (step == (int)GSD1.TitleChapter.State.DifficultyInit)
+            {
+                AvatarRuntime.Current?.BeginNewGame();
+                ViktorStart.Arm(AvatarPlugin.SkipToViktor && AvatarRuntime.Current?.IsAdmitted == true);
+            }
+            else if (step == (int)GSD1.TitleChapter.State.MenuInit
+                || step == (int)GSD1.TitleChapter.State.MenuSelect)
+                ViktorStart.Cancel();
         }
         catch (Exception exception) { AvatarRuntime.Current?.Fail("New Game boundary inspection failed: " + exception.Message); }
     }
@@ -30,7 +37,11 @@ internal static class AvatarNewGamePatch
 internal static class AvatarGameInitPatch
 {
     [HarmonyPrefix]
-    private static void Prefix() => AvatarRuntime.Current?.EnsureProxy("native party reconstruction", false);
+    private static void Prefix(int __0)
+    {
+        ViktorStart.BeforeGameInit("LoadPlayerData", __0);
+        AvatarRuntime.Current?.EnsureProxy("native party reconstruction", false);
+    }
     [HarmonyPostfix]
     private static void Postfix()
     {

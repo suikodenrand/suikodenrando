@@ -1,10 +1,9 @@
-SUIKODEN RANDOMIZER 0.8.5 FIXED ROSTER TEST
+SUIKODEN RANDOMIZER 0.8.6 BEFORE VIKTOR TEST
 Suikoden I HD Remaster on Windows x64
 
-Tir and five companions make up your campaign roster. Story joins and departures
-determine how many fighters are active. An incoming story character uses an
-available roster fighter. A fighter who sits out can return with their progress
-and equipment. Recruit normally whenever the story requires it.
+The optional start point opens in Gregminster after the inn scene, before
+Viktor joins for the first time. Recruit him at his bench and play the gate
+escape. This build also includes the chosen and random fixed roster modes.
 
 Install
 1. Make a backup of your native saves and the BepInEx/config folder. Start this
@@ -21,7 +20,20 @@ Install
 
    BepInEx/config/agilen.suikoden.recruitment_randomizer.cfg
 
-Choose your five companions
+Start before Viktor
+Under [Start], edit the existing Point entry:
+
+   Point = BeforeViktor
+
+Save the config, launch Suikoden I, and choose New Game. Enter your name and
+difficulty as usual. Use Point = Opening for the normal start. The setting is
+read on launch and applies only to New Game.
+
+The test uses the captured Gregminster street position, a short walk from
+Viktor. Tir starts at level 7. Your randomized companions use their usual
+starting stats and equipment. The preset leaves out optional opening loot.
+
+Optional fixed roster
 Under [Shuffle], edit these entries in the existing section:
 
    Mode = FixedChosen
@@ -29,33 +41,32 @@ Under [Shuffle], edit these entries in the existing section:
    Companions = 11,26,35,56,76
 
 The example picks Anji, Luc, Viktor, Lotte, and Meg. Choose five distinct IDs
-from docs/COMPANION_IDS.txt. Tir is included automatically.
+from docs/COMPANION_IDS.txt. Tir is included automatically. Story joins and
+departures determine how many roster fighters are active.
 
 Roll five companions from a seed
 Under [Shuffle], set Mode = FixedRandom and enter a Seed. A seed produces the
 same five companions when starting another New Game in this mode. Companions
 is used only by FixedChosen.
 
-Start a New Game after saving the config. Use Mode = Shuffle for a new campaign
-with the original avatar shuffle. Existing bound avatar-shuffle saves use their
-stored mapping. Keep native saves and their matching BepInEx/config data together.
+Use Mode = Shuffle for the regular avatar shuffle. Existing bound campaigns
+use their stored mapping. Keep native saves and their matching BepInEx/config
+data together.
 
 What to test
-1. Check names, portraits, and ordinary battle animations during the opening
-   joins, including when Ted becomes active. You should see only Tir and the
-   chosen or rolled companions as active fighters. A short party is expected.
-   The Ted-only Queen Ant sequence is a separate priority test. If it stalls,
-   keep the save from before the encounter and collect the diagnostic ZIP.
-2. Check a story departure and the next join. Make sure the incoming role uses
-   an available fighter. A returning fighter should keep earned experience and
-   gear. Reordering the formation should keep each active fighter's assignment.
-3. Make a manual save, close the game completely, then reload that save. Compare
-   the lineup, level, HP, and equipped items.
+1. After starting BeforeViktor, check that you can move in Gregminster, Tir has
+   the Soul Eater, and three fighters are active. Press F6 to log the checkpoint.
+2. Speak to Viktor and accept his help. Check that a fourth fighter joins. In
+   fixed roster mode, the fourth fighter should come from your preset. Press
+   F6 again when you regain control, then escape through the gate and proceed
+   to Lenankamp.
+3. At the next available save point, make a manual save, close the game, and
+   reload it. Check your party, runes, and story progress.
+4. With Point = Opening, start another New Game and check the normal opening.
 
-This package is for testing standard parties and ordinary battles. Duels, army
-battles, scripted equipment changes, and full campaign completion still need
-in-game testing. Some original Unite attacks are disabled for changed fighters.
-Optional recruitment still runs the game's normal story checks and menus.
+The skip, duels, army battles, scripted equipment changes, and full campaign
+completion still need in-game testing. Some original Unite attacks are
+disabled for changed fighters.
 
 If you hit a problem, note the scene and action that caused it. Close the game
 and run Collect-Avatar-Diagnostics.cmd. Setup failures print a separate log path.

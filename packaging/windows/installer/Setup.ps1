@@ -138,7 +138,7 @@ function Ensure-Toolchain {
         $part = $archive + '.' + $RunTag + '.partial'
         $client = New-Object Net.WebClient
         try {
-            $client.Headers.Add('User-Agent','SuikodenRandomizer-AutoInstaller/0.8.5-FixedRoster-Test')
+            $client.Headers.Add('User-Agent','SuikodenRandomizer-AutoInstaller/0.8.6-BeforeViktor-Test')
             $client.DownloadFile([string]$sdk.url, $part)
             if ((Hash-File $part 'SHA512') -ne $sdk.sha512) { throw 'Microsoft SDK checksum mismatch. The downloaded tools will NOT be run.' }
             Move-Item -LiteralPath $part -Destination $archive -Force
@@ -165,7 +165,7 @@ function Ensure-Toolchain {
     return $dotnet
 }
 function Backup-Targets([string]$Folder, [object[]]$Plan) {
-    $backup = Join-Path $Folder ('SRR-Backups\fixed-roster-085-test-' + $RunTag)
+    $backup = Join-Path $Folder ('SRR-Backups\before-viktor-086-test-' + $RunTag)
     New-Item -ItemType Directory -Path $backup -Force | Out-Null
     $records=@()
     foreach ($entry in $Plan) {
@@ -175,14 +175,14 @@ function Backup-Targets([string]$Folder, [object[]]$Plan) {
         if ($exists) { Copy-Item -LiteralPath $target -Destination (Join-Path $backup $entry.name); $oldHash=Hash-File (Join-Path $backup $entry.name) }
         $records += [ordered]@{name=$entry.name; relativePath=$entry.relativePath; existed=$exists; oldHash=$oldHash; newHash=(Hash-File $entry.source)}
     }
-    $manifest=[ordered]@{marker='SRR-AutoInstaller-085-FixedRoster-Test';status='pending';gameAssemblySha256=$Package.gameAssemblySha256;createdUtc=[DateTime]::UtcNow.ToString('o');files=$records}
+    $manifest=[ordered]@{marker='SRR-AutoInstaller-086-BeforeViktor-Test';status='pending';gameAssemblySha256=$Package.gameAssemblySha256;createdUtc=[DateTime]::UtcNow.ToString('o');files=$records}
     Write-Manifest (Join-Path $backup 'manifest.json') $manifest
     return $backup
 }
 function Restore-Backup([string]$Folder, [string]$Backup, [bool]$Recovery) {
     $manifestPath = Join-Path $Backup 'manifest.json'
     $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-    if ($manifest.marker -ne 'SRR-AutoInstaller-085-FixedRoster-Test' -or $manifest.gameAssemblySha256 -ne $Package.gameAssemblySha256) { throw 'Backup identity is not valid for this installer.' }
+    if ($manifest.marker -ne 'SRR-AutoInstaller-086-BeforeViktor-Test' -or $manifest.gameAssemblySha256 -ne $Package.gameAssemblySha256) { throw 'Backup identity is not valid for this installer.' }
     $allowed=@{
         'SuikodenRandomizer.dll'='BepInEx\plugins\SuikodenRandomizer\SuikodenRandomizer.dll';
         'SuikodenRandomizer.Core.dll'='BepInEx\plugins\SuikodenRandomizer\SuikodenRandomizer.Core.dll'
@@ -210,10 +210,10 @@ function Restore-Backup([string]$Folder, [string]$Backup, [bool]$Recovery) {
 try {
     Start-Transcript -LiteralPath $Log -Force | Out-Null
     $TranscriptStarted = $true
-    Write-Host 'Suikoden Randomizer 0.8.5 Fixed Roster Test - Automatic setup'
+    Write-Host 'Suikoden Randomizer 0.8.6 Before Viktor Test - Automatic setup'
     Write-Host 'This is a build-and-install package, not a precompiled release.'
     Write-Host 'No source editing or manual SDK installation is needed. Internet is required on first installation.'
-    Write-Host 'Use a separate New Game for the fixed roster test. See README.txt for setup and save backups.'
+    Write-Host 'Use a separate New Game for the Before Viktor test. See README.txt for setup and save backups.'
     Write-Host ''
     Assert-GameClosed
     $GamePath=Resolve-GameFolder $GamePath
@@ -222,14 +222,14 @@ try {
         $backupRoot=Join-Path $GamePath 'SRR-Backups'
         $candidates=@()
         if (Test-Path -LiteralPath $backupRoot) {
-            $candidates=@(Get-ChildItem -LiteralPath $backupRoot -Directory -Filter 'fixed-roster-085-test-*' | Sort-Object Name -Descending | Where-Object {
+            $candidates=@(Get-ChildItem -LiteralPath $backupRoot -Directory -Filter 'before-viktor-086-test-*' | Sort-Object Name -Descending | Where-Object {
                 $f=Join-Path $_.FullName 'manifest.json'
                 if (-not (Test-Path -LiteralPath $f)) { return $false }
                 $m=Get-Content -LiteralPath $f -Raw | ConvertFrom-Json
-                return $m.marker -eq 'SRR-AutoInstaller-085-FixedRoster-Test' -and $m.status -ne 'rolled-back'
+                return $m.marker -eq 'SRR-AutoInstaller-086-BeforeViktor-Test' -and $m.status -ne 'rolled-back'
             })
         }
-        if ($candidates.Count -eq 0) { throw 'No unrestored 0.8.5 fixed roster test backup was found in this game folder.' }
+        if ($candidates.Count -eq 0) { throw 'No unrestored 0.8.6 Before Viktor test backup was found in this game folder.' }
         Restore-Backup $GamePath $candidates[0].FullName $false
         Write-Host 'Rollback completed. Any previous plugin DLLs were restored.'
         $Succeeded=$true
@@ -262,7 +262,7 @@ try {
             $plan += [pscustomobject]@{name=$name;source=$file;relativePath=('BepInEx\plugins\SuikodenRandomizer\'+$name)}
         }
         Assert-GameClosed
-        Write-Host 'Checks passed. Backing up plugin files and installing the fixed roster test...' 
+        Write-Host 'Checks passed. Backing up plugin files and installing the Before Viktor test...' 
         $backup=Backup-Targets $GamePath $plan
         try {
             foreach ($entry in $plan) {
@@ -283,9 +283,9 @@ try {
         }
         $Succeeded=$true
         Write-Host ''
-        Write-Host 'Installed Suikoden Randomizer 0.8.5 Fixed Roster Test.'
-        Write-Host 'Launch once to the title screen, then close the game to set Mode, Seed, and Companions under [Shuffle].'
-        Write-Host 'See README.txt for chosen and random presets, test steps, and rollback.'
+        Write-Host 'Installed Suikoden Randomizer 0.8.6 Before Viktor Test.'
+        Write-Host 'Launch once to the title screen, then close the game to set Point under [Start].'
+        Write-Host 'See README.txt for the start point, optional roster settings, and test steps.'
         Write-Host "Plugin file backup: $backup"
         Write-Host 'If a test fails, close the game and run Collect-Avatar-Diagnostics.cmd.'
 

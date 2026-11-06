@@ -26,6 +26,7 @@ public sealed class AvatarOverlay : MonoBehaviour
             runtime.Trace("MANUAL CHECKPOINT: " + runtime.Status);
             runtime.Trace("PERFORMANCE CHECKPOINT: " + runtime.PerformanceStatus);
             runtime.TracePartyLayout("manual F6 checkpoint");
+            if (AvatarPlugin.SkipToViktor) ViktorStart.TraceState("manual F6");
             if (runtime.IsActive)
             {
                 try { runtime.VerifyFinalParty("manual F6 checkpoint"); }
@@ -74,7 +75,7 @@ public sealed class AvatarOverlay : MonoBehaviour
             GUI.DrawTexture(new Rect(14, 14, width, height), Texture2D.whiteTexture);
             GUI.color = Color.white;
             GUI.contentColor = Color.white;
-            GUI.Label(new Rect(26, 22, width - 24, 25), GUIContent.Temp("STORY AVATARS 0.8.5 | 75 HERO SHUFFLE | F6 checkpoint/details"), _style);
+            GUI.Label(new Rect(26, 22, width - 24, 25), GUIContent.Temp("STORY AVATARS 0.8.6 | STORY SHUFFLE | F6 checkpoint/details"), _style);
             if (!fault && !_details) return;
             string text = runtime.Status.Replace('\r', ' ').Replace('\n', ' ');
             int lineWidth = Math.Max(30, (int)(width / 9));

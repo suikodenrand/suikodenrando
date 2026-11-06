@@ -18,6 +18,16 @@ namespace UnityEngine.SceneManagement
  public readonly struct Scene { public string name => SceneManager.SceneName; }
  public static class SceneManager { public static string SceneName { get; set; } = "GSD1"; public static Scene GetActiveScene() => new Scene(); }
 }
+namespace HarmonyLib
+{
+ [AttributeUsage(AttributeTargets.Class)]
+ internal sealed class HarmonyPatch : Attribute
+ {
+  public HarmonyPatch(Type declaringType, string methodName) { }
+ }
+ [AttributeUsage(AttributeTargets.Method)] internal sealed class HarmonyPrefix : Attribute { }
+ [AttributeUsage(AttributeTargets.Method)] internal sealed class HarmonyPostfix : Attribute { }
+}
 namespace SuikodenRandomizer.AvatarPlugin
 {
  internal sealed class TestLogger

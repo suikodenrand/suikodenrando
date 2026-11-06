@@ -95,6 +95,8 @@ internal static class Program
         Method("ChapterManager", "GetGameStepSeq", true, "Int32(Int32)");
         Property("ChapterManager", "GR1Instance", "ChapterManager", isStatic: true);
         Method("GameInit", "LoadPlayerData", false, "Int32(Int32)", true);
+        Method("GameInit", "LoadMapData", false, "Int32(Int32)", true);
+        Method("Village_c", "InitPlayer", false, "Void(Int32,Int32)", true);
         Method("PlayerManager", "GetPlayerData", false, "PLAYER_DATA(CHARACTER_ID)", true);
         Property("PlayerManager", "player_cache", "Il2CppSystem.Collections.Generic.Dictionary`2<Int32,PLAYER_DATA>");
         Property("GlobalWork", "player_manager", "PlayerManager");
@@ -137,15 +139,17 @@ internal static class Program
         foreach (string name in new[] { "member_flag", "storyFlagS", "tmpEventFlagS" }) Property(Save, name, Bytes);
         Property(Save, "party_data", "PARTY_DATA");
         Property(Save, "player_base", References("PLAYER_BASE"));
-        foreach (string name in new[] { "vil_no", "map_no", "area_no", "player_kazu" }) Property("PARTY_DATA", name, "Byte");
-        foreach (string name in new[] { "x", "y", "mochi_kin" }) Property("PARTY_DATA", name, "Int32");
+        foreach (string name in new[] { "vil_no", "map_no", "area_no", "player_kazu" }) Property("PARTY_DATA", name, "Byte", true);
+        foreach (string name in new[] { "x", "y" }) Property("PARTY_DATA", name, "Int32", true);
+        Property("PARTY_DATA", "mochi_kin", "Int32");
         Property("PARTY_DATA", "chara_code", Shorts);
         Property("PARTY_DATA", "narabi", SBytes);
         Property("PARTY_DATA", "b_chara", SBytes);
         Property("GAME_WORK", "party_data", "PARTY_DATA");
         Property("GAME_WORK", "player_base", References("PLAYER_BASE"));
         Property("GAME_WORK", "player_data", References("PLAYER_DATA"));
-        Property("GAME_WORK", "member_flag", Bytes);
+        Property("GAME_WORK", "playerName", "String");
+        foreach (string name in new[] { "member_flag", "storyFlagS", "tmpEventFlagS" }) Property("GAME_WORK", name, Bytes);
 
         foreach (string type in new[] { "PLAYER_DATA", "PLAYER_BASE", "PLAYER_ITEM", "PLAYER_BUKI",
             "PLAYER_MONSYO", "PLAYER_FIELD", "PLAYER_BATTLE_SO", "PLAYER_BATTLE_SO+ActionCommand", "PLAYER_FACE" })

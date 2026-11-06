@@ -92,7 +92,11 @@ internal static class AvatarStorageGuardPatch
 internal static class AvatarSaveRestorePatch
 {
     [HarmonyPrefix]
-    private static void Prefix(GSD1.SaveDataManager.SaveData save_data) => AvatarRuntime.Current?.PrepareLoad(save_data);
+    private static void Prefix(GSD1.SaveDataManager.SaveData save_data)
+    {
+        ViktorStart.Cancel();
+        AvatarRuntime.Current?.PrepareLoad(save_data);
+    }
     [HarmonyPostfix]
     private static void Postfix(bool __result)
     {

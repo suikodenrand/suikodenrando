@@ -4,8 +4,8 @@ import json
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
-parser = argparse.ArgumentParser(description="Package the fixed roster Windows test installer.")
-parser.add_argument("--source", type=Path, required=True, help="0.8.5 source checkout")
+parser = argparse.ArgumentParser(description="Package the Before Viktor Windows test installer.")
+parser.add_argument("--source", type=Path, required=True, help="0.8.6 source checkout")
 parser.add_argument("--staging", type=Path, default=Path("packaging/windows"))
 parser.add_argument("--output", type=Path, required=True)
 parser.add_argument("--commit", help="Test branch commit included in the payload")
@@ -19,6 +19,7 @@ if f"<Version>{metadata['version']}</Version>" not in (source / "Directory.Build
     raise SystemExit("Source assembly version does not match the installer.")
 required = [
     "src/SuikodenRandomizer.AvatarPlugin/SuikodenRandomizer.AvatarPlugin.csproj",
+    "src/SuikodenRandomizer.AvatarPlugin/ViktorCheckpointData.cs",
     "tests/SuikodenRandomizer.FixedRoster.Tests/SuikodenRandomizer.FixedRoster.Tests.csproj",
 ]
 for name in required:
