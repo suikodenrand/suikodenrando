@@ -101,6 +101,9 @@ internal static class Program
         Property("OldSrcBase", "game_work", "GAME_WORK", isStatic: true);
         Method("P_player_c", "LoadPlayer", true, "Int32(Int32)", true);
         Method("P_player_c", "AddPlayer", true, "Int32(Int32)", true);
+        Method("P_player_c", "AddPlayer2", true, "Int32(Int32)", true);
+        Method("P_player_c", "DelPlayer", true, "Int32(Int32)", true);
+        Method("P_player_c", "DelPlayer2", true, "Int32(Int32)", true);
         Method("BattleBase", "initialize_battle", true, "Int32(Int32)", true);
         Method("BattleBase", "player_initialize", true, "Void()", true);
         Method("BattleBase", "calc_exp", true, "Void()", true);

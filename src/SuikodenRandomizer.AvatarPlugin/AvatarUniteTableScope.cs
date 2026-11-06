@@ -78,7 +78,7 @@ internal sealed class AvatarUniteTableScope : IDisposable
                 int id = ids[p];
                 if (id > 109)
                     throw new InvalidOperationException("Unite eligibility contains an invalid participant identity.");
-                if (changedIndex < 0 && runtime.Profile.GetDonor(id) != id) changedIndex = p;
+                if (changedIndex < 0 && runtime.MapDisplayId(id) != id) changedIndex = p;
             }
             if (changedIndex < 0) continue;
             maskedGroups++;

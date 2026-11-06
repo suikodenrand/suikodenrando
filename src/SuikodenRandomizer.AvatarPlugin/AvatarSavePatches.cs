@@ -29,7 +29,7 @@ internal static class AvatarSavePreparationPatch
             if (!runtime.EnsureProxy("save preparation", false, force: true))
                 throw new InvalidOperationException("Complete shuffle roster is not ready; save again after native initialization completes.");
             runtime.VerifyFinalParty("save preparation");
-            AvatarBindingStore.CheckWritable();
+            runtime.CheckCampaignBindingWritable();
             __state = new AvatarSaveCall { Previous = AvatarSaveCall.Current };
             AvatarSaveCall.Current = __state;
             return true;
@@ -63,10 +63,9 @@ internal static class AvatarSaveCapturePatch
         {
             var runtime = AvatarRuntime.Current ?? throw new InvalidOperationException("Avatar runtime unavailable.");
             if (!__result || !runtime.IsActive) throw new InvalidOperationException("Native snapshot/active pilot unavailable.");
-            string identity = AvatarSaveIdentity.Compute(save_data);
-            AvatarBindingStore.Write(runtime.Profile, runtime.State, identity);
+            string identity = runtime.WriteCampaignBinding(save_data);
             call.BindingFailed = false;
-            runtime.Trace("SAVE BOUND: canonical native snapshot=" + identity + "; profile=" + runtime.Profile.Fingerprint);
+            runtime.Trace("SAVE BOUND: canonical native snapshot=" + identity + "; profile=" + runtime.CampaignFingerprint);
         }
         catch (Exception exception) { call.BindingFailed = true; call.Failure = exception.Message; }
     }
@@ -99,6 +98,7 @@ internal static class AvatarSaveRestorePatch
     {
         var runtime = AvatarRuntime.Current;
         if (runtime is null) return;
+        runtime.CompleteFixedLoad();
         if (!__result) runtime.Fail("Native save restoration failed.");
         else if (runtime.IsAdmitted) runtime.EnsureProxy("bound save restore (no donor stats copied)", false, force: true);
     }

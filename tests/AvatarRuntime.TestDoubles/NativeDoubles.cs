@@ -76,7 +76,7 @@ public sealed class GAME_WORK : NativeObject
     public List<PLAYER_DATA?> player_data { get; set; } = new List<PLAYER_DATA?>();
     public byte[] member_flag { get; set; } = new byte[110];
 }
-public sealed class PlayerManager { public CountingPlayerCache player_cache { get; set; } = new CountingPlayerCache(); }
+public sealed class PlayerManager : NativeObject { public CountingPlayerCache player_cache { get; set; } = new CountingPlayerCache(); }
 public sealed class GlobalWork
 {
     public static GlobalWork? Instance { get; set; }
@@ -94,3 +94,6 @@ public sealed class SaveDataManager
 {
     public sealed class SaveData { public string Identity { get; set; } = new string('a',64); }
 }
+public sealed class P_BATTLE_DATA { public PLAYER_DATA? player_data { get; set; } }
+public sealed class BATTLE_WORK { public List<P_BATTLE_DATA?>? p_battle_data { get; set; } }
+public static class BattleBase { public static BATTLE_WORK? battle_work { get; set; } }

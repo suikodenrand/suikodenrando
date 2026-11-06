@@ -28,6 +28,8 @@ namespace SuikodenRandomizer.AvatarPlugin
         internal bool Active { get; set; } = true;
         internal bool IsActive => Active && FaultReason is null;
         internal TestProfile Profile { get; } = new TestProfile();
+        internal string CampaignFingerprint => Profile.Fingerprint;
+        internal int MapDisplayId(int canonicalId) => IsActive ? Profile.GetDonor(canonicalId) : canonicalId;
         internal string? FaultReason { get; private set; }
         internal List<string> Logs { get; } = new List<string>();
         internal void Trace(string message) => Logs.Add(message);

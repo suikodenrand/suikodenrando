@@ -74,7 +74,7 @@ public sealed class AvatarOverlay : MonoBehaviour
             GUI.DrawTexture(new Rect(14, 14, width, height), Texture2D.whiteTexture);
             GUI.color = Color.white;
             GUI.contentColor = Color.white;
-            GUI.Label(new Rect(26, 22, width - 24, 25), GUIContent.Temp("STORY AVATARS 0.8.4 | 75 HERO SHUFFLE | F6 checkpoint/details"), _style);
+            GUI.Label(new Rect(26, 22, width - 24, 25), GUIContent.Temp("STORY AVATARS 0.8.5 | 75 HERO SHUFFLE | F6 checkpoint/details"), _style);
             if (!fault && !_details) return;
             string text = runtime.Status.Replace('\r', ' ').Replace('\n', ' ');
             int lineWidth = Math.Max(30, (int)(width / 9));

@@ -41,7 +41,7 @@ internal static class AvatarUniteCandidatePatch
             __state = AvatarUniteTableScope.Begin();
             if (__state?.MaskedGroupCount > 0)
             {
-                string key = runtime.Profile.Fingerprint + ":" + __originalMethod.Name;
+                string key = runtime.CampaignFingerprint + ":" + __originalMethod.Name;
                 if (Reported.Count < 32 && Reported.Add(key))
                     runtime.Trace("UNITE SAFETY " + __originalMethod.Name + ": incompatible native groups="
                         + __state.MaskedGroupCount + "; compatible groups and native command handling retained.");

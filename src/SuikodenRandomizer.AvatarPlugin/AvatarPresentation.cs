@@ -53,7 +53,7 @@ internal static class AvatarPresentation
             ushort source = characterId;
             int donor = runtime.MapDisplayId(source);
             characterId = checked((ushort)donor);
-            if (runtime.Profile.IsRole(source))
+            if (runtime.IsRole(source))
                 Once(runtime, "face-character:" + source, "Portrait character projection role=" + source
                     + " -> donor=" + donor + "; native face conversion retained; sprite IDs are not remapped.");
         }
@@ -64,7 +64,7 @@ internal static class AvatarPresentation
     internal static void ObserveFaceResult(ushort characterId, short faceId, bool entered)
     {
         if (!entered || _faceDepth != 1 || !TryGetActive(out var runtime)
-            || !runtime.Profile.IsRole(characterId)) return;
+            || !runtime.IsRole(characterId)) return;
         Once(runtime, "face-result:" + characterId, "Native portrait conversion donor=" + characterId
             + "; face=" + faceId + "; sprite lookup left native.");
     }
@@ -72,8 +72,8 @@ internal static class AvatarPresentation
     internal static bool TryCreateFieldSprite(GSD1.Village_c village, int canonicalImageId,
         int direction, ref GSD1.AnimeSPRITE result)
     {
-        if (!TryGetActive(out var runtime) || !runtime.Profile.IsRole(canonicalImageId)) return false;
-        int donorId = runtime.Profile.GetDonor(canonicalImageId);
+        if (!TryGetActive(out var runtime) || !runtime.IsRole(canonicalImageId)) return false;
+        int donorId = runtime.MapDisplayId(canonicalImageId);
         if (donorId == canonicalImageId) return false;
         if (direction < 0 || direction > 3)
         {

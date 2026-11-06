@@ -1,0 +1,5 @@
+**/bin/
+**/obj/
+**/__pycache__/
+packaging/windows/installer/payload.zip
+/SuikodenRandomizer-*-AutoInstall.zip

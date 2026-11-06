@@ -46,13 +46,14 @@ internal static class AvatarCharacterDataPatch
     private static void Postfix(GSD1.CHARACTER_ID __0, ref GSD1.PLAYER_DATA __result)
     {
         var runtime = AvatarRuntime.Current;
-        if (runtime?.IsAdmitted != true || !runtime.IsRole((int)__0)) return;
+        if (runtime?.IsAdmitted != true) return;
         if (AvatarPresentation.ResolvingFaces || AvatarPresentation.ResolvingNames)
         {
             if (runtime.TryGetOriginal((int)__0, out var original)) __result = original;
             return;
         }
-        __result = runtime.ProjectPlayerData((int)__0, __result) ?? __result;
+        if (runtime.IsRole((int)__0))
+            __result = runtime.ProjectPlayerData((int)__0, __result) ?? __result;
     }
 }
 
@@ -98,8 +99,9 @@ internal static class AvatarBattleEntryPatch
         {
             if (runtime.FaultReason is not null) { __result = 0; return false; }
             if (!runtime.IsAdmitted) return true;
-            if (!runtime.State.IsInitialized && !runtime.HasMappedPartyRole()) return true;
+            if (!runtime.IsFixedRoster && !runtime.State.IsInitialized && !runtime.HasMappedPartyRole()) return true;
             if (!runtime.EnsureProxy("normal battle entry", true)) { __result = 0; return false; }
+            if (runtime.IsFixedRoster) runtime.VerifyFinalParty("fixed roster battle entry");
             return true;
         }
         catch (Exception exception) { runtime.Fail("Battle entry inspection failed: " + exception.Message); __result = 0; return false; }
@@ -127,6 +129,7 @@ internal static class AvatarBattleObservationPatch
             runtime.VerifyFinalParty(__originalMethod.Name);
             if (__originalMethod.Name == "player_initialize")
             {
+                runtime.VerifyFixedBattleParty();
                 var data = GSD1.BattleBase.battle_work?.p_battle_data;
                 if (data is not null)
                     for (int n = 0; n < data.Count; n++)
@@ -137,7 +140,7 @@ internal static class AvatarBattleObservationPatch
                             var role = AvatarNativeData.FindBase(player.chara_id);
                             var proxy = runtime.ProxyFor(player.chara_id);
                             runtime.Trace("BATTLE LINK slot=" + n + "; data/base=" + player.chara_id + "/"
-                                + player.player_base?.chara_no + "; donor=" + runtime.Profile.GetDonor(player.chara_id)
+                                + player.player_base?.chara_no + "; donor=" + runtime.MapDisplayId(player.chara_id)
                                 + "; proxy=" + (player.Pointer == proxy?.Pointer)
                                 + "; avatarOPD=" + (player.battle_data?.opd_data?.Pointer == proxy?.battle_data?.opd_data?.Pointer)
                                 + "; canonicalBase=" + (player.player_base?.Pointer == role.Pointer)
@@ -160,5 +163,25 @@ internal static class AvatarFaultDriverPatch
         if (runtime?.FaultReason is null) return true;
         __instance.ClrEventRenzoku();
         return false;
+    }
+}
+
+[HarmonyPatch]
+internal static class FixedRosterPartyChangePatch
+{
+    [HarmonyTargetMethods]
+    private static IEnumerable<MethodBase> Targets()
+    {
+        foreach (string name in new[] { "AddPlayer2", "DelPlayer", "DelPlayer2" })
+            yield return AccessTools.Method(typeof(GSD1.P_player_c), name, new[] { typeof(int) })
+                ?? throw new MissingMethodException("P_player_c." + name);
+    }
+
+    [HarmonyPostfix]
+    private static void Postfix()
+    {
+        var runtime = AvatarRuntime.Current;
+        if (runtime?.IsFixedRoster == true)
+            runtime.EnsureProxy("active party change", false, force: true);
     }
 }

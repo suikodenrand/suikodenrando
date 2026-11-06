@@ -36,6 +36,7 @@ namespace SuikodenRandomizer.AvatarPlugin
         internal int OriginalReads { get; private set; }
 
         internal AvatarRuntime(AvatarShuffleProfile profile) { Profile = profile; }
+        internal bool IsRole(int canonicalId) => Profile.IsRole(canonicalId);
         internal int MapDisplayId(int canonicalId)
         {
             ObservedNameScope = AvatarPresentation.ResolvingNames;

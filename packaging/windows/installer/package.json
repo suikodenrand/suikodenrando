@@ -1,0 +1,15 @@
+{
+  "version": "0.8.5",
+  "kind": "experimental-fixed-roster-test",
+  "payloadSha256": "PENDING",
+  "gameAssemblySha256": "e093f175eaf3734d293ca0a236c652dd7fcc72ea5fa10d7b21103edf12f11c3a",
+  "sdk": {
+    "version": "10.0.403",
+    "url": "https://builds.dotnet.microsoft.com/dotnet/Sdk/10.0.403/dotnet-sdk-10.0.403-win-x64.zip",
+    "sha512": "7a114c318fa7f1d9822991b534b2814d0e78386ceda816b371f5141acefe741d87ccb606ede06cadac8f9ac5070e32b708a67bbd1619ff5e5a7858a27874ef48",
+    "checksumSource": "https://builds.dotnet.microsoft.com/dotnet/release-metadata/10.0/releases.json"
+  },
+  "description": "Fixed roster playtest with Tir and five chosen or seeded companions.",
+  "installerRevision": "fixed-roster-test-1",
+  "assemblyVersion": "0.8.5.0"
+}

@@ -1,23 +1,19 @@
-# Suikoden Randomizer 0.8.4 — Story Avatars 75 Shuffle
+# Suikoden I HD Remaster Randomizer 0.8.5 Fixed Roster Test
 
-This experimental patch blocks unsafe native Unite attacks involving changed combat avatars. The engine still recognizes original story IDs such as Gremio and Pahn, but their assigned avatars may lack the animation data that the original Unite sequence expects. The reported Talisman softlock repeatedly throws an array-bounds exception in its native battle routine.
+The fixed roster has Tir and five distinct companions. Choose five hero IDs or roll five from a seed. As story roles join and leave the active party, available fighters move into those roles. A returning fighter carries their saved progress and equipment. Recruit normally for story progression.
 
-**Unites involving changed combat avatars are blocked. Donor-based Unites are not implemented. Unchanged native combinations remain eligible subject to the game's own conditions.** Canonical story identities are retained.
+The Windows test package builds the plugin on the player's PC against the installed game and BepInEx references. See [the installation and playtest guide](packaging/windows/README.txt) and [companion IDs](packaging/windows/docs/COMPANION_IDS.txt).
 
-**Existing bound 0.8.0/0.8.1/0.8.2/0.8.3 shuffle saves are supported. No restart is required for this Unite safety fix.** Save the current run before closing if needed, keep its matching config/bindings, install the update and reload. Unbound saves, the 0.7.x pilot and older ID-swapping campaigns are not converted. An already softlocked battle must be abandoned by closing and reloading a prior save.
+Use a separate New Game for the test. The prototype targets ordinary battles and party changes. Check the opening with Ted and the Ted-only Queen Ant sequence, a departure and return, and a full quit and reload. Duels, army battles, quest-specific inventory and rune changes, and the full campaign need native playtesting.
 
-The 0.8.3 portrait correction, 0.8.2 staged-resident startup correction and 0.8.1 performance improvements remain. Non-combat Stars, Tir, Ted and Odessa remain excluded from both sides of the 75-hero shuffle. Default seed: `agilen-080`; bound saves restore their own mapping.
+## Source and packaging
 
-Read [docs/AVATAR_SHUFFLE_0.8.4.md](docs/AVATAR_SHUFFLE_0.8.4.md) for installation, focused battle retesting, diagnostics and rollback. Confirm the Gremio/Pahn replacements cannot select their original Talisman attack, check ordinary attacks and runes, then save/full quit/reload. No full playthrough or repeated opening is requested.
+The parent commit is the published 0.8.4 source snapshot. The fixed roster profile, active assignments, and fighter records are stored in a separate versioned save binding. Keep the game's saves and its BepInEx configuration together.
 
-The AutoInstall package verifies the supported native revision, checks installed API contracts, compiles against installed BepInEx/game references and runs all relevant managed suites before replacing either DLL. This source contains no proprietary binaries or precompiled plugin. The pinned SDK is .NET 10.0.403; Core targets netstandard2.1 and the game plugin targets net6.0.
+Run the standalone managed projects under `tests/` using the SDK in `global.json`. The native metadata contract check also takes the path to the installed `BepInEx/interop/GSD1.dll`.
 
-Managed suites use actual linked production code with explicit native-model doubles. They do not execute native hooks or compile the complete plugin against real external wrappers. `RELEASE_VALIDATION.json` records completed checks and limits. The corrected Unite behavior still needs the focused in-game retest.
+To reproduce the Windows archive, run the following from this checkout. The script generates the installer payload and its SHA-256 from this source.
 
-Example local build:
-
-```powershell
-dotnet build src/SuikodenRandomizer.AvatarPlugin/SuikodenRandomizer.AvatarPlugin.csproj --configuration Release -p:GamePath="C:\path\to\Suikoden I and II HD Remaster"
+```sh
+python3 packaging/package.py --source . --staging packaging/windows --output SuikodenRandomizer-0.8.5-FixedRoster-Test-AutoInstall.zip
 ```
-
-Use the installer for backed-up DLL replacement. Building only reads installed references.

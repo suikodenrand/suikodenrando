@@ -29,6 +29,8 @@ namespace SuikodenRandomizer.AvatarPlugin
  internal static class AvatarPlugin
  {
   internal static string ConfiguredSeed { get; set; } = "agilen-080";
+  internal static string ConfiguredMode { get; set; } = "Shuffle";
+  internal static string ConfiguredCompanions { get; set; } = string.Empty;
   internal static TestLogger PluginLog { get; } = new TestLogger();
  }
  internal static class AvatarPresentation { internal static int Resets; internal static void Reset() => Resets++; }
@@ -41,8 +43,44 @@ namespace SuikodenRandomizer.AvatarPlugin
  {
   internal static Dictionary<string,string> Bindings { get; } = new Dictionary<string,string>();
   internal static string Build => new string('b',64);
+  internal static void CheckWritable() { }
+  internal static void Write(AvatarShuffleProfile profile, AvatarShuffleCampaignState state, string id) =>
+   Bindings[id] = AvatarShuffleBindingJson.Serialize(profile,state,id,Build);
   internal static AvatarShuffleCampaignState? Read(string id) => Bindings.TryGetValue(id,out string? json)
    ? AvatarShuffleBindingJson.Deserialize(json,id,Build) : null;
+ }
+ // This suite models native PLAYER_BASE through the same fake fields used by
+ // AvatarNativeData. Real sidecar serialization is checked separately.
+ internal sealed class FixedRosterBaseSnapshot
+ {
+  private readonly GSD1.PLAYER_BASE _copy;
+  private FixedRosterBaseSnapshot(GSD1.PLAYER_BASE source) => _copy = AvatarNativeData.CloneBase(source);
+  public int CharacterId { get => _copy.chara_no; set => _copy.chara_no = value; }
+  public byte[] Growth { get => _copy.seicho_type; set => _copy.seicho_type = value; }
+  public ushort Hp { get => _copy.hp; set => _copy.hp = value; }
+  public ushort MaxHp => _copy.max_hp;
+  public ushort Status { get => _copy.status; set => _copy.status = value; }
+  internal static FixedRosterBaseSnapshot Capture(GSD1.PLAYER_BASE source) => new FixedRosterBaseSnapshot(source);
+  internal void ValidateState() => AvatarNativeData.ValidateBase(_copy);
+  internal GSD1.PLAYER_BASE ToNative() => AvatarNativeData.CloneBase(_copy);
+ }
+ internal sealed class FixedRosterBinding
+ {
+  public string Seed { get; set; } = string.Empty;
+  public int[] Companions { get; set; } = Array.Empty<int>();
+  public Dictionary<int, int> Assignments { get; set; } = new();
+  public Dictionary<int, FixedRosterBaseSnapshot> CompanionStates { get; set; } = new();
+  public Dictionary<int, FixedRosterBaseSnapshot> RoleBases { get; set; } = new();
+ }
+ internal static class FixedRosterBindingStore
+ {
+  internal static Dictionary<string, FixedRosterBinding> Bindings { get; } = new();
+  internal static bool HasBindings => Bindings.Count != 0;
+  internal static void CheckWritable() { }
+  internal static string ComputeIdentity(GSD1.SaveDataManager.SaveData save) => save.Identity;
+  internal static FixedRosterBinding? Read(string identity) =>
+   Bindings.TryGetValue(identity, out var binding) ? binding : null;
+  internal static void Write(string identity, FixedRosterBinding binding) => Bindings.Add(identity, binding);
  }
  internal static class AvatarNativeData
  {

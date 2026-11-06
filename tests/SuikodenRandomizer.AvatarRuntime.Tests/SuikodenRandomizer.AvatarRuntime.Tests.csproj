@@ -4,6 +4,7 @@
   <ProjectReference Include="../../src/SuikodenRandomizer.Core/SuikodenRandomizer.Core.csproj" />
   <ProjectReference Include="../AvatarRuntime.TestDoubles/AvatarRuntime.TestDoubles.csproj" Aliases="GSD1" />
   <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/AvatarRuntime.cs" Link="Production/AvatarRuntime.cs" />
+  <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/AvatarRuntime.FixedRoster.cs" Link="Production/AvatarRuntime.FixedRoster.cs" />
   <Compile Include="../../src/Shared/AvatarShuffleBindingJson.cs" Link="Production/AvatarShuffleBindingJson.cs" />
  </ItemGroup>
 </Project>
