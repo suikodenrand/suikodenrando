@@ -1,6 +1,7 @@
 extern alias GSD1;
 
 using HarmonyLib;
+using SuikodenRandomizer.Core;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -34,7 +35,9 @@ internal static class AvatarPresentation
         // apply the permutation twice. Scope covers protected IDs as well.
         if (_nameDepth++ == 0)
         {
-            characterId = runtime.MapDisplayId(characterId);
+            // The protagonist is player-named and referenced by story UI.
+            if (characterId != CombatCatalog.TirId)
+                characterId = runtime.MapDisplayId(characterId);
             Once(runtime, "name", "Native name chain projects exactly once; canonical caller IDs unchanged.");
         }
         return true;

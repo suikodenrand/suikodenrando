@@ -1,6 +1,7 @@
 extern alias GSD1;
 
 using SuikodenRandomizer.Core.Avatars;
+using SuikodenRandomizer.Core;
 using SuikodenRandomizer.Serialization;
 using System;
 using System.Collections.Generic;
@@ -41,6 +42,7 @@ namespace SuikodenRandomizer.AvatarPlugin
   internal static string ConfiguredSeed { get; set; } = "agilen-080";
   internal static string ConfiguredMode { get; set; } = "Shuffle";
   internal static string ConfiguredCompanions { get; set; } = string.Empty;
+  internal static bool ConfiguredIncludeTir { get; set; }
   internal static TestLogger PluginLog { get; } = new TestLogger();
  }
  internal static class AvatarPresentation { internal static int Resets; internal static void Reset() => Resets++; }
@@ -111,8 +113,11 @@ namespace SuikodenRandomizer.AvatarPlugin
   {
    ValidateBase(v);
    return new GSD1.PLAYER_BASE {chara_no=v.chara_no,level=v.level,hp=v.hp,max_hp=v.max_hp,exp=v.exp,status=v.status,
+    noryoku=v.noryoku.ToList(),monsyo_data=CloneRune(v.monsyo_data),
     seicho_type=CloneBytes(v.seicho_type),IsComplete=v.IsComplete,Equipment=v.Equipment,Rune=v.Rune,Items=(int[])v.Items.Clone()};
   }
+  private static GSD1.PLAYER_MONSYO? CloneRune(GSD1.PLAYER_MONSYO? rune) => rune is null ? null
+   : new GSD1.PLAYER_MONSYO {monsyo_id=rune.monsyo_id,monsyo_level=rune.monsyo_level,monsyo_exp=rune.monsyo_exp};
   internal static void CopyBase(GSD1.PLAYER_BASE from, GSD1.PLAYER_BASE to)
   {
    CopyCalls++;
@@ -120,15 +125,18 @@ namespace SuikodenRandomizer.AvatarPlugin
    to.level=from.level;to.hp=from.hp;to.max_hp=from.max_hp;to.exp=from.exp;to.status=from.status;
    to.seicho_type=CloneBytes(from.seicho_type);to.IsComplete=from.IsComplete;to.Equipment=from.Equipment;
    to.Rune=from.Rune;to.Items=(int[])from.Items.Clone();
+   to.noryoku=from.noryoku.ToList();to.monsyo_data=CloneRune(from.monsyo_data);
   }
   internal static string Fingerprint(GSD1.PLAYER_BASE value)
   {
    ValidateBase(value);
    return string.Join("|",value.chara_no,value.level,value.hp,value.max_hp,value.exp,value.status,value.Equipment,value.Rune,
+    value.monsyo_data?.monsyo_id,value.monsyo_data?.monsyo_level,value.monsyo_data?.monsyo_exp,string.Join(",",value.noryoku),
     string.Join(",",value.Items),string.Join(",",value.seicho_type));
   }
-  internal static GSD1.PLAYER_DATA CreateProxy(GSD1.PLAYER_DATA original,GSD1.PLAYER_DATA donor,GSD1.PLAYER_BASE roleBase) =>
-   new GSD1.PLAYER_DATA {chara_id=original.chara_id,chara_name=donor.chara_name,player_base=roleBase,
-    field_data=donor.field_data,battle_data=donor.battle_data,seicho_type=CloneBytes(donor.seicho_type)};
+  internal static GSD1.PLAYER_DATA CreateProxy(GSD1.PLAYER_DATA original,GSD1.PLAYER_DATA donor,GSD1.PLAYER_BASE roleBase,
+   bool keepCanonicalLoadout=false) =>
+   new GSD1.PLAYER_DATA {chara_id=original.chara_id,chara_name=original.chara_id==CombatCatalog.TirId?original.chara_name:donor.chara_name,player_base=roleBase,
+    field_data=donor.field_data,battle_data=donor.battle_data,seicho_type=CloneBytes(keepCanonicalLoadout?original.seicho_type:donor.seicho_type)};
  }
 }

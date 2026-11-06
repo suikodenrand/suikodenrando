@@ -21,10 +21,10 @@ internal sealed partial class AvatarRuntime
     internal AvatarShuffleProfile Profile => State.Profile ?? throw new InvalidOperationException("No shuffle campaign is bound.");
     internal string? FaultReason { get; private set; }
     internal bool IsAdmitted => FaultReason is null && (_fixedProfile is not null ? !_fixedLoading : State.Origin != RoleAvatarCampaignOrigin.UnboundSave);
-    internal bool IsActive => IsAdmitted && (_fixedProfile is not null ? _fixedStarted : State.IsInitialized && _proxies.Count == 75);
+    internal bool IsActive => IsAdmitted && (_fixedProfile is not null ? _fixedStarted : State.IsInitialized && _proxies.Count == Profile.RoleIds.Count);
     internal string Status => FaultReason is not null ? "STOP: " + FaultReason
         : IsActive && IsFixedRoster ? "Fixed roster test | Tir + five companions"
-        : IsActive ? "75 combat roles | seed: " + Profile.Seed + " | story IDs retained"
+        : IsActive ? Profile.RoleIds.Count + " combat roles | seed: " + Profile.Seed + " | story IDs retained"
         : IsAdmitted ? "Waiting for native roster and a bound story resident: " + _waiting
         : "Shuffle inactive: start a NEW GAME. Pilot/older saves are read-only.";
 
@@ -58,7 +58,7 @@ internal sealed partial class AvatarRuntime
         if (!IsRole(id)) return nativeResult;
         var proxy = ProxyFor(id);
         // Ordinary native cache hits already return the assigned proxy. Do not
-        // recheck all 75 cache entries or rebind their bases on every getter.
+        // recheck the entire cache or rebind its bases on every getter.
         if (proxy is not null && nativeResult?.Pointer == proxy.Pointer
             && _game == GSD1.OldSrcBase.game_work?.Pointer)
         { _directCacheHits++; return nativeResult; }
@@ -79,7 +79,8 @@ internal sealed partial class AvatarRuntime
             ResetFixedRoster();
             State = AvatarShuffleCampaignState.CreateUnbound();
             if (TryBeginFixedRoster()) { FaultReason = null; _wasTitle = true; _automaticCheckScheduled = false; ResetPerformanceCounters(); return; }
-            State = AvatarShuffleCampaignState.CreateNew(AvatarShuffleProfile.Create(AvatarPlugin.ConfiguredSeed));
+            State = AvatarShuffleCampaignState.CreateNew(AvatarShuffleProfile.Create(AvatarPlugin.ConfiguredSeed,
+                AvatarPlugin.ConfiguredIncludeTir));
             FaultReason = null; _game = IntPtr.Zero; _wasTitle = true;
             _automaticCheckScheduled = false;
             ResetPerformanceCounters();
@@ -87,7 +88,7 @@ internal sealed partial class AvatarRuntime
             _readinessDetail = _waiting;
             AvatarPresentation.Reset();
             Trace("NEW GAME seed=" + Profile.Seed + "; mapping=" + Profile.Fingerprint
-                + "; 75 roles. Non-combat, Tir, Ted and Odessa excluded from both pools.");
+                + "; roles=" + Profile.RoleIds.Count + "; Tir included=" + Profile.IncludesTir);
         }
         catch (Exception exception) { Fail("Shuffle New Game admission failed: " + exception.Message); }
     }
@@ -156,7 +157,7 @@ internal sealed partial class AvatarRuntime
         // Keep this small gate ahead of the donor scan for opening performance.
         if (!State.IsInitialized && !StartingPartyBound())
             return WaitFor(_readinessDetail, required);
-        if (_game == game.Pointer && _proxies.Count == 75)
+        if (_game == game.Pointer && _proxies.Count == Profile.RoleIds.Count)
         {
             bool current = true;
             foreach (int id in Profile.RoleIds)
@@ -173,8 +174,7 @@ internal sealed partial class AvatarRuntime
         if (_proxies.Count != 0) RestoreCache();
         _rosterScans++;
         var originals = new Dictionary<int, GSD1.PLAYER_DATA>();
-        // Index live records once; repeatedly searching the entire native array
-        // for every one of the 75 roles made each retry quadratic.
+        // Index live records once so looking up each role stays linear overall.
         IReadOnlyList<int> activeSlots;
         try { activeSlots = ActiveResidentSlots(); }
         catch (InvalidOperationException exception) { return WaitFor("active party layout pending: " + exception.Message, required); }
@@ -212,7 +212,8 @@ internal sealed partial class AvatarRuntime
             // Original asset references and all base snapshots precede every
             // publication. A donor can also be a source in the same permutation.
             foreach (int id in Profile.RoleIds)
-                prepared.Add(id, AvatarNativeData.CreateProxy(originals[id], originals[Profile.GetDonor(id)], bases[id]));
+                prepared.Add(id, AvatarNativeData.CreateProxy(originals[id], originals[Profile.GetDonor(id)], bases[id],
+                    Profile.KeepsCanonicalLoadout(id)));
             var originalResidents = new GSD1.PLAYER_DATA?[residents.Count];
             for (int n = 0; n < residents.Count; n++) originalResidents[n] = residents[n];
             string layout = CanonicalLayoutFingerprint();
@@ -224,7 +225,7 @@ internal sealed partial class AvatarRuntime
                     (id, snapshots) =>
                     {
                         int donor = Profile.GetDonor(id);
-                        if (initialize)
+                        if (initialize && !Profile.KeepsCanonicalLoadout(id))
                         {
                             AvatarNativeData.CopyBase(snapshots[donor], bases[id]);
                             bases[id].seicho_type = AvatarNativeData.CloneBytes(originals[donor].seicho_type);
@@ -240,10 +241,11 @@ internal sealed partial class AvatarRuntime
                     {
                         if (after.chara_no != id || prepared[id].chara_id != id
                             || prepared[id].player_base?.Pointer != bases[id].Pointer
-                            || prepared[id].chara_name != originals[Profile.GetDonor(id)].chara_name
+                            || prepared[id].chara_name != originals[id == CombatCatalog.TirId ? id : Profile.GetDonor(id)].chara_name
                             || originals[id].chara_id != id
                             || !cache.TryGetValue(id, out var actual) || actual?.Pointer != prepared[id].Pointer
-                            || (!initialize && AvatarNativeData.Fingerprint(before) != AvatarNativeData.Fingerprint(after))) return false;
+                            || ((!initialize || Profile.KeepsCanonicalLoadout(id))
+                                && AvatarNativeData.Fingerprint(before) != AvatarNativeData.Fingerprint(after))) return false;
                         foreach (var slot in publishSlots)
                             if (slot.Value == id && residents[slot.Key]?.Pointer != prepared[id].Pointer) return false;
                         return true;
@@ -272,8 +274,8 @@ internal sealed partial class AvatarRuntime
             if (!committed) throw new InvalidOperationException("Complete shuffle transaction did not commit.");
             _originals = originals; _proxies = prepared; _manager = manager; _game = game.Pointer;
             AvatarPresentation.Reset();
-            Trace((initialize ? "INITIALIZED ALL 75 ONCE" : "REPLAYED ALL 75 WITHOUT STATS RESET")
-                + "; " + reason + "; seed=" + Profile.Seed + "; mapping=" + Profile.Fingerprint);
+            Trace((initialize ? "INITIALIZED SHUFFLE ONCE" : "REPLAYED SHUFFLE WITHOUT STATS RESET")
+                + "; roles=" + Profile.RoleIds.Count + "; " + reason + "; seed=" + Profile.Seed + "; mapping=" + Profile.Fingerprint);
             TracePartyLayout("shuffle initialized");
             VerifyFinalParty(reason);
             WriteSpoiler();
@@ -384,7 +386,7 @@ internal sealed partial class AvatarRuntime
 
     private string? BindResidentsCore()
     {
-        if (_proxies.Count != 75) return null;
+        if (State.Profile is null || _proxies.Count != Profile.RoleIds.Count) return null;
         var game = GSD1.OldSrcBase.game_work;
         var codes = game?.party_data?.chara_code;
         var residents = game?.player_data;
@@ -436,7 +438,8 @@ internal sealed partial class AvatarRuntime
                 throw new InvalidOperationException("Active party resident is not bound to its current-world canonical base.");
             if (!IsRole(id)) continue;
             int donor = MapDisplayId(id);
-            if (resident.Pointer != _proxies[id].Pointer || resident.chara_name != _originals[donor].chara_name)
+            if (resident.Pointer != _proxies[id].Pointer
+                || resident.chara_name != _originals[id == CombatCatalog.TirId ? id : donor].chara_name)
                 throw new InvalidOperationException("Active party resident lost its assigned independent avatar/name.");
             Trace("AVATAR CHECK " + reason + ": active slot=" + slot + "; role=" + id + "; donor=" + donor
                 + "; canonical data/base=" + resident.chara_id + "/" + resident.player_base.chara_no

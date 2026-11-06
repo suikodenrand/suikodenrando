@@ -1,5 +1,6 @@
 extern alias GSD1;
 
+using SuikodenRandomizer.Core;
 using System;
 using System.Globalization;
 using System.IO;
@@ -178,7 +179,7 @@ internal static class AvatarNativeData
     }
 
     internal static GSD1.PLAYER_DATA CreateProxy(GSD1.PLAYER_DATA canonical,
-        GSD1.PLAYER_DATA donor, GSD1.PLAYER_BASE canonicalBase)
+        GSD1.PLAYER_DATA donor, GSD1.PLAYER_BASE canonicalBase, bool keepCanonicalLoadout = false)
     {
         if (canonical is null) throw new ArgumentNullException(nameof(canonical));
         if (donor is null) throw new ArgumentNullException(nameof(donor));
@@ -190,9 +191,11 @@ internal static class AvatarNativeData
 
         // Prepare donor metadata before allocating/publishing a PLAYER_DATA.
         // No donor persistent state is read or assigned here.
+        var rules = keepCanonicalLoadout ? canonical : donor;
         var padding = CloneBytes(canonical.n_1);
-        var runeTypes = CloneBytes(donor.monsyu_type);
-        var growth = CloneBytes(donor.seicho_type);
+        var runeTypes = CloneBytes(rules.monsyu_type);
+        var growth = CloneBytes(rules.seicho_type);
+        uint displayName = canonical.chara_id == CombatCatalog.TirId ? canonical.chara_name : donor.chara_name;
         if (growth.Count < 7)
             throw new InvalidOperationException("Donor growth metadata is incomplete.");
         var donorField = donor.field_data;
@@ -239,18 +242,18 @@ internal static class AvatarNativeData
             // separate from chara_id and the canonical persistent base. Copy the
             // whole donor key so the native localization/table selection remains
             // intact; leave both shared original assets untouched.
-            proxy.chara_name = donor.chara_name;
+            proxy.chara_name = displayName;
             proxy.n_2 = canonical.n_2;
-            proxy.sex = donor.sex;
-            proxy.soubi_type = donor.soubi_type;
+            proxy.sex = rules.sex;
+            proxy.soubi_type = rules.soubi_type;
             proxy.monsyu_type = runeTypes;
             proxy.seicho_type = growth;
             proxy.player_base = canonicalBase;
             proxy.battle_data = battle;
             proxy.field_data = field;
             proxy.face_data = face;
-            if (proxy.chara_name != donor.chara_name)
-                throw new InvalidOperationException("The avatar proxy lost its donor display name key.");
+            if (proxy.chara_name != displayName)
+                throw new InvalidOperationException("The avatar proxy lost its display name key.");
             if (proxy.chara_id != canonical.chara_id
                 || proxy.player_base?.Pointer != canonicalBase.Pointer)
                 throw new InvalidOperationException("The avatar proxy lost its canonical identity or base binding.");

@@ -56,10 +56,17 @@ public static class AvatarShuffleBindingJson
         { AllowTrailingCommas = false, CommentHandling = JsonCommentHandling.Disallow, MaxDepth = MaximumDepth });
         JsonElement root = document.RootElement;
         ExactFields(root, RootFields);
+        string profileId = String(root.GetProperty("profileId"), "profileId");
+        int roleCount = profileId switch
+        {
+            AvatarShuffleProfile.CurrentProfileId => 75,
+            AvatarShuffleProfile.IncludeTirProfileId => 76,
+            _ => throw new JsonException("Unknown avatar shuffle profile.")
+        };
         JsonElement array = root.GetProperty("assignments");
-        if (array.ValueKind != JsonValueKind.Array || array.GetArrayLength() != 75)
-            throw new JsonException("Avatar shuffle requires exactly 75 assignment objects.");
-        var assignments = new AvatarShuffleAssignment[75];
+        if (array.ValueKind != JsonValueKind.Array || array.GetArrayLength() != roleCount)
+            throw new JsonException("Avatar shuffle assignment count does not match its profile.");
+        var assignments = new AvatarShuffleAssignment[roleCount];
         int n = 0;
         foreach (JsonElement item in array.EnumerateArray())
         {
@@ -70,7 +77,7 @@ public static class AvatarShuffleBindingJson
         var snapshot = new AvatarShuffleSnapshot
         {
             AvatarShuffleVersion = Integer(root.GetProperty("avatarShuffleVersion"), "avatarShuffleVersion"),
-            ProfileId = String(root.GetProperty("profileId"), "profileId"),
+            ProfileId = profileId,
             ProfileFingerprint = Digest(root.GetProperty("profileFingerprint"), "profileFingerprint"),
             Seed = String(root.GetProperty("seed"), "seed"),
             ShuffleAlgorithm = String(root.GetProperty("shuffleAlgorithm"), "shuffleAlgorithm"),

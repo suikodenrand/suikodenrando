@@ -1,21 +1,17 @@
-# Suikoden I HD Remaster Randomizer 0.8.6 Before Viktor Test
+# Stars of Destiny - Character Randomizer
 
-Set `[Start]` → `Point = BeforeViktor` before choosing New Game to start in Gregminster after the inn scene. Find Viktor at his bench and accept his help to play his first recruitment and the gate escape. Use `Point = Opening` for the normal opening.
+Randomize the combat cast of Suikoden I HD Remaster on Windows. The [website](https://suikodenrand.github.io/) generates a config with the selected seed, roster and start point alongside Windows setup.
 
-The fixed roster has Tir and five distinct companions. Choose five hero IDs or roll five from a seed. As story roles join and leave the active party, available fighters move into those roles. A returning fighter carries their saved progress and equipment. Recruit normally for story progression.
+Character Shuffle uses the 75-hero pool by default. Enable Include Tir to add the protagonist's role and avatar to the pool. His chosen name and story rune stay with his role. Fixed Roster and Random Roster reserve Tir and assign five companions as the story opens party slots. Before Viktor can be used with any mode.
 
-The Windows test package builds the plugin on the player's PC against the installed game and BepInEx references. See [the installation and playtest guide](packaging/windows/README.txt) and [companion IDs](packaging/windows/docs/COMPANION_IDS.txt).
+Settings apply to New Game. Existing randomized campaigns restore their saved mappings. Keep your game saves with the matching BepInEx configuration.
 
-Use a separate New Game for the test. Check that Tir has the Soul Eater, Viktor joins after the conversation, and the party can leave Gregminster for Lenankamp. Check a manual save and reload. The skip and its interaction with the fixed roster need in-game testing.
+## Build
 
-## Source and packaging
+Build the plugin against a working BepInEx 6 IL2CPP installation with interop generated for the supported game build.
 
-This test builds on the 0.8.5 Fixed Roster Test. The fixed roster profile, active assignments, and fighter records are stored in a separate versioned save binding. Keep the game's saves and its BepInEx configuration together.
-
-Run the standalone managed projects under `tests/` using the SDK in `global.json`. The native metadata contract check also takes the path to the installed `BepInEx/interop/GSD1.dll`.
-
-To reproduce the Windows archive, run the following from this checkout. The script generates the installer payload and its SHA-256 from this source.
-
-```sh
-python3 packaging/package.py --source . --staging packaging/windows --output SuikodenRandomizer-0.8.6-BeforeViktor-Test-AutoInstall.zip
+```powershell
+dotnet build src/SuikodenRandomizer.AvatarPlugin -c Release "-p:GamePath=C:\Games\Suikoden I and II HD Remaster"
 ```
+
+The output contains SuikodenRandomizer.dll and SuikodenRandomizer.Core.dll. Use those two files to [build the setup with NSIS](packaging/nsis/README.md). Run the standalone test projects under tests with the SDK specified in global.json. The native metadata contract check takes the path to BepInEx/interop/GSD1.dll.
