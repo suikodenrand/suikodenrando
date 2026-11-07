@@ -26,8 +26,8 @@ internal sealed partial class AvatarRuntime
         int donor = _nuzCampaign!.GetDonor(role);
         return donor < 0 ? role : donor;
     }
-    private string NuzlockeStatus => _nuzCampaign!.IsExhausted ? "Nuzlocke run over | all fighters retired"
-        : "Nuzlocke | retired " + _nuzCampaign.RetiredHeroIds.Count + " / 76 | fresh reserves " + _nuzCampaign.RemainingReserves;
+    private string NuzlockeStatus => _nuzCampaign!.IsExhausted ? "Nuzlocke | companions exhausted | Tir remains"
+        : "Nuzlocke | Tir protected | retired " + _nuzCampaign.RetiredHeroIds.Count + " / 75 | fresh reserves " + _nuzCampaign.RemainingReserves;
 
     private void ResetNuzlocke()
     {
@@ -41,10 +41,10 @@ internal sealed partial class AvatarRuntime
     private bool TryBeginNuzlocke()
     {
         if (!string.Equals(AvatarPlugin.ConfiguredMode, "Nuzlocke", StringComparison.OrdinalIgnoreCase)) return false;
-        _nuzCampaign = NuzlockeCampaign.Create(AvatarPlugin.ConfiguredSeed, AvatarPlugin.ConfiguredIncludeTir);
+        _nuzCampaign = NuzlockeCampaign.Create(AvatarPlugin.ConfiguredSeed);
         _waiting = "native Nuzlocke initialization"; _lastWait = "";
         _game = IntPtr.Zero; AvatarPresentation.Reset();
-        Trace("NEW GAME NUZLOCKE seed=" + _nuzCampaign.Seed + "; pool=76; mode is experimental.");
+        Trace("NEW GAME NUZLOCKE seed=" + _nuzCampaign.Seed + "; companion pool=75; Tir protected; mode is experimental.");
         return true;
     }
 
@@ -68,7 +68,6 @@ internal sealed partial class AvatarRuntime
     private void CheckNuzlockeSave()
     {
         if (_nuzBattleOpen) throw new InvalidOperationException("Save after the battle has finished.");
-        if (_nuzCampaign!.IsExhausted) throw new InvalidOperationException("This Nuzlocke run is over.");
     }
 
     private string WriteNuzlockeBinding(GSD1.SaveDataManager.SaveData save)
@@ -103,10 +102,12 @@ internal sealed partial class AvatarRuntime
         if (activeRoles.Any(id => !campaign.IsRole(id)))
             return WaitFor("unsupported Nuzlocke party role", required);
         var next = campaign.ReconcileActive(activeRoles);
-        if (next.IsExhausted) return false;
         if (_nuzStarted && ReferenceEquals(next, _nuzPublished) && _game == game.Pointer
             && _manager?.Pointer == manager.Pointer
-            && slots.All(slot => _proxies.TryGetValue(party.chara_code[slot], out var proxy)
+            && slots.All(slot => party.chara_code[slot] == CombatCatalog.TirId
+                ? residents[slot]?.chara_id == CombatCatalog.TirId
+                    && residents[slot]?.player_base?.Pointer == AvatarNativeData.FindBase(CombatCatalog.TirId).Pointer
+                : _proxies.TryGetValue(party.chara_code[slot], out var proxy)
                 && residents[slot]?.Pointer == proxy.Pointer
                 && proxy.player_base?.Pointer == AvatarNativeData.FindBase(party.chara_code[slot]).Pointer
                 && cache.TryGetValue(party.chara_code[slot], out var cached) && cached?.Pointer == proxy.Pointer))
@@ -123,6 +124,7 @@ internal sealed partial class AvatarRuntime
         var originals = new Dictionary<int, GSD1.PLAYER_DATA>(_originals);
         foreach (int id in next.RoleIds)
         {
+            if (id == CombatCatalog.TirId) continue;
             if (originals.ContainsKey(id)) continue;
             if (!cache.TryGetValue(id, out var asset) || asset?.chara_id != id
                 || asset.field_data?.opd_data is null || asset.battle_data?.opd_data is null)
@@ -132,7 +134,7 @@ internal sealed partial class AvatarRuntime
         if (_nuzTemplates.Count == 0)
         {
             var templates = new Dictionary<int, FixedRosterBaseSnapshot>();
-            foreach (int fighter in next.Assignments.Values)
+            foreach (int fighter in next.Assignments.Values.Where(id => id != CombatCatalog.TirId))
             {
                 var start = FixedRosterBaseSnapshot.Capture(bases[fighter]);
                 start.Growth = originals[fighter].seicho_type.ToArray();
@@ -150,6 +152,8 @@ internal sealed partial class AvatarRuntime
         var roleRecords = new Dictionary<int, FixedRosterBaseSnapshot>(_nuzRoleBases);
         foreach (int role in activeRoles)
         {
+            // The story protagonist retains his native resident, base and assets.
+            if (role == CombatCatalog.TirId) continue;
             int fighter = next.GetDonor(role);
             if (fighter < 0) continue;
             int oldFighter = previous?.GetDonor(role) ?? -1;
@@ -168,24 +172,11 @@ internal sealed partial class AvatarRuntime
                 prepared = AvatarNativeData.CloneBase(bases[role]);
                 prepared.hp = prepared.max_hp; prepared.status = 0;
             }
-            else if (role == CombatCatalog.TirId || fighter == CombatCatalog.TirId)
-            {
-                prepared = AvatarNativeData.CloneBase(bases[role]);
-                rules[role] = role;
-            }
             else
             {
                 prepared = _nuzTemplates[fighter].ToNative();
                 prepared.hp = prepared.max_hp; prepared.status = 0;
                 rules[role] = fighter;
-            }
-            // Tir's story rune and key inventory always belong to the story role.
-            if (role == CombatCatalog.TirId && transfer)
-            {
-                var canonical = bases[role];
-                prepared = AvatarNativeData.CloneBase(canonical);
-                prepared.hp = prepared.max_hp; prepared.status = 0;
-                rules[role] = role;
             }
             prepared.chara_no = role;
             writes.Add(role, prepared);
@@ -193,7 +184,7 @@ internal sealed partial class AvatarRuntime
             roleRecords[role] = FixedRosterBaseSnapshot.Capture(prepared);
         }
 
-        var projectedRoles = roleRecords.Keys.Where(id => next.GetDonor(id) >= 0).ToArray();
+        var projectedRoles = roleRecords.Keys.Where(id => id != CombatCatalog.TirId && next.GetDonor(id) >= 0).ToArray();
         var proxies = new Dictionary<int, GSD1.PLAYER_DATA>();
         foreach (int role in projectedRoles)
         {
@@ -231,7 +222,9 @@ internal sealed partial class AvatarRuntime
                 if (AvatarNativeData.Fingerprint(bases[entry.Key]) != AvatarNativeData.Fingerprint(entry.Value))
                     throw new InvalidOperationException("Nuzlocke base publication did not verify.");
             foreach (int slot in surviving)
-                if (residents[slot]?.Pointer != proxies[party.chara_code[slot]].Pointer)
+                if (party.chara_code[slot] == CombatCatalog.TirId
+                    ? !ResidentBound(slot, CombatCatalog.TirId, bases)
+                    : residents[slot]?.Pointer != proxies[party.chara_code[slot]].Pointer)
                     throw new InvalidOperationException("Nuzlocke resident publication did not verify.");
         }
         catch (Exception failure)
@@ -288,6 +281,7 @@ internal sealed partial class AvatarRuntime
         if (battle?.pm_data is null) return;
         foreach (var entry in _nuzBattleHeroes)
         {
+            if (entry.Value == CombatCatalog.TirId) continue;
             var fighter = battle.pm_data[entry.Key];
             if (fighter is not null && fighter.IsDead && fighter.hp == 0 && _nuzKnockouts.Add(entry.Value))
                 Trace("NUZLOCKE KO " + CombatCatalog.GetName(entry.Value));
@@ -306,10 +300,24 @@ internal sealed partial class AvatarRuntime
             throw new InvalidOperationException("Replacement team is unavailable.");
         if (GSD1.OldSrcBase.game_work.party_data.player_kazu == 0)
             throw new InvalidOperationException("No surviving Nuzlocke fighters can enter the battle.");
+        RecoverNuzlockeTir(fullRecovery: true);
         _nuzRetryPending = false;
         _nuzRetryFade = true;
         Trace("NUZLOCKE full wipe; retrying the same encounter with reserves.");
         return true;
+    }
+
+    private void RecoverNuzlockeTir(bool fullRecovery)
+    {
+        var party = GSD1.OldSrcBase.game_work?.party_data;
+        if (party?.chara_code is null
+            || !ActiveResidentSlots().Any(slot => party.chara_code[slot] == CombatCatalog.TirId)) return;
+        var protagonist = AvatarNativeData.FindBase(CombatCatalog.TirId);
+        if (!fullRecovery && protagonist.hp != 0) return;
+        protagonist.hp = 1;
+        if (fullRecovery) protagonist.hp = protagonist.max_hp;
+        protagonist.status = 0;
+        Trace("NUZLOCKE protected Tir recovered; HP=" + protagonist.hp);
     }
 
     internal bool TakeNuzlockeRetryFade()
@@ -329,8 +337,9 @@ internal sealed partial class AvatarRuntime
         // Native overlay cleanup can change defeat routing. Only the actual
         // game-over callback consumes this flag and requests a retry.
         _nuzRetryPending = !next.IsExhausted;
-        if (next.IsExhausted) { Trace("NUZLOCKE RUN OVER"); return; }
         if (!EnsureProxy("battle retirement", true, force: true))
             throw new InvalidOperationException("Nuzlocke replacement preparation failed.");
+        RecoverNuzlockeTir(fullRecovery: false);
+        if (next.IsExhausted) Trace("NUZLOCKE companion pool exhausted; Tir remains; next full defeat ends the run.");
     }
 }

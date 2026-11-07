@@ -5,7 +5,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <Deterministic>true</Deterministic>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <Version>0.8.8</Version>
+    <Version>0.8.9</Version>
     <!-- The game's BepInEx host uses .NET 6; the standalone tools use .NET 10. -->
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
   </PropertyGroup>

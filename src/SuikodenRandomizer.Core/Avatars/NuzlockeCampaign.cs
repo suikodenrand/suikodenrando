@@ -11,9 +11,9 @@ namespace SuikodenRandomizer.Core.Avatars;
 public sealed class NuzlockeCampaign
 {
     public const string CurrentProfileId = "nuzlocke-avatar-v1";
-    public const int CurrentVersion = 1;
-    private static readonly int[] Fighters = CombatCatalog.NormalCombatIds.Append(CombatCatalog.TirId).OrderBy(id => id).ToArray();
-    private static readonly int[] Roles = Fighters.Concat(new[] { CombatCatalog.TedId, CombatCatalog.OdessaId }).OrderBy(id => id).ToArray();
+    public const int CurrentVersion = 2;
+    private static readonly int[] Fighters = CombatCatalog.NormalCombatIds.OrderBy(id => id).ToArray();
+    private static readonly int[] Roles = Fighters.Concat(new[] { CombatCatalog.TirId, CombatCatalog.TedId, CombatCatalog.OdessaId }).OrderBy(id => id).ToArray();
     private static readonly HashSet<int> FighterSet = new HashSet<int>(Fighters);
     private static readonly HashSet<int> RoleSet = new HashSet<int>(Roles);
     private readonly Dictionary<int, int> _assignments;
@@ -56,8 +56,10 @@ public sealed class NuzlockeCampaign
     public IReadOnlyList<int> ReserveOrder { get; }
     public int ReservePosition { get; }
     public long LastBattleId { get; }
+    /// <summary>Living companion fighters; protected Tir does not consume a life.</summary>
     public int LivingHeroCount => Fighters.Length - _retired.Count;
     public int RemainingReserves => Fighters.Length - _fielded.Count;
+    /// <summary>All companion fighters are retired; Tir remains assigned to his native role.</summary>
     public bool IsExhausted => LivingHeroCount == 0;
     public bool IsRole(int roleId) => RoleSet.Contains(roleId);
     public bool IsRetired(int fighterId) => _retired.Contains(fighterId);
@@ -71,10 +73,12 @@ public sealed class NuzlockeCampaign
 
     public static NuzlockeCampaign Create(string seed, bool includeTir = false)
     {
-        var initial = AvatarShuffleProfile.Create(seed, includeTir);
+        // Tir must remain the canonical story leader. Nuzlocke deliberately ignores
+        // the ordinary shuffle's optional Tir setting.
+        var initial = AvatarShuffleProfile.Create(seed, false);
         var assignments = initial.Assignments.ToDictionary(pair => pair.Key, pair => pair.Value);
-        if (!includeTir) assignments.Add(CombatCatalog.TirId, CombatCatalog.TirId);
-        return new NuzlockeCampaign(initial.Seed, includeTir, initial.Fingerprint, assignments,
+        assignments.Add(CombatCatalog.TirId, CombatCatalog.TirId);
+        return new NuzlockeCampaign(initial.Seed, false, initial.Fingerprint, assignments,
             new HashSet<int>(), new HashSet<int>(), Array.Empty<int>(), BuildReserveOrder(initial.Seed), 0, 0, Array.Empty<int>());
     }
 
@@ -85,7 +89,7 @@ public sealed class NuzlockeCampaign
         var assignments = new Dictionary<int, int>(_assignments);
         var fielded = new HashSet<int>(_fielded);
         foreach (int role in active)
-            if (assignments.TryGetValue(role, out int fighter)) fielded.Add(fighter);
+            if (role != CombatCatalog.TirId && assignments.TryGetValue(role, out int fighter)) fielded.Add(fighter);
         int position = FillActiveVacancies(assignments, fielded, active, ReservePosition);
         if (_active.SequenceEqual(active) && fielded.SetEquals(_fielded)
             && position == ReservePosition && SameAssignments(assignments, _assignments)) return this;
@@ -98,9 +102,9 @@ public sealed class NuzlockeCampaign
         if (battleId <= 0) throw new ArgumentOutOfRangeException(nameof(battleId));
         if (knockedOutHeroIds is null) throw new ArgumentNullException(nameof(knockedOutHeroIds));
         int[] reported = knockedOutHeroIds.Take(AvatarPartyLayout.ResidentCapacity + 1).ToArray();
-        if (reported.Length > AvatarPartyLayout.ResidentCapacity || reported.Any(id => !FighterSet.Contains(id)))
+        if (reported.Length > AvatarPartyLayout.ResidentCapacity || reported.Any(id => id != CombatCatalog.TirId && !FighterSet.Contains(id)))
             throw new ArgumentException("Battle knockouts contain too many fighters or an invalid identity.", nameof(knockedOutHeroIds));
-        int[] knockouts = reported.Distinct().OrderBy(id => id).ToArray();
+        int[] knockouts = reported.Where(id => id != CombatCatalog.TirId).Distinct().OrderBy(id => id).ToArray();
         if (battleId == LastBattleId)
         {
             if (!_lastKnockouts.SequenceEqual(knockouts)) throw new InvalidOperationException("A committed battle has a different knockout result.");
@@ -144,27 +148,32 @@ public sealed class NuzlockeCampaign
     public static NuzlockeCampaign Restore(NuzlockeSnapshot snapshot)
     {
         if (snapshot is null) throw new ArgumentNullException(nameof(snapshot));
+        if (snapshot.ProfileId == CurrentProfileId && snapshot.Version == 1)
+            throw new ArgumentException("Nuzlocke state from 0.8.8 is incompatible with protected Tir. Start a new Nuzlocke run.", nameof(snapshot));
         if (snapshot.ProfileId != CurrentProfileId || snapshot.Version != CurrentVersion)
             throw new ArgumentException("Unsupported Nuzlocke state.", nameof(snapshot));
+        if (snapshot.IncludesTir)
+            throw new ArgumentException("Nuzlocke state cannot include Tir in the companion shuffle.", nameof(snapshot));
         var initial = Create(snapshot.Seed, snapshot.IncludesTir);
         if (initial.Seed != snapshot.Seed || initial.InitialFingerprint != snapshot.InitialFingerprint)
             throw new ArgumentException("Nuzlocke seed identity does not match.", nameof(snapshot));
         if (snapshot.Assignments is null || snapshot.Assignments.Count > Roles.Length
-            || snapshot.Assignments.Any(pair => !RoleSet.Contains(pair.Key) || !FighterSet.Contains(pair.Value))
+            || !snapshot.Assignments.TryGetValue(CombatCatalog.TirId, out int tir) || tir != CombatCatalog.TirId
+            || snapshot.Assignments.Any(pair => !RoleSet.Contains(pair.Key)
+                || (pair.Key == CombatCatalog.TirId ? pair.Value != CombatCatalog.TirId : !FighterSet.Contains(pair.Value)))
             || snapshot.Assignments.Values.Distinct().Count() != snapshot.Assignments.Count)
             throw new ArgumentException("Nuzlocke assignments contain an invalid or duplicate identity.", nameof(snapshot));
         var fielded = ReadUniqueFighters(snapshot.FieldedHeroIds, "fielded");
         var retired = ReadUniqueFighters(snapshot.RetiredHeroIds, "retired");
         if (!retired.IsSubsetOf(fielded) || snapshot.Assignments.Values.Any(retired.Contains)
-            || !snapshot.Assignments.Values.Concat(retired).ToHashSet().SetEquals(Fighters))
+            || !snapshot.Assignments.Values.Where(id => id != CombatCatalog.TirId).Concat(retired).ToHashSet().SetEquals(Fighters))
             throw new ArgumentException("Nuzlocke living and retired identities are inconsistent.", nameof(snapshot));
         int[] active = ReadRoles(snapshot.ActiveRoleIds);
         if (!active.SequenceEqual(snapshot.ActiveRoleIds)
-            || active.Any(role => snapshot.Assignments.TryGetValue(role, out int fighter) && !fielded.Contains(fighter))
+            || active.Any(role => role != CombatCatalog.TirId
+                && snapshot.Assignments.TryGetValue(role, out int fighter) && !fielded.Contains(fighter))
             || (active.Any(role => !snapshot.Assignments.ContainsKey(role))
-                && snapshot.Assignments.Keys.Any(role => !active.Contains(role)))
-            || (active.Contains(CombatCatalog.TirId) && !snapshot.Assignments.ContainsKey(CombatCatalog.TirId)
-                && snapshot.Assignments.Count != 0))
+                && snapshot.Assignments.Keys.Any(role => role != CombatCatalog.TirId && !active.Contains(role))))
             throw new ArgumentException("Nuzlocke active fighters have not been fielded.", nameof(snapshot));
         if (snapshot.ReserveOrder is null || !snapshot.ReserveOrder.SequenceEqual(initial._reserveOrder)
             || snapshot.ReservePosition < 0 || snapshot.ReservePosition > Fighters.Length
@@ -187,9 +196,8 @@ public sealed class NuzlockeCampaign
 
     private int FillActiveVacancies(Dictionary<int, int> assignments, HashSet<int> fielded, int[] active, int position)
     {
-        // The protagonist slot remains the controllable native leader. Service
-        // its vacancy before other slots, then use canonical role order.
-        int[] fillOrder = active.OrderBy(role => role == CombatCatalog.TirId ? 0 : 1).ThenBy(role => role).ToArray();
+        // Protected Tir is never replaced or transferred. Draw only for companion roles.
+        int[] fillOrder = active.Where(role => role != CombatCatalog.TirId).OrderBy(role => role).ToArray();
         foreach (int role in fillOrder)
         {
             if (assignments.ContainsKey(role)) continue;
@@ -219,14 +227,6 @@ public sealed class NuzlockeCampaign
                 break;
             }
         }
-        if (active.Contains(CombatCatalog.TirId) && !assignments.ContainsKey(CombatCatalog.TirId)
-            && assignments.Count != 0)
-        {
-            int previousRole = active.First(assignments.ContainsKey);
-            int survivor = assignments[previousRole];
-            assignments.Remove(previousRole);
-            assignments.Add(CombatCatalog.TirId, survivor);
-        }
         return position;
     }
 
@@ -255,7 +255,7 @@ public sealed class NuzlockeCampaign
     {
         using var sha = SHA256.Create();
         string reserveSeed = AvatarShuffleProfile.Hex(sha.ComputeHash(Encoding.UTF8.GetBytes(CurrentProfileId + "\nreserve\n" + seed)));
-        var profile = AvatarShuffleProfile.Create(reserveSeed, true);
+        var profile = AvatarShuffleProfile.Create(reserveSeed, false);
         return profile.RoleIds.Select(profile.GetDonor).ToArray();
     }
 }

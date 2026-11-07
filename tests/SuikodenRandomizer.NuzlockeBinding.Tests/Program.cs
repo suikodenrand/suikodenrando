@@ -17,9 +17,9 @@ internal static class Program
     private static string PathFor(string id) => Path.Combine(AvatarRuntime.Folder,"nuzlocke-save-bindings",id+".json");
     private static void Check(bool value,string message) { if(!value) throw new Exception(message); }
     private static void Case(string name,Action body) { body(); _passed++; Console.WriteLine("PASS "+name); }
-    private static void Reject(Action body)
+    private static Exception Reject(Action body)
     {
-        try { body(); } catch(InvalidDataException) { return; } catch(ArgumentException) { return; }
+        try { body(); } catch(InvalidDataException error) { return error; } catch(ArgumentException error) { return error; }
         throw new Exception("Expected malformed state to be rejected.");
     }
     private static NuzlockeBinding Binding()
@@ -27,10 +27,10 @@ internal static class Program
         var campaign=NuzlockeCampaign.Create("nuzlocke-persistence-test").ReconcileActive(new[]{8,1,2});
         return new NuzlockeBinding {
             Campaign=campaign.Capture(),
-            FighterStates=campaign.ActiveRoleIds.ToDictionary(role=>campaign.GetDonor(role),
+            FighterStates=campaign.ActiveRoleIds.Where(role=>role!=8).ToDictionary(role=>campaign.GetDonor(role),
                 role=>new FixedRosterBaseSnapshot{CharacterId=campaign.GetDonor(role)}),
-            RoleBases=new Dictionary<int,FixedRosterBaseSnapshot>{{8,new FixedRosterBaseSnapshot{CharacterId=8}}},
-            RoleRules=new Dictionary<int,int>{{8,8}}
+            RoleBases=new Dictionary<int,FixedRosterBaseSnapshot>{{1,new FixedRosterBaseSnapshot{CharacterId=1}}},
+            RoleRules=new Dictionary<int,int>{{1,campaign.GetDonor(1)}}
         };
     }
     private static JsonObject ReadObject(string id) => JsonNode.Parse(File.ReadAllText(PathFor(id)))!.AsObject();
@@ -52,18 +52,19 @@ internal static class Program
                 var binding=Binding(); var c=NuzlockeCampaign.Restore(binding.Campaign);
                 int dead=c.GetDonor(1); c=c.CommitBattle(1,new[]{dead});
                 binding.Campaign=c.Capture();
-                foreach(int role in c.ActiveRoleIds) {
+                foreach(int role in c.ActiveRoleIds.Where(role=>role!=8)) {
                     int fighter=c.GetDonor(role);
                     binding.FighterStates.TryAdd(fighter,new FixedRosterBaseSnapshot{CharacterId=fighter});
                 }
-                binding.FighterStates[c.GetDonor(8)].Hp=17;
+                binding.FighterStates[c.GetDonor(1)].Hp=17;
                 NuzlockeBindingStore.Write(Identity('a'),binding);
                 var saved=NuzlockeBindingStore.Read(Identity('a'))!;
                 var restored=NuzlockeCampaign.Restore(saved.Campaign);
                 Check(restored.RetiredHeroIds.SequenceEqual(new[]{dead}),"Death lost");
                 Check(restored.ReserveOrder.SequenceEqual(c.ReserveOrder)&&restored.ReservePosition==c.ReservePosition,"Reserve position lost");
                 Check(restored.Assignments.OrderBy(p=>p.Key).SequenceEqual(c.Assignments.OrderBy(p=>p.Key)),"Mapping lost");
-                Check(saved.FighterStates[c.GetDonor(8)].Hp==17,"Mutable fighter state lost");
+                Check(saved.FighterStates[c.GetDonor(1)].Hp==17,"Mutable fighter state lost");
+                Check(restored.GetDonor(8)==8&&!restored.IncludesTir&&!saved.FighterStates.ContainsKey(8),"Binding transformed protected Tir into a fighter");
             });
             Case("Equivalent dictionary insertion orders are idempotent",()=>{
                 var b=Binding(); NuzlockeBindingStore.Write(Identity('c'),b);
@@ -73,16 +74,16 @@ internal static class Program
                 NuzlockeBindingStore.Write(Identity('c'),b);
                 Check(original.SequenceEqual(File.ReadAllBytes(PathFor(Identity('c')))),"Idempotent write changed published bytes");
             });
-            Case("An exhausted run restores as exhausted without creating a replacement",()=>{
-                var campaign=NuzlockeCampaign.Create("exhausted-save").ReconcileActive(new[]{8});
+            Case("An exhausted companion roster restores with native Tir still available",()=>{
+                var campaign=NuzlockeCampaign.Create("exhausted-save").ReconcileActive(new[]{8,1});
                 for(int battle=1;!campaign.IsExhausted;battle++) {
-                    Check(battle<=76,"Run did not exhaust its finite roster");
-                    campaign=campaign.CommitBattle(battle,new[]{campaign.GetDonor(8)});
+                    Check(battle<=75,"Run did not exhaust its finite companion roster");
+                    campaign=campaign.CommitBattle(battle,new[]{campaign.GetDonor(1)});
                 }
                 var b=new NuzlockeBinding{Campaign=campaign.Capture()};
                 NuzlockeBindingStore.Write(Identity('b'),b);
                 var restored=NuzlockeCampaign.Restore(NuzlockeBindingStore.Read(Identity('b'))!.Campaign);
-                Check(restored.IsExhausted&&restored.GetDonor(8)==-1&&restored.RetiredHeroIds.Count==76,"Run-over state was lost");
+                Check(restored.IsExhausted&&restored.GetDonor(8)==8&&restored.GetDonor(1)==-1&&restored.RetiredHeroIds.Count==75,"Companion exhaustion or protected Tir was lost");
             });
             Case("A conflicting payload cannot replace an existing native snapshot binding",()=>{
                 var b=Binding(); NuzlockeBindingStore.Write(Identity('d'),b);
@@ -110,11 +111,34 @@ internal static class Program
                 var b=Binding(); b.Campaign.ReservePosition=77; Reject(()=>NuzlockeBindingStore.Write(Identity('f'),b));
                 b=Binding(); b.FighterStates.Clear(); Reject(()=>NuzlockeBindingStore.Write(Identity('f'),b));
                 b=Binding(); b.FighterStates.Values.First().CharacterId=108; Reject(()=>NuzlockeBindingStore.Write(Identity('f'),b));
-                b=Binding(); b.RoleBases[8].CharacterId=1; Reject(()=>NuzlockeBindingStore.Write(Identity('f'),b));
+                b=Binding(); b.RoleBases[1].CharacterId=2; Reject(()=>NuzlockeBindingStore.Write(Identity('f'),b));
                 b=Binding(); b.RoleRules.Clear(); Reject(()=>NuzlockeBindingStore.Write(Identity('f'),b));
-                b=Binding(); b.RoleRules[8]=24; Reject(()=>NuzlockeBindingStore.Write(Identity('f'),b));
+                b=Binding(); b.RoleRules[1]=24; Reject(()=>NuzlockeBindingStore.Write(Identity('f'),b));
+                b=Binding(); b.FighterStates[8]=new FixedRosterBaseSnapshot{CharacterId=8}; Reject(()=>NuzlockeBindingStore.Write(Identity('f'),b));
+                b=Binding(); b.RoleBases[8]=new FixedRosterBaseSnapshot{CharacterId=8}; b.RoleRules[8]=8;
+                Reject(()=>NuzlockeBindingStore.Write(Identity('f'),b));
                 b=Binding(); b.FighterStates.Values.First().Level=0; Reject(()=>NuzlockeBindingStore.Write(Identity('f'),b));
                 Check(!File.Exists(PathFor(Identity('f'))),"Invalid state published");
+            });
+            Case("Unsafe 0.8.8 binding and campaign versions are rejected",()=>{
+                NuzlockeBindingStore.Write(Identity('f'),Binding());
+                var root=ReadObject(Identity('f'));
+                root["Version"]=1;
+                SaveObject(Identity('f'),root);
+                var error=Reject(()=>NuzlockeBindingStore.Read(Identity('f')));
+                Check(error.Message.Contains("0.8.8")&&error.Message.Contains("new Nuzlocke",StringComparison.OrdinalIgnoreCase),
+                    "Legacy binding rejection did not explain the need for a new Nuzlocke game");
+                File.Delete(PathFor(Identity('f')));
+                NuzlockeBindingStore.Write(Identity('f'),Binding());
+                root=ReadObject(Identity('f'));
+                root["State"]!["Campaign"]!["Version"]=1;
+                SaveObject(Identity('f'),root,true);
+                error=Reject(()=>NuzlockeBindingStore.Read(Identity('f')));
+                Check(error.Message.Contains("0.8.8")&&error.Message.Contains("new Nuzlocke",StringComparison.OrdinalIgnoreCase),
+                    "Legacy campaign rejection did not explain the need for a new Nuzlocke game");
+                File.Delete(PathFor(Identity('f')));
+                var b=Binding(); b.Campaign.IncludesTir=true;
+                Reject(()=>NuzlockeBindingStore.Write(Identity('f'),b));
             });
             Case("Invalid identities, oversized files and duplicate JSON properties are rejected",()=>{
                 Reject(()=>NuzlockeBindingStore.Read("../evil"));
@@ -122,7 +146,9 @@ internal static class Program
                 File.WriteAllText(PathFor(Identity('f')),new string(' ',524289));
                 Reject(()=>NuzlockeBindingStore.Read(Identity('f'))); File.Delete(PathFor(Identity('f')));
                 NuzlockeBindingStore.Write(Identity('f'),Binding());
-                string raw=File.ReadAllText(PathFor(Identity('f'))).Replace("\"Version\":1,\"SaveIdentity\"","\"Version\":1,\"Version\":1,\"SaveIdentity\"");
+                string version=ReadObject(Identity('f'))["Version"]!.ToString();
+                string raw=File.ReadAllText(PathFor(Identity('f'))).Replace("\"Version\":"+version+",\"SaveIdentity\"",
+                    "\"Version\":"+version+",\"Version\":"+version+",\"SaveIdentity\"");
                 File.WriteAllText(PathFor(Identity('f')),raw);
                 Reject(()=>NuzlockeBindingStore.Read(Identity('f')));
             });

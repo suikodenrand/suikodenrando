@@ -52,7 +52,7 @@ internal sealed partial class AvatarRuntime
 
     internal int MapDisplayId(int canonicalId) => IsActive && canonicalId >= 0 && canonicalId <= 109
         ? (IsNuzlocke ? NuzlockeDisplayId(canonicalId) : _fixedAssignments?.GetDonor(canonicalId) ?? Profile.GetDonor(canonicalId)) : canonicalId;
-    internal bool IsRole(int id) => IsAdmitted && (IsNuzlocke ? _nuzCampaign!.IsRole(id) && _nuzCampaign.GetDonor(id) >= 0 : _fixedProfile is not null ? _fixedAssignments!.Assignments.ContainsKey(id) && id != CombatCatalog.TirId : Profile.IsRole(id));
+    internal bool IsRole(int id) => IsAdmitted && (IsNuzlocke ? id != CombatCatalog.TirId && _nuzCampaign!.IsRole(id) && _nuzCampaign.GetDonor(id) >= 0 : _fixedProfile is not null ? _fixedAssignments!.Assignments.ContainsKey(id) && id != CombatCatalog.TirId : Profile.IsRole(id));
     internal GSD1.PLAYER_DATA? ProxyFor(int id) => IsActive && _proxies.TryGetValue(id, out var proxy) ? proxy : null;
     internal GSD1.PLAYER_DATA? ProjectPlayerData(int id, GSD1.PLAYER_DATA? nativeResult)
     {

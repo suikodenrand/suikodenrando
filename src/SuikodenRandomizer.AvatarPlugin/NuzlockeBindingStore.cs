@@ -22,7 +22,7 @@ internal sealed class NuzlockeBinding
 /// <summary>A native save snapshot and its Nuzlocke campaign state are published together.</summary>
 internal static class NuzlockeBindingStore
 {
-    private const int Version = 1;
+    private const int Version = 2;
     private const int MaximumPayloadBytes = 524288;
     private static readonly JsonSerializerOptions JsonOptions = new() { MaxDepth = 16 };
     private static string Build => global::SuikodenRandomizer.Plugin.BuildCompatibility.GameAssemblySha256;
@@ -56,8 +56,9 @@ internal static class NuzlockeBindingStore
             using var document = JsonDocument.Parse(file, new JsonDocumentOptions { MaxDepth = JsonOptions.MaxDepth });
             var root = document.RootElement;
             RequireUniqueProperties(root);
-            if (root.GetProperty("Version").GetInt32() != Version
-                || root.GetProperty("SaveIdentity").GetString() != identity
+            if (root.GetProperty("Version").GetInt32() != Version)
+                throw new InvalidDataException("This 0.8.8 Nuzlocke save uses the earlier Tir replacement rules. Start a new Nuzlocke game with 0.8.9 or later.");
+            if (root.GetProperty("SaveIdentity").GetString() != identity
                 || root.GetProperty("GameBuildSha256").GetString() != Build)
                 throw new InvalidDataException("Nuzlocke binding does not match this save or game build.");
             var state = root.GetProperty("State");
@@ -148,24 +149,25 @@ internal static class NuzlockeBindingStore
         var campaign = NuzlockeCampaign.Restore(binding.Campaign);
         foreach (var entry in binding.FighterStates)
         {
-            if (!IsRole(entry.Key) || entry.Key == CombatCatalog.TedId || entry.Key == CombatCatalog.OdessaId
+            if (!CombatCatalog.IsNormalCombat(entry.Key)
                 || entry.Value is null || entry.Value.CharacterId != entry.Key)
                 throw new InvalidDataException("Nuzlocke binding contains an invalid fighter snapshot.");
             entry.Value.ValidateState();
         }
         foreach (var entry in binding.RoleBases)
         {
-            if (!IsRole(entry.Key) || entry.Value is null || entry.Value.CharacterId != entry.Key)
+            if (!IsRole(entry.Key) || entry.Key == CombatCatalog.TirId || entry.Value is null || entry.Value.CharacterId != entry.Key)
                 throw new InvalidDataException("Nuzlocke binding contains an invalid canonical role snapshot.");
             entry.Value.ValidateState();
         }
         if (!binding.RoleRules.Keys.ToHashSet().SetEquals(binding.RoleBases.Keys)
-            || binding.RoleRules.Any(entry => !IsRole(entry.Key) || !IsRole(entry.Value)))
+            || binding.RoleRules.Any(entry => !IsRole(entry.Key) || !IsRole(entry.Value)
+                || entry.Key == CombatCatalog.TirId || entry.Value == CombatCatalog.TirId))
             throw new InvalidDataException("Nuzlocke binding contains inconsistent canonical role rules.");
         foreach (int role in campaign.ActiveRoleIds)
         {
             int fighter = campaign.GetDonor(role);
-            if (fighter >= 0 && !binding.FighterStates.ContainsKey(fighter))
+            if (fighter >= 0 && fighter != CombatCatalog.TirId && !binding.FighterStates.ContainsKey(fighter))
                 throw new InvalidDataException("Nuzlocke binding is missing an active fighter snapshot.");
         }
     }
