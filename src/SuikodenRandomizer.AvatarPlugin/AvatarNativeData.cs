@@ -179,7 +179,7 @@ internal static class AvatarNativeData
     }
 
     internal static GSD1.PLAYER_DATA CreateProxy(GSD1.PLAYER_DATA canonical,
-        GSD1.PLAYER_DATA donor, GSD1.PLAYER_BASE canonicalBase, bool keepCanonicalLoadout = false)
+        GSD1.PLAYER_DATA donor, GSD1.PLAYER_BASE canonicalBase, bool keepCanonicalLoadout = false, GSD1.PLAYER_DATA? loadoutSource = null)
     {
         if (canonical is null) throw new ArgumentNullException(nameof(canonical));
         if (donor is null) throw new ArgumentNullException(nameof(donor));
@@ -191,7 +191,7 @@ internal static class AvatarNativeData
 
         // Prepare donor metadata before allocating/publishing a PLAYER_DATA.
         // No donor persistent state is read or assigned here.
-        var rules = keepCanonicalLoadout ? canonical : donor;
+        var rules = loadoutSource ?? (keepCanonicalLoadout ? canonical : donor);
         var padding = CloneBytes(canonical.n_1);
         var runeTypes = CloneBytes(rules.monsyu_type);
         var growth = CloneBytes(rules.seicho_type);

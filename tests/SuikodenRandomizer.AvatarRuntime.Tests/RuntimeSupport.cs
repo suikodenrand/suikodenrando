@@ -94,6 +94,30 @@ namespace SuikodenRandomizer.AvatarPlugin
    Bindings.TryGetValue(identity, out var binding) ? binding : null;
   internal static void Write(string identity, FixedRosterBinding binding) => Bindings.Add(identity, binding);
  }
+ internal sealed class NuzlockeBinding
+ {
+  public NuzlockeSnapshot Campaign { get; set; } = new();
+  public Dictionary<int,FixedRosterBaseSnapshot> FighterStates { get; set; } = new();
+  public Dictionary<int,FixedRosterBaseSnapshot> RoleBases { get; set; } = new();
+  public Dictionary<int,int> RoleRules { get; set; } = new();
+ }
+ internal static class NuzlockeBindingStore
+ {
+  internal static Dictionary<string,NuzlockeBinding> Bindings { get; } = new();
+  internal static bool HasBindings => Bindings.Count!=0;
+  internal static void CheckWritable() { }
+  internal static string ComputeIdentity(GSD1.SaveDataManager.SaveData save) => save.Identity;
+  internal static NuzlockeBinding? Read(string identity) =>
+   Bindings.TryGetValue(identity,out var binding)?Copy(binding):null;
+  internal static void Write(string identity,NuzlockeBinding binding) => Bindings.Add(identity,Copy(binding));
+  private static NuzlockeBinding Copy(NuzlockeBinding b) => new()
+  {
+   Campaign=NuzlockeCampaign.Restore(b.Campaign).Capture(),
+   FighterStates=b.FighterStates.ToDictionary(p=>p.Key,p=>FixedRosterBaseSnapshot.Capture(p.Value.ToNative())),
+   RoleBases=b.RoleBases.ToDictionary(p=>p.Key,p=>FixedRosterBaseSnapshot.Capture(p.Value.ToNative())),
+   RoleRules=new Dictionary<int,int>(b.RoleRules)
+  };
+ }
  internal static class AvatarNativeData
  {
   internal static int CopyCalls;
@@ -135,8 +159,8 @@ namespace SuikodenRandomizer.AvatarPlugin
     string.Join(",",value.Items),string.Join(",",value.seicho_type));
   }
   internal static GSD1.PLAYER_DATA CreateProxy(GSD1.PLAYER_DATA original,GSD1.PLAYER_DATA donor,GSD1.PLAYER_BASE roleBase,
-   bool keepCanonicalLoadout=false) =>
+   bool keepCanonicalLoadout=false,GSD1.PLAYER_DATA? loadoutSource=null) =>
    new GSD1.PLAYER_DATA {chara_id=original.chara_id,chara_name=original.chara_id==CombatCatalog.TirId?original.chara_name:donor.chara_name,player_base=roleBase,
-    field_data=donor.field_data,battle_data=donor.battle_data,seicho_type=CloneBytes(keepCanonicalLoadout?original.seicho_type:donor.seicho_type)};
+    field_data=donor.field_data,battle_data=donor.battle_data,seicho_type=CloneBytes((loadoutSource??(keepCanonicalLoadout?original:donor)).seicho_type)};
  }
 }

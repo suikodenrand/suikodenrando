@@ -110,8 +110,22 @@ internal static class Program
         Method("BattleBase", "player_initialize", true, "Void()", true);
         Method("BattleBase", "calc_exp", true, "Void()", true);
         Method("BattleBase", "battle_end_free", true, "Int32(Int32)", true);
+        // Nuzlocke observes native combat deaths, then schedules the native
+        // battle allocator after cleanup when a reserve team must retry.
+        Method("BattleBase", "dead_player", true, "Void(Int32)", true, 0, "player_no");
+        Method("BattleBase", "calc_hp", true, "Void()", true);
+        foreach (string name in new[] { "battle_loop", "battle_game_over", "get_command", "battle" })
+            Method("BattleBase", name, true, "Int32(Int32)", true, 0, "step_level");
+        Method("BattleBase", "NextGameStep", true,
+            "Void(Il2CppSystem.Func`2<Int32,Int32>,Int32,String)", true);
         Property("BattleBase", "battle_work", "BATTLE_WORK", isStatic: true);
         Property("BATTLE_WORK", "p_battle_data", References("P_BATTLE_DATA"));
+        Property("BATTLE_WORK", "pm_data", References("PM_DATA"));
+        Property("BATTLE_WORK", "flg_table", Arrays + "Il2CppStructArray`1<Boolean>");
+        Property("BATTLE_WORK", "player_kazu", "Int32");
+        Property("PM_DATA", "IsDead", "Boolean");
+        Property("PM_DATA", "hp", "UInt16", true);
+        foreach (string name in new[] { "dead_flg", "finished_flg" }) Property("PM_DATA", name, "Byte", true);
         Property("P_BATTLE_DATA", "player_data", "PLAYER_DATA");
 
         // Keep Unite candidate construction inside the same temporary native

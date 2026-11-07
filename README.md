@@ -1,5 +1,7 @@
 # Stars of Destiny - Character Randomizer
 
+Experimental 0.8.8 Nuzlocke mode. See [the test guide](docs/NUZLOCKE_TEST.md) for rules, installation and playtest steps.
+
 Randomize the combat cast of Suikoden I HD Remaster on Windows. The [website](https://suikodenrand.github.io/) generates a config with the selected seed, roster and start point alongside Windows setup.
 
 Character Shuffle uses the 75-hero pool by default. Enable Include Tir to add the protagonist's role and avatar to the pool. His chosen name and story rune stay with his role. Fixed Roster and Random Roster reserve Tir and assign five companions as the story opens party slots. Before Viktor can be used with any mode.

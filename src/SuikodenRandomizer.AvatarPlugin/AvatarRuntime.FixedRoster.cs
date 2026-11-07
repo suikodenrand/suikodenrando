@@ -22,7 +22,7 @@ internal sealed partial class AvatarRuntime
     private Dictionary<int, GSD1.PLAYER_DATA> _fixedNativeResidents = new();
 
     internal bool IsFixedRoster => _fixedProfile is not null;
-    internal string CampaignFingerprint => _fixedProfile?.Fingerprint ?? Profile.Fingerprint;
+    internal string CampaignFingerprint => _nuzCampaign?.InitialFingerprint ?? _fixedProfile?.Fingerprint ?? Profile.Fingerprint;
 
     private void ResetFixedRoster()
     {
@@ -81,12 +81,14 @@ internal sealed partial class AvatarRuntime
 
     internal void CheckCampaignBindingWritable()
     {
-        if (IsFixedRoster) FixedRosterBindingStore.CheckWritable();
+        if (IsNuzlocke) { CheckNuzlockeSave(); NuzlockeBindingStore.CheckWritable(); }
+        else if (IsFixedRoster) FixedRosterBindingStore.CheckWritable();
         else AvatarBindingStore.CheckWritable();
     }
 
     internal string WriteCampaignBinding(GSD1.SaveDataManager.SaveData save)
     {
+        if (IsNuzlocke) return WriteNuzlockeBinding(save);
         if (_fixedProfile is null)
         {
             string identity = AvatarSaveIdentity.Compute(save);

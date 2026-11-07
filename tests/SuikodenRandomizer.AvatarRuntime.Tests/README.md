@@ -1,7 +1,9 @@
 # Managed runtime adapter checks
 
-This project links the **actual production `AvatarRuntime.cs`** and uses real Core shuffle profiles, campaign state, strict binding codec and batch transaction orchestration. It executes the adapter against deliberately small managed native test doubles in the separate `AvatarRuntime.TestDoubles` project. `AvatarNativeData`, logging, paths, scene access and binding storage are test doubles.
+This project links the **actual production `AvatarRuntime.cs` and its fixed-roster and Nuzlocke partials** and uses real Core shuffle profiles, campaign state, strict binding codec and batch transaction orchestration. It executes the adapter against deliberately small managed native test doubles in the separate `AvatarRuntime.TestDoubles` project. `AvatarNativeData`, logging, paths, scene access and binding storage are test doubles.
 
 The checks cover transient startup readiness, exact live-base binding, complete pristine donor snapshot use, excluded identities, no repeated initialization, saved-seed restore, progression-preserving replay, full rollback, title lifecycle and identity rejection.
+
+Nuzlocke checks exercise seeded startup, latched knockouts even after revival, unique permanent retirement across forced and returning story roles, inherited progression and loadout, protagonist plot-rune preservation, battle save refusal, wipe/retry consumption, save/load without initialization, and transactional native rollback. A complete 76-fighter solo run consumes fresh reserves and living inactive survivors before the final game-over state. The battle doubles model the native one-based battle arrays. Native defeat routing and encounter reconstruction still require an in-game check.
 
 Passing this suite does **not** compile the complete plugin against real BepInEx/Unity/Il2Cpp references, install or execute native hooks, validate native object ownership or establish gameplay compatibility. The real GSD1 metadata gate and installed-reference plugin build remain separate requirements.

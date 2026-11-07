@@ -11,7 +11,7 @@ public sealed class AvatarPlugin : BasePlugin
 {
     public const string PluginGuid = "agilen.suikoden.recruitment_randomizer";
     internal const string DisplayName = "Stars of Destiny - Character Randomizer";
-    internal const string Version = "0.8.7";
+    internal const string Version = "0.8.8";
     internal static ManualLogSource PluginLog { get; private set; } = null!;
     internal static string ConfiguredSeed { get; private set; } = "agilen-080";
     internal static string ConfiguredMode { get; private set; } = "Shuffle";
@@ -29,7 +29,7 @@ public sealed class AvatarPlugin : BasePlugin
                 "Seed for future NEW GAME campaigns (1 to 128 characters). Saved campaigns retain their complete mapping.");
             ConfiguredSeed = seed.Value;
             ConfiguredMode = Config.Bind("Shuffle", "Mode", "Shuffle",
-                "New games only: Shuffle, FixedChosen, or FixedRandom.").Value.Trim();
+                "New games only: Shuffle, FixedChosen, FixedRandom, or Nuzlocke.").Value.Trim();
             ConfiguredCompanions = Config.Bind("Shuffle", "Companions", "",
                 "Five distinct combat hero IDs, comma separated, for FixedChosen. Tir is included automatically.").Value;
             ConfiguredIncludeTir = Config.Bind("Shuffle", "IncludeTir", false,

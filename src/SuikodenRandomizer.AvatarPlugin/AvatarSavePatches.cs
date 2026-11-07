@@ -103,6 +103,7 @@ internal static class AvatarSaveRestorePatch
         var runtime = AvatarRuntime.Current;
         if (runtime is null) return;
         runtime.CompleteFixedLoad();
+        runtime.CompleteNuzlockeLoad();
         if (!__result) runtime.Fail("Native save restoration failed.");
         else if (runtime.IsAdmitted) runtime.EnsureProxy("bound save restore (no donor stats copied)", false, force: true);
     }

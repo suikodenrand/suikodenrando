@@ -112,7 +112,7 @@ internal static class AvatarBattleEntryPatch
             if (!runtime.IsAdmitted) return true;
             if (!runtime.IsFixedRoster && !runtime.State.IsInitialized && !runtime.HasMappedPartyRole()) return true;
             if (!runtime.EnsureProxy("normal battle entry", true)) { __result = 0; return false; }
-            if (runtime.IsFixedRoster) runtime.VerifyFinalParty("fixed roster battle entry");
+            if (runtime.IsFixedRoster || runtime.IsNuzlocke) runtime.VerifyFinalParty("fixed roster battle entry");
             return true;
         }
         catch (Exception exception) { runtime.Fail("Battle entry inspection failed: " + exception.Message); __result = 0; return false; }
@@ -141,6 +141,7 @@ internal static class AvatarBattleObservationPatch
             if (__originalMethod.Name == "player_initialize")
             {
                 runtime.VerifyFixedBattleParty();
+                runtime.BeginNuzlockeBattle();
                 var data = GSD1.BattleBase.battle_work?.p_battle_data;
                 if (data is not null)
                     for (int n = 0; n < data.Count; n++)
@@ -192,7 +193,7 @@ internal static class FixedRosterPartyChangePatch
     private static void Postfix()
     {
         var runtime = AvatarRuntime.Current;
-        if (runtime?.IsFixedRoster == true)
+        if (runtime?.IsFixedRoster == true || runtime?.IsNuzlocke == true)
             runtime.EnsureProxy("active party change", false, force: true);
     }
 }

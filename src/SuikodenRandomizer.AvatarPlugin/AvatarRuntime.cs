@@ -20,9 +20,10 @@ internal sealed partial class AvatarRuntime
     internal AvatarShuffleCampaignState State { get; private set; } = AvatarShuffleCampaignState.CreateUnbound();
     internal AvatarShuffleProfile Profile => State.Profile ?? throw new InvalidOperationException("No shuffle campaign is bound.");
     internal string? FaultReason { get; private set; }
-    internal bool IsAdmitted => FaultReason is null && (_fixedProfile is not null ? !_fixedLoading : State.Origin != RoleAvatarCampaignOrigin.UnboundSave);
-    internal bool IsActive => IsAdmitted && (_fixedProfile is not null ? _fixedStarted : State.IsInitialized && _proxies.Count == Profile.RoleIds.Count);
+    internal bool IsAdmitted => FaultReason is null && (IsNuzlocke ? !_nuzLoading : _fixedProfile is not null ? !_fixedLoading : State.Origin != RoleAvatarCampaignOrigin.UnboundSave);
+    internal bool IsActive => IsAdmitted && (IsNuzlocke ? _nuzStarted : _fixedProfile is not null ? _fixedStarted : State.IsInitialized && _proxies.Count == Profile.RoleIds.Count);
     internal string Status => FaultReason is not null ? "STOP: " + FaultReason
+        : IsNuzlocke ? NuzlockeStatus
         : IsActive && IsFixedRoster ? "Fixed roster test | Tir + five companions"
         : IsActive ? Profile.RoleIds.Count + " combat roles | seed: " + Profile.Seed + " | story IDs retained"
         : IsAdmitted ? "Waiting for native roster and a bound story resident: " + _waiting
@@ -50,8 +51,8 @@ internal sealed partial class AvatarRuntime
     internal AvatarRuntime(Func<long>? timestamp = null) => _timestamp = timestamp ?? Stopwatch.GetTimestamp;
 
     internal int MapDisplayId(int canonicalId) => IsActive && canonicalId >= 0 && canonicalId <= 109
-        ? (_fixedAssignments?.GetDonor(canonicalId) ?? Profile.GetDonor(canonicalId)) : canonicalId;
-    internal bool IsRole(int id) => IsAdmitted && (_fixedProfile is not null ? _fixedAssignments!.Assignments.ContainsKey(id) && id != CombatCatalog.TirId : Profile.IsRole(id));
+        ? (IsNuzlocke ? NuzlockeDisplayId(canonicalId) : _fixedAssignments?.GetDonor(canonicalId) ?? Profile.GetDonor(canonicalId)) : canonicalId;
+    internal bool IsRole(int id) => IsAdmitted && (IsNuzlocke ? _nuzCampaign!.IsRole(id) && _nuzCampaign.GetDonor(id) >= 0 : _fixedProfile is not null ? _fixedAssignments!.Assignments.ContainsKey(id) && id != CombatCatalog.TirId : Profile.IsRole(id));
     internal GSD1.PLAYER_DATA? ProxyFor(int id) => IsActive && _proxies.TryGetValue(id, out var proxy) ? proxy : null;
     internal GSD1.PLAYER_DATA? ProjectPlayerData(int id, GSD1.PLAYER_DATA? nativeResult)
     {
@@ -76,8 +77,9 @@ internal sealed partial class AvatarRuntime
         try
         {
             RestoreCache();
-            ResetFixedRoster();
+            ResetFixedRoster(); ResetNuzlocke();
             State = AvatarShuffleCampaignState.CreateUnbound();
+            if (TryBeginNuzlocke()) { FaultReason = null; _wasTitle = true; _automaticCheckScheduled = false; ResetPerformanceCounters(); return; }
             if (TryBeginFixedRoster()) { FaultReason = null; _wasTitle = true; _automaticCheckScheduled = false; ResetPerformanceCounters(); return; }
             State = AvatarShuffleCampaignState.CreateNew(AvatarShuffleProfile.Create(AvatarPlugin.ConfiguredSeed,
                 AvatarPlugin.ConfiguredIncludeTir));
@@ -97,7 +99,7 @@ internal sealed partial class AvatarRuntime
     {
         try
         {
-            RestoreCache(); ResetFixedRoster(); FaultReason = null;
+            RestoreCache(); ResetFixedRoster(); ResetNuzlocke(); FaultReason = null;
             State = AvatarShuffleCampaignState.CreateUnbound(); _game = IntPtr.Zero;
             _automaticCheckScheduled = false;
             ResetPerformanceCounters();
@@ -106,6 +108,7 @@ internal sealed partial class AvatarRuntime
             AvatarPresentation.Reset();
             string identity = AvatarSaveIdentity.Compute(save);
             var regular = AvatarBindingStore.Read(identity);
+            if (regular is null && TryLoadNuzlocke(save)) return;
             if (regular is null && TryLoadFixedRoster(save)) return;
             State = regular ?? AvatarShuffleCampaignState.CreateUnbound();
             if (!IsAdmitted)
@@ -131,7 +134,7 @@ internal sealed partial class AvatarRuntime
             if (required || force) _forcedChecks++; else _backgroundChecks++;
             _automaticCheckScheduled = true;
             _nextAutomaticCheck = now + AutomaticCheckInterval;
-            return IsFixedRoster ? EnsureFixedRoster(reason, required) : EnsureProxiesCore(reason, required);
+            return IsNuzlocke ? EnsureNuzlocke(reason, required) : IsFixedRoster ? EnsureFixedRoster(reason, required) : EnsureProxiesCore(reason, required);
         }
         catch (Exception exception) { Fail("Shuffle preparation failed: " + exception.Message); return false; }
     }
@@ -342,7 +345,7 @@ internal sealed partial class AvatarRuntime
         var codes = GSD1.OldSrcBase.game_work?.party_data?.chara_code;
         if (codes is null) return false;
         // Battle admission is about active membership, not staged reservations.
-        foreach (int slot in ActiveResidentSlots()) if (IsFixedRoster ? codes[slot] != CombatCatalog.TirId : Profile.IsRole(codes[slot])) return true;
+        foreach (int slot in ActiveResidentSlots()) if (IsNuzlocke ? _nuzCampaign!.IsRole(codes[slot]) : IsFixedRoster ? codes[slot] != CombatCatalog.TirId : Profile.IsRole(codes[slot])) return true;
         return false;
     }
 
@@ -413,6 +416,7 @@ internal sealed partial class AvatarRuntime
 
     internal void BindResidents()
     {
+        if (IsNuzlocke) { EnsureProxy("Nuzlocke resident binding", true, force: true); return; }
         if (IsFixedRoster) return;
         string? pending = BindResidentsCore();
         if (pending is not null) throw new InvalidOperationException(pending);
@@ -499,11 +503,12 @@ internal sealed partial class AvatarRuntime
             bool title = GSD1.ChapterManager.GR1Instance?.activeChapter?.TryCast<GSD1.TitleChapter>() is not null;
             if (title && !_wasTitle)
             {
-                RestoreCache(); ResetFixedRoster(); State = AvatarShuffleCampaignState.CreateUnbound(); FaultReason = null;
+                RestoreCache(); ResetFixedRoster(); ResetNuzlocke(); State = AvatarShuffleCampaignState.CreateUnbound(); FaultReason = null;
                 AvatarPresentation.Reset();
             }
             _wasTitle = title;
-            if (!title && IsAdmitted && (IsFixedRoster || !IsActive || _game != GSD1.OldSrcBase.game_work?.Pointer))
+            if (IsNuzlocke) ObserveNuzlockeKnockouts();
+            if (!title && IsAdmitted && (IsNuzlocke || IsFixedRoster || !IsActive || _game != GSD1.OldSrcBase.game_work?.Pointer))
                 EnsureProxy("native initialization observation", false);
         }
         catch (Exception exception) { Fail("Shuffle lifecycle observation failed: " + exception.Message); }

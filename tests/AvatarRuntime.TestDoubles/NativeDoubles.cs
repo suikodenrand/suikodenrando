@@ -114,7 +114,7 @@ public sealed class GlobalWork
     public static GlobalWork? Instance { get; set; }
     public PlayerManager? player_manager { get; set; }
 }
-public static class OldSrcBase { public static GAME_WORK? game_work { get; set; } }
+public static class OldSrcBase { public static GAME_WORK game_work { get; set; } = null!; }
 public class Chapter { public T? TryCast<T>() where T : class => this as T; }
 public sealed class TitleChapter : Chapter { }
 public sealed class GameInit { }
@@ -129,6 +129,18 @@ public sealed class SaveDataManager
 {
     public sealed class SaveData { public string Identity { get; set; } = new string('a',64); }
 }
-public sealed class P_BATTLE_DATA { public PLAYER_DATA? player_data { get; set; } }
-public sealed class BATTLE_WORK { public List<P_BATTLE_DATA?>? p_battle_data { get; set; } }
+public sealed class P_BATTLE_DATA { public PLAYER_DATA player_data { get; set; } = null!; }
+public sealed class PM_DATA
+{
+    public ushort hp { get; set; }
+    public bool IsDead { get; set; }
+    public byte dead_flg { get; set; }
+    public byte finished_flg { get; set; }
+}
+public sealed class BATTLE_WORK
+{
+    public byte player_kazu { get; set; }
+    public List<P_BATTLE_DATA> p_battle_data { get; set; } = new();
+    public List<PM_DATA?> pm_data { get; set; } = new();
+}
 public static class BattleBase { public static BATTLE_WORK? battle_work { get; set; } }
