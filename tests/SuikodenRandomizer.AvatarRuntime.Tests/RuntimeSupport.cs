@@ -55,6 +55,7 @@ namespace SuikodenRandomizer.AvatarPlugin
   internal static string ConfiguredMode { get; set; } = "Shuffle";
   internal static string ConfiguredCompanions { get; set; } = string.Empty;
   internal static bool ConfiguredIncludeTir { get; set; }
+  internal static bool ConfiguredBalancedGear { get; set; }
   internal static TestLogger PluginLog { get; } = new TestLogger();
  }
  internal static class AvatarPresentation { internal static int Resets; internal static void Reset() => Resets++; }
@@ -78,15 +79,38 @@ namespace SuikodenRandomizer.AvatarPlugin
  internal sealed class FixedRosterBaseSnapshot
  {
   private readonly GSD1.PLAYER_BASE _copy;
+  public FixedRosterBaseSnapshot() => _copy=new GSD1.PLAYER_BASE();
   private FixedRosterBaseSnapshot(GSD1.PLAYER_BASE source) => _copy = AvatarNativeData.CloneBase(source);
   public int CharacterId { get => _copy.chara_no; set => _copy.chara_no = value; }
   public byte[] Growth { get => _copy.seicho_type; set => _copy.seicho_type = value; }
   public ushort Hp { get => _copy.hp; set => _copy.hp = value; }
-  public ushort MaxHp => _copy.max_hp;
+  public ushort MaxHp { get => _copy.max_hp; set => _copy.max_hp=value; }
   public ushort Status { get => _copy.status; set => _copy.status = value; }
+  public byte Level { get => _copy.level; set => _copy.level=value; }
+  public ushort Exp { get => _copy.exp; set => _copy.exp=value; }
+  public byte[] MagicPoints { get => _copy.MagicPoints; set => _copy.MagicPoints=value; }
+  public byte[] Stats { get => _copy.noryoku.ToArray(); set => _copy.noryoku=value.ToList(); }
+  public byte WeaponId { get => _copy.WeaponId; set => _copy.WeaponId = value; }
+  public byte WeaponLevel { get => _copy.WeaponLevel; set => _copy.WeaponLevel = value; }
+  public byte[] WeaponRunes { get => _copy.WeaponRunes; set => _copy.WeaponRunes = value; }
+  public byte ItemCount { get => _copy.ItemCount; set => _copy.ItemCount = value; }
+  public byte RuneId { get => _copy.monsyo_data!.monsyo_id; set => _copy.monsyo_data!.monsyo_id=value; }
+  public byte RuneLevel { get => _copy.monsyo_data!.monsyo_level; set => _copy.monsyo_data!.monsyo_level=value; }
+  public ushort RuneExp { get => _copy.monsyo_data!.monsyo_exp; set => _copy.monsyo_data!.monsyo_exp=value; }
+  public FixedRosterItemSnapshot[] Items
+  {
+   get => _copy.GearItems.Select(item=>new FixedRosterItemSnapshot{Id=item.item_id,Equipped=item.soubi,Data=item.data}).ToArray();
+   set => _copy.GearItems=value.Select(item=>new GSD1.PLAYER_ITEM{item_id=item.Id,soubi=item.Equipped,data=item.Data}).ToList();
+  }
   internal static FixedRosterBaseSnapshot Capture(GSD1.PLAYER_BASE source) => new FixedRosterBaseSnapshot(source);
   internal void ValidateState() => AvatarNativeData.ValidateBase(_copy);
   internal GSD1.PLAYER_BASE ToNative() => AvatarNativeData.CloneBase(_copy);
+ }
+ internal sealed class FixedRosterItemSnapshot
+ {
+  public ushort Id { get; set; }
+  public byte Equipped { get; set; }
+  public byte Data { get; set; }
  }
  internal sealed class FixedRosterBinding
  {
@@ -109,6 +133,7 @@ namespace SuikodenRandomizer.AvatarPlugin
  internal sealed class NuzlockeBinding
  {
   public NuzlockeSnapshot Campaign { get; set; } = new();
+  public bool BalancedStartingGear { get; set; }
   public Dictionary<int,FixedRosterBaseSnapshot> FighterStates { get; set; } = new();
   public Dictionary<int,FixedRosterBaseSnapshot> RoleBases { get; set; } = new();
   public Dictionary<int,int> RoleRules { get; set; } = new();
@@ -125,6 +150,7 @@ namespace SuikodenRandomizer.AvatarPlugin
   private static NuzlockeBinding Copy(NuzlockeBinding b) => new()
   {
    Campaign=NuzlockeCampaign.Restore(b.Campaign).Capture(),
+   BalancedStartingGear=b.BalancedStartingGear,
    FighterStates=b.FighterStates.ToDictionary(p=>p.Key,p=>FixedRosterBaseSnapshot.Capture(p.Value.ToNative())),
    RoleBases=b.RoleBases.ToDictionary(p=>p.Key,p=>FixedRosterBaseSnapshot.Capture(p.Value.ToNative())),
    RoleRules=new Dictionary<int,int>(b.RoleRules)
@@ -150,7 +176,9 @@ namespace SuikodenRandomizer.AvatarPlugin
    ValidateBase(v);
    return new GSD1.PLAYER_BASE {chara_no=v.chara_no,level=v.level,hp=v.hp,max_hp=v.max_hp,exp=v.exp,status=v.status,
     noryoku=v.noryoku.ToList(),monsyo_data=CloneRune(v.monsyo_data),
-    seicho_type=CloneBytes(v.seicho_type),IsComplete=v.IsComplete,Equipment=v.Equipment,Rune=v.Rune,Items=(int[])v.Items.Clone()};
+    seicho_type=CloneBytes(v.seicho_type),IsComplete=v.IsComplete,Equipment=v.Equipment,Rune=v.Rune,Items=(int[])v.Items.Clone(),
+    WeaponId=v.WeaponId,WeaponLevel=v.WeaponLevel,WeaponRunes=CloneBytes(v.WeaponRunes),MagicPoints=CloneBytes(v.MagicPoints),ItemCount=v.ItemCount,
+    GearItems=v.GearItems.Select(item=>new GSD1.PLAYER_ITEM{item_id=item.item_id,soubi=item.soubi,data=item.data}).ToList()};
   }
   private static GSD1.PLAYER_MONSYO? CloneRune(GSD1.PLAYER_MONSYO? rune) => rune is null ? null
    : new GSD1.PLAYER_MONSYO {monsyo_id=rune.monsyo_id,monsyo_level=rune.monsyo_level,monsyo_exp=rune.monsyo_exp};
@@ -162,13 +190,17 @@ namespace SuikodenRandomizer.AvatarPlugin
    to.seicho_type=CloneBytes(from.seicho_type);to.IsComplete=from.IsComplete;to.Equipment=from.Equipment;
    to.Rune=from.Rune;to.Items=(int[])from.Items.Clone();
    to.noryoku=from.noryoku.ToList();to.monsyo_data=CloneRune(from.monsyo_data);
+   to.WeaponId=from.WeaponId;to.WeaponLevel=from.WeaponLevel;to.WeaponRunes=CloneBytes(from.WeaponRunes);to.ItemCount=from.ItemCount;
+   to.MagicPoints=CloneBytes(from.MagicPoints);
+   to.GearItems=from.GearItems.Select(item=>new GSD1.PLAYER_ITEM{item_id=item.item_id,soubi=item.soubi,data=item.data}).ToList();
   }
   internal static string Fingerprint(GSD1.PLAYER_BASE value)
   {
    ValidateBase(value);
    return string.Join("|",value.chara_no,value.level,value.hp,value.max_hp,value.exp,value.status,value.Equipment,value.Rune,
     value.monsyo_data?.monsyo_id,value.monsyo_data?.monsyo_level,value.monsyo_data?.monsyo_exp,string.Join(",",value.noryoku),
-    string.Join(",",value.Items),string.Join(",",value.seicho_type));
+    string.Join(",",value.Items),string.Join(",",value.seicho_type),value.WeaponId,value.WeaponLevel,string.Join(",",value.WeaponRunes),string.Join(",",value.MagicPoints),value.ItemCount,
+    string.Join(";",value.GearItems.Select(item=>item.item_id+","+item.soubi+","+item.data)));
   }
   internal static GSD1.PLAYER_DATA CreateProxy(GSD1.PLAYER_DATA original,GSD1.PLAYER_DATA donor,GSD1.PLAYER_BASE roleBase,
    bool keepCanonicalLoadout=false,GSD1.PLAYER_DATA? loadoutSource=null) =>

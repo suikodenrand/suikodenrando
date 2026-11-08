@@ -11,12 +11,13 @@ public sealed class AvatarPlugin : BasePlugin
 {
     public const string PluginGuid = "agilen.suikoden.recruitment_randomizer";
     internal const string DisplayName = "Stars of Destiny - Character Randomizer";
-    internal const string Version = "0.8.11";
+    internal const string Version = "0.8.12";
     internal static ManualLogSource PluginLog { get; private set; } = null!;
     internal static string ConfiguredSeed { get; private set; } = "agilen-080";
     internal static string ConfiguredMode { get; private set; } = "Shuffle";
     internal static string ConfiguredCompanions { get; private set; } = "";
     internal static bool ConfiguredIncludeTir { get; private set; }
+    internal static bool ConfiguredBalancedGear { get; private set; } = true;
     internal static bool SkipToViktor { get; private set; }
     private Harmony? _harmony;
 
@@ -35,6 +36,11 @@ public sealed class AvatarPlugin : BasePlugin
                 "Five distinct combat hero IDs, comma separated, for FixedChosen. Tir is included automatically.").Value;
             ConfiguredIncludeTir = Config.Bind("Shuffle", "IncludeTir", false,
                 "Include Tir in Character Shuffle for new games.").Value;
+            string startingGear = Config.Bind("Balance", "StartingGear", "Balanced",
+                "New games only: Balanced matches starting equipment and weapon levels to story progression; Original keeps each hero's original starting gear. Runes are unchanged.").Value.Trim();
+            ConfiguredBalancedGear = !string.Equals(startingGear, "Original", StringComparison.OrdinalIgnoreCase);
+            if (ConfiguredBalancedGear && !string.Equals(startingGear, "Balanced", StringComparison.OrdinalIgnoreCase))
+                Log.LogWarning("Unknown [Balance] StartingGear. Using Balanced.");
             string start = Config.Bind("Start", "Point", "Opening",
                 "New games only: Opening or BeforeViktor.").Value.Trim();
             SkipToViktor = string.Equals(start, "BeforeViktor", StringComparison.OrdinalIgnoreCase);
@@ -42,6 +48,7 @@ public sealed class AvatarPlugin : BasePlugin
                 Log.LogWarning("Unknown [Start] Point. Using Opening.");
             CrashDiagnostics.Breadcrumb("plugin.settings", "version=" + Version + "; mode=" + ConfiguredMode
                 + "; seed=" + ConfiguredSeed + "; includeTir=" + ConfiguredIncludeTir
+                + "; startingGear=" + (ConfiguredBalancedGear ? "Balanced" : "Original")
                 + "; beforeViktor=" + SkipToViktor);
             global::SuikodenRandomizer.Plugin.BuildCompatibility.Verify();
             CrashDiagnostics.Breadcrumb("plugin.game-build.verified");

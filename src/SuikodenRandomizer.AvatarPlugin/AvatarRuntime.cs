@@ -34,6 +34,7 @@ internal sealed partial class AvatarRuntime
     private GSD1.PlayerManager? _manager;
     private IntPtr _game;
     private bool _preparing, _wasTitle;
+    private bool _balancedStartingGear;
     private readonly Func<long> _timestamp;
     private bool _automaticCheckScheduled;
     private long _nextAutomaticCheck;
@@ -79,6 +80,8 @@ internal sealed partial class AvatarRuntime
         {
             RestoreCache();
             ResetFixedRoster(); ResetNuzlocke();
+            _balancedStartingGear = AvatarPlugin.ConfiguredBalancedGear;
+            CrashDiagnostics.Breadcrumb("campaign.starting-gear", _balancedStartingGear ? "Balanced" : "Original");
             State = AvatarShuffleCampaignState.CreateUnbound();
             if (TryBeginNuzlocke()) { FaultReason = null; _wasTitle = true; _automaticCheckScheduled = false; ResetPerformanceCounters(); return; }
             if (TryBeginFixedRoster()) { FaultReason = null; _wasTitle = true; _automaticCheckScheduled = false; ResetPerformanceCounters(); return; }
@@ -102,6 +105,7 @@ internal sealed partial class AvatarRuntime
         try
         {
             RestoreCache(); ResetFixedRoster(); ResetNuzlocke(); FaultReason = null;
+            _balancedStartingGear = false;
             State = AvatarShuffleCampaignState.CreateUnbound(); _game = IntPtr.Zero;
             _automaticCheckScheduled = false;
             ResetPerformanceCounters();
@@ -232,7 +236,11 @@ internal sealed partial class AvatarRuntime
                         int donor = Profile.GetDonor(id);
                         if (initialize && !Profile.KeepsCanonicalLoadout(id))
                         {
-                            AvatarNativeData.CopyBase(snapshots[donor], bases[id]);
+                            var incoming = _balancedStartingGear
+                                ? StartingGearBalancer.Balance(FixedRosterBaseSnapshot.Capture(snapshots[donor]),
+                                    FixedRosterBaseSnapshot.Capture(snapshots[id]), originals[donor]).ToNative()
+                                : snapshots[donor];
+                            AvatarNativeData.CopyBase(incoming, bases[id]);
                             bases[id].seicho_type = AvatarNativeData.CloneBytes(originals[donor].seicho_type);
                             bases[id].hp = bases[id].max_hp;
                             bases[id].status = 0;

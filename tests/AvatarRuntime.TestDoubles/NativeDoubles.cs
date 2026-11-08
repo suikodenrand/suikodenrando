@@ -19,6 +19,12 @@ public sealed class PLAYER_MONSYO
     public byte monsyo_level { get; set; }
     public ushort monsyo_exp { get; set; }
 }
+public sealed class PLAYER_ITEM
+{
+    public ushort item_id { get; set; }
+    public byte soubi { get; set; }
+    public byte data { get; set; }
+}
 public sealed class PLAYER_BASE : NativeObject
 {
     public int chara_no { get; set; }
@@ -34,6 +40,14 @@ public sealed class PLAYER_BASE : NativeObject
     public int Equipment { get; set; }
     public int Rune { get; set; }
     public int[] Items { get; set; } = Array.Empty<int>();
+    public byte WeaponId { get; set; }
+    public byte WeaponLevel { get; set; } = 1;
+    public byte[] WeaponRunes { get; set; } = new byte[6];
+    public byte[] MagicPoints { get; set; } = new byte[4];
+    public byte ItemCount { get; set; }
+    public List<PLAYER_ITEM> GearItems { get; set; } = new List<PLAYER_ITEM>(new[] {
+        new PLAYER_ITEM(),new PLAYER_ITEM(),new PLAYER_ITEM(),new PLAYER_ITEM(),new PLAYER_ITEM(),
+        new PLAYER_ITEM(),new PLAYER_ITEM(),new PLAYER_ITEM(),new PLAYER_ITEM() });
 }
 // Count modelled native array accesses so hot-path regressions are observable
 // without pretending these managed timings measure the actual game.
@@ -70,7 +84,22 @@ public sealed class PLAYER_DATA : NativeObject
     public PLAYER_FIELD? field_data { get; set; } = new PLAYER_FIELD();
     public PLAYER_BATTLE_SO? battle_data { get; set; } = new PLAYER_BATTLE_SO();
     public byte[] seicho_type { get; set; } = new byte[7];
+    public byte soubi_type { get; set; } = byte.MaxValue;
+    public byte sex { get; set; }
 }
+public class ITEM_DATA
+{
+    public int nedan { get; set; }
+    public ushort type { get; set; }
+    public T? TryCast<T>() where T : class => this as T;
+}
+public sealed class BOUGU_DATA : ITEM_DATA
+{
+    public byte soubi_type { get; set; }
+    public byte func_no { get; set; }
+    public List<byte> equip_data { get; set; } = new List<byte>(new byte[8]);
+}
+public static class G_item_c_data { public static List<ITEM_DATA?> item_data_table { get; set; } = new(); }
 public sealed class PARTY_DATA
 {
     private int _x;

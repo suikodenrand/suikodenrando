@@ -192,6 +192,11 @@ internal static class Program
         Method("BattleManager", "LoadBattleDatas", false,
             "Void(" + Arrays + "Il2CppStructArray`1<Int32>,Il2CppSystem.Action)", true, 0, "nums");
         Method("BattleManager", "GetBattleData", false, "OPD_DATA(Int32)", true, 0, "num");
+        Property("G_item_c_data", "item_data_table", References("ITEM_BASE"), isStatic: true);
+        Property("ITEM_BASE", "nedan", "Int32");
+        Property("ITEM_BASE", "type", "UInt16");
+        foreach (string name in new[] { "soubi_type", "func_no" }) Property("BOUGU_DATA", name, "Byte");
+        Property("BOUGU_DATA", "equip_data", Bytes);
         Property("OldSrcBase", "game_work", "GAME_WORK", isStatic: true);
         Method("P_player_c", "LoadPlayer", true, "Int32(Int32)", true);
         Method("P_player_c", "AddPlayer", true, "Int32(Int32)", true);

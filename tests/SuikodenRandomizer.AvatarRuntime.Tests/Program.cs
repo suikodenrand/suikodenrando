@@ -330,6 +330,7 @@ internal static partial class Program
    RunViktorStartChecks();
    RunTirShuffleChecks();
    RunNuzlockeRuntimeChecks();
+   RunBalancedGearChecks();
    RunDiagnosticChecks();
    Console.WriteLine(_passed+"/"+_passed+" production-runtime managed adapter checks passed.");
    Console.WriteLine("Scope: actual linked AvatarRuntime with managed native test doubles; not full-plugin compilation or native gameplay.");
@@ -347,11 +348,13 @@ internal static partial class Program
   internal World(bool admit=true)
   {
    CrashDiagnostics.Breadcrumbs.Clear();CrashDiagnostics.Exceptions.Clear();
+   PrepareGearCatalog();
    Runtime=new AvatarRuntime(()=>Now);
    AvatarNativeData.CopyCalls=0;AvatarNativeData.FailCopyRoleOnce=null;AvatarBindingStore.Bindings.Clear();FixedRosterBindingStore.Bindings.Clear();NuzlockeBindingStore.Bindings.Clear();
    GSD1.BattleBase.battle_work=null;
    AvatarPlugin.ConfiguredSeed="agilen-080";AvatarPlugin.ConfiguredMode="Shuffle";AvatarPlugin.ConfiguredCompanions=string.Empty;
    AvatarPlugin.ConfiguredIncludeTir=false;
+   AvatarPlugin.ConfiguredBalancedGear=false;
    for(int id=0;id<110;id++){
     var b=new GSD1.PLAYER_BASE{chara_no=id,level=(byte)(1+id%50),max_hp=(ushort)(100+id),hp=(ushort)(100+id),exp=(ushort)(id*3),Equipment=1000+id,Rune=2000+id,Items=new[]{3000+id},seicho_type=Enumerable.Repeat((byte)id,7).ToArray()};
     var p=new GSD1.PLAYER_DATA{chara_id=(byte)id,chara_name=0x10000u+(uint)id,player_base=b,seicho_type=Enumerable.Repeat((byte)id,7).ToArray()};

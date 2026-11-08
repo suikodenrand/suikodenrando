@@ -170,6 +170,7 @@ internal sealed partial class AvatarRuntime
         var needed = new HashSet<int>(previous.Assignments.Keys);
         needed.UnionWith(slots.Keys);
         if (!_fixedStarted && !_fixedResume) needed.UnionWith(profile.CompanionIds);
+        if (!_fixedStarted && !_fixedResume && _balancedStartingGear) needed.Add(CombatCatalog.TirId);
         var bases = ReadyBaseIndex(needed);
         if (bases.Count != needed.Count) return WaitFor("waiting for fixed roster live bases", required);
         foreach (var entry in slots)
@@ -206,6 +207,8 @@ internal sealed partial class AvatarRuntime
                     start.Growth = originals[fighter].seicho_type.ToArray();
                     start.Hp = start.MaxHp;
                     start.Status = 0;
+                    if (_balancedStartingGear)
+                        start = StartingGearBalancer.Balance(start, FixedRosterBaseSnapshot.Capture(bases[CombatCatalog.TirId]), originals[fighter]);
                     fighters.Add(fighter, start);
                 }
 

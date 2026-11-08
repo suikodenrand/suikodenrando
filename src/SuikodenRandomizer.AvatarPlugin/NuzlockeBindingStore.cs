@@ -17,6 +17,8 @@ internal sealed class NuzlockeBinding
     public Dictionary<int, FixedRosterBaseSnapshot> FighterStates { get; set; } = new();
     public Dictionary<int, FixedRosterBaseSnapshot> RoleBases { get; set; } = new();
     public Dictionary<int, int> RoleRules { get; set; } = new();
+    // Missing in older bindings: retain their original future starting kits.
+    public bool BalancedStartingGear { get; set; }
 }
 
 /// <summary>A native save snapshot and its Nuzlocke campaign state are published together.</summary>
@@ -134,7 +136,8 @@ internal static class NuzlockeBindingStore
             Campaign = campaign,
             FighterStates = Ordered(binding.FighterStates),
             RoleBases = Ordered(binding.RoleBases),
-            RoleRules = Ordered(binding.RoleRules)
+            RoleRules = Ordered(binding.RoleRules),
+            BalancedStartingGear = binding.BalancedStartingGear
         }, JsonOptions);
     }
 

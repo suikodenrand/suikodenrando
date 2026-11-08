@@ -59,8 +59,10 @@ internal sealed partial class AvatarRuntime
         _nuzTemplates = binding.FighterStates;
         _nuzRoleBases = binding.RoleBases;
         _nuzRules = binding.RoleRules;
+        _balancedStartingGear = binding.BalancedStartingGear;
         _nuzLoading = _nuzResume = true;
-        Trace("NUZLOCKE restored; retired=" + _nuzCampaign.RetiredHeroIds.Count);
+        Trace("NUZLOCKE restored; retired=" + _nuzCampaign.RetiredHeroIds.Count
+            + "; starting gear=" + (_balancedStartingGear ? "Balanced" : "Original"));
         return true;
     }
 
@@ -83,7 +85,7 @@ internal sealed partial class AvatarRuntime
         NuzlockeBindingStore.Write(identity, new NuzlockeBinding
         {
             Campaign = _nuzCampaign!.Capture(), FighterStates = _nuzTemplates,
-            RoleBases = roles, RoleRules = _nuzRules
+            RoleBases = roles, RoleRules = _nuzRules, BalancedStartingGear = _balancedStartingGear
         });
         return identity;
     }
@@ -176,7 +178,10 @@ internal sealed partial class AvatarRuntime
             }
             else
             {
-                prepared = _nuzTemplates[fighter].ToNative();
+                var start = _balancedStartingGear
+                    ? StartingGearBalancer.Balance(_nuzTemplates[fighter], FixedRosterBaseSnapshot.Capture(bases[role]), originals[fighter])
+                    : _nuzTemplates[fighter];
+                prepared = start.ToNative();
                 prepared.hp = prepared.max_hp; prepared.status = 0;
                 rules[role] = fighter;
             }

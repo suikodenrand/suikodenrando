@@ -14,7 +14,7 @@ ShowInstDetails show
   !define OUTPUT_EXE "StarsOfDestiny-Setup.exe"
 !endif
 !ifndef PRODUCT_VERSION
-  !define PRODUCT_VERSION "0.8.11"
+  !define PRODUCT_VERSION "0.8.12"
 !endif
 !ifndef GAME_SHA256
   !define GAME_SHA256 "e093f175eaf3734d293ca0a236c652dd7fcc72ea5fa10d7b21103edf12f11c3a"

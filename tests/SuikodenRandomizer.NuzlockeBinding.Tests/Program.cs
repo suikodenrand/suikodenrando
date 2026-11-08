@@ -74,6 +74,18 @@ internal static class Program
                 NuzlockeBindingStore.Write(Identity('c'),b);
                 Check(original.SequenceEqual(File.ReadAllBytes(PathFor(Identity('c')))),"Idempotent write changed published bytes");
             });
+            Case("Balanced starting gear is persisted while older bindings retain original gear",()=>{
+                var b=Binding();b.BalancedStartingGear=true;
+                NuzlockeBindingStore.Write(Identity('9'),b);
+                Check(NuzlockeBindingStore.Read(Identity('9'))!.BalancedStartingGear,"Balanced gear preference was lost during publication");
+                var root=ReadObject(Identity('9'));
+                root["State"]!.AsObject().Remove("BalancedStartingGear");
+                SaveObject(Identity('9'),root,true);
+                var legacy=NuzlockeBindingStore.Read(Identity('9'))!;
+                Check(!legacy.BalancedStartingGear,"A pre-option campaign adopted new balanced starting gear rules");
+                NuzlockeBindingStore.Write(Identity('9'),legacy);
+                Check(!NuzlockeBindingStore.Read(Identity('9'))!.BalancedStartingGear,"Rewriting an older binding enabled balancing");
+            });
             Case("An exhausted companion roster restores with native Tir still available",()=>{
                 var campaign=NuzlockeCampaign.Create("exhausted-save").ReconcileActive(new[]{8,1});
                 for(int battle=1;!campaign.IsExhausted;battle++) {
