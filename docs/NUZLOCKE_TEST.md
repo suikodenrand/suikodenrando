@@ -1,4 +1,4 @@
-# Nuzlocke diagnostics test 0.8.10
+# Nuzlocke retry test 0.8.11
 
 This standalone test starts a new campaign with a shuffled cast and a finite pool of 75 companion fighters. A confirmed battle KO retires that companion. A fresh reserve takes over the same story role after battle and inherits its level, equipment and runes, with full HP. Revival after a confirmed KO cannot restore a life. An automatic revival that prevents the native KO state does not retire a fighter.
 
@@ -22,13 +22,14 @@ IncludeTir = false
 Point = Opening
 ```
 
-Use Point = BeforeViktor to test from the later checkpoint. You can continue a 0.8.9 Nuzlocke save with this diagnostics test. Version 0.8.8 Nuzlocke campaigns are not supported. Other existing randomized saves retain their original campaign mode.
+Use Point = BeforeViktor to test from the later checkpoint. You can continue a 0.8.9 or 0.8.10 Nuzlocke save with this test. Version 0.8.8 Nuzlocke campaigns are not supported. Other existing randomized saves retain their original campaign mode.
 
 ## Playtest
 
 - Confirm the mode and reserve count appear in the in-game overlay.
 - Let one fighter be KO'd, win the battle and inspect the replacement.
-- Test a revival after KO and a full active-party defeat.
+- Test a revival after KO.
+- Let the full active party be defeated. Confirm the same encounter restarts with replacements, the battle becomes visible, and commands and attack animations work. Repeat a full-party defeat to test another retry.
 - Recruit and swap party members, checking that retired fighters do not return.
 - Make a manual save, quit completely and reload. Check the fighters and retirement count.
 - KO Tir and confirm he remains the original protagonist after battle and after save/load. Then move between areas and trigger a scene, checking the reported crash reproduction.
@@ -36,7 +37,7 @@ Use Point = BeforeViktor to test from the later checkpoint. You can continue a 0
 
 Deaths and assignments are stored with the campaign's native saves and matching BepInEx config data. Loading an older save restores its older run state.
 
-This version records additional diagnostics for the reported crash. Battle transitions, full-wipe retry, and special scripted battles need live Windows playtesting. The crash has not been diagnosed. The setup is unsigned.
+This version reloads shared battle resources before restarting an encounter after a full-party defeat. It targets the retry failure captured in the supplied diagnostic report. The earlier scene-transition crash still needs separate verification. Battle transitions, repeated retries and special scripted battles require live Windows playtesting. Diagnostics remain enabled. The setup is unsigned.
 
 ## Collect a crash report
 

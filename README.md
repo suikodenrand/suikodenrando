@@ -1,12 +1,12 @@
 # Stars of Destiny - Character Randomizer
 
-Experimental 0.8.10 Nuzlocke diagnostics test with Tir protected from swaps and retirement. See [the test guide](docs/NUZLOCKE_TEST.md) for rules, installation and collecting a crash report.
+Experimental 0.8.11 Nuzlocke test reloads shared battle resources before a reserve-team retry. Tir remains protected from swaps and retirement, and crash diagnostics remain enabled. See [the test guide](docs/NUZLOCKE_TEST.md) for rules, installation and collecting a report.
 
 Randomize the combat cast of Suikoden I HD Remaster on Windows. The [website](https://suikodenrand.github.io/) generates a config with the selected seed, roster and start point alongside Windows setup.
 
 Character Shuffle uses the 75-hero pool by default. Enable Include Tir to add the protagonist's role and avatar to the pool. His chosen name and story rune stay with his role. Fixed Roster and Random Roster reserve Tir and assign five companions as the story opens party slots. Before Viktor can be used with any mode.
 
-Version 0.8.9 Nuzlocke saves remain compatible with this diagnostics test. Version 0.8.8 Nuzlocke campaigns are not supported. Other existing randomized campaigns restore their saved mappings. Keep your game saves with the matching BepInEx configuration.
+Version 0.8.9 and 0.8.10 Nuzlocke saves remain compatible with this test. Version 0.8.8 Nuzlocke campaigns are not supported. Other existing randomized campaigns restore their saved mappings. Keep your game saves with the matching BepInEx configuration.
 
 ## Build
 

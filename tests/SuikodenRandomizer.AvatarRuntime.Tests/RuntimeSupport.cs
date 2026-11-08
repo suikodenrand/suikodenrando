@@ -40,6 +40,9 @@ namespace SuikodenRandomizer.AvatarPlugin
   internal static void Breadcrumb(string eventName,string? detail=null,bool durable=true) => Breadcrumbs.Add((eventName,detail,durable));
   internal static void Exception(string operation,global::System.Exception error) => Exceptions.Add((operation,error));
  }
+ // The native retry adapter is outside this suite. Its production resource
+ // gate is linked and exercised by SuikodenRandomizer.NuzlockeRetry.Tests.
+ internal static class NuzlockeRetryResources { internal static void Reset() { } }
  internal sealed class TestLogger
  {
   internal List<string> Messages { get; } = new List<string>();

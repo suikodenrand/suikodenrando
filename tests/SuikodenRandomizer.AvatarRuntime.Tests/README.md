@@ -8,4 +8,6 @@ Nuzlocke checks exercise seeded startup, latched companion knockouts even after 
 
 Diagnostic checks verify that post-KO evidence associates canonical roles with the actual donor, resident and base pointers, includes the current transition location and party count, and leaves native progression, pointers and roster layout untouched. They also exercise native-world teardown and repeated frame observation without duplicate world-change records. The journal is a recording test double here; crash capture, file flushing and rotation are verified separately.
 
+The native shared-resource retry adapter is excluded from this runtime harness, and its reset entry point is a no-op test double. `SuikodenRandomizer.NuzlockeRetry.Tests` links the actual production retry resource gate to test asynchronous loading, readiness, cancellation and timeout. Native OPD loading and encounter reconstruction still need the genuine-reference build and in-game testing.
+
 Passing this suite does **not** compile the complete plugin against real BepInEx/Unity/Il2Cpp references, install or execute native hooks, validate native object ownership or establish gameplay compatibility. The real GSD1 metadata gate and installed-reference plugin build remain separate requirements.

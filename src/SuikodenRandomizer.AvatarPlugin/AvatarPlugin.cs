@@ -11,7 +11,7 @@ public sealed class AvatarPlugin : BasePlugin
 {
     public const string PluginGuid = "agilen.suikoden.recruitment_randomizer";
     internal const string DisplayName = "Stars of Destiny - Character Randomizer";
-    internal const string Version = "0.8.10";
+    internal const string Version = "0.8.11";
     internal static ManualLogSource PluginLog { get; private set; } = null!;
     internal static string ConfiguredSeed { get; private set; } = "agilen-080";
     internal static string ConfiguredMode { get; private set; } = "Shuffle";

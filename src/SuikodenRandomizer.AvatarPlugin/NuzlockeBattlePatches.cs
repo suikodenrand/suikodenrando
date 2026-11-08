@@ -1,7 +1,6 @@
 extern alias GSD1;
 
 using HarmonyLib;
-using Il2CppInterop.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -61,11 +60,6 @@ internal static class NuzlockeBattleCleanupPatch
 [HarmonyPatch(typeof(GSD1.BattleBase), "battle_game_over")]
 internal static class NuzlockeRetryPatch
 {
-    // Keep the native delegate rooted through scene teardown and the next load.
-    private static readonly Il2CppSystem.Func<int, int> Retry =
-        DelegateSupport.ConvertDelegate<Il2CppSystem.Func<int, int>>(new Func<int, int>(GSD1.BattleBase.battle))
-            ?? throw new InvalidOperationException("The native retry delegate could not be created.");
-
     [HarmonyPrefix]
     private static bool Prefix(int __0, ref int __result)
     {
@@ -76,7 +70,7 @@ internal static class NuzlockeRetryPatch
         {
             if (!runtime.TakeNuzlockeRetry()) return true;
             CrashDiagnostics.Breadcrumb("nuz.retry.schedule.before", "step=" + __0);
-            GSD1.BattleBase.NextGameStep(Retry, __0, "Nuzlocke reserve team retry");
+            NuzlockeRetryResources.Begin(__0);
             CrashDiagnostics.Breadcrumb("nuz.retry.schedule.after");
             __result = -1;
             return false;

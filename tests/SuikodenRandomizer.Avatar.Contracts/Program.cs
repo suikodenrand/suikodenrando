@@ -28,9 +28,10 @@ internal static class Program
 
     private static void Main(string[] args)
     {
-        if (args.Length < 1 || args.Length > 2 || !File.Exists(args[0])
-            || (args.Length == 2 && !File.Exists(args[1])))
-            throw new ArgumentException("Supply GSD1.dll and optionally UnityEngine.CoreModule.dll paths.");
+        if (args.Length < 1 || args.Length > 3 || !File.Exists(args[0])
+            || (args.Length >= 2 && !File.Exists(args[1]))
+            || (args.Length == 3 && !File.Exists(args[2])))
+            throw new ArgumentException("Supply GSD1.dll and optionally UnityEngine.CoreModule.dll and GSDShare.dll paths.");
         BuildContracts();
         using var stream = File.OpenRead(args[0]);
         using var pe = new PEReader(stream);
@@ -89,7 +90,32 @@ internal static class Program
         Console.WriteLine("Scope: GSD1 metadata only. External SystemSave.Save/cb, Unity Object cloning, SOBase, "
             + "Framework.Chapter.activeChapter, inherited GlobalWork.Instance and OPDSprite.data are not verified here. "
             + "Native detours and gameplay require game-start/runtime checks.");
-        if (args.Length == 2) CheckUnityDiagnostics(args[1]);
+        if (args.Length >= 2) CheckUnityDiagnostics(args[1]);
+        if (args.Length == 3) CheckSharedBattleResources(args[2]);
+    }
+
+    private static void CheckSharedBattleResources(string path)
+    {
+        using var stream = File.OpenRead(path);
+        using var pe = new PEReader(stream);
+        if (!pe.HasMetadata) throw new InvalidDataException("Shared interop has no managed metadata.");
+        var reader = pe.GetMetadataReader();
+        if (reader.GetString(reader.GetAssemblyDefinition().Name) != "GSDShare")
+            throw new InvalidDataException("Expected GSDShare interop assembly.");
+        var definitions = reader.TypeDefinitions.ToDictionary(h => Types.DefinitionName(reader, h), h => h,
+            StringComparer.Ordinal);
+        var type = RequirePublicType(reader, definitions, "OPD_DATA");
+        var provider = new Types();
+        var matches = type.GetMethods().Select(reader.GetMethodDefinition)
+            .Where(method => reader.GetString(method.Name) == "get_anime_table"
+                && method.GetGenericParameters().Count == 0
+                && Signature(method, provider) == "Il2CppSystem.Collections.Generic.List`1<OPD_DATA+AnimeTable>()").ToArray();
+        if (matches.Length != 1
+            || (matches[0].Attributes & MethodAttributes.MemberAccessMask) != MethodAttributes.Public
+            || (matches[0].Attributes & MethodAttributes.Static) != 0)
+            throw new MissingMethodException("Shared retry resource contract mismatch: OPD_DATA.get_anime_table.");
+        Console.WriteLine("PASS shared battle resource OPD_DATA.get_anime_table public instance " + Signature(matches[0], provider));
+        Console.WriteLine("1/1 shared battle resource metadata contract verified; resource contents require live testing.");
     }
 
     private static void CheckUnityDiagnostics(string path)
@@ -162,6 +188,10 @@ internal static class Program
         Method("PlayerManager", "GetPlayerData", false, "PLAYER_DATA(CHARACTER_ID)", true);
         Property("PlayerManager", "player_cache", "Il2CppSystem.Collections.Generic.Dictionary`2<Int32,PLAYER_DATA>");
         Property("GlobalWork", "player_manager", "PlayerManager");
+        Property("GlobalWork", "battle_manager", "BattleManager");
+        Method("BattleManager", "LoadBattleDatas", false,
+            "Void(" + Arrays + "Il2CppStructArray`1<Int32>,Il2CppSystem.Action)", true, 0, "nums");
+        Method("BattleManager", "GetBattleData", false, "OPD_DATA(Int32)", true, 0, "num");
         Property("OldSrcBase", "game_work", "GAME_WORK", isStatic: true);
         Method("P_player_c", "LoadPlayer", true, "Int32(Int32)", true);
         Method("P_player_c", "AddPlayer", true, "Int32(Int32)", true);

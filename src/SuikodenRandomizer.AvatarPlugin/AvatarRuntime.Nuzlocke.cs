@@ -31,6 +31,7 @@ internal sealed partial class AvatarRuntime
 
     private void ResetNuzlocke()
     {
+        NuzlockeRetryResources.Reset();
         _nuzCampaign = _nuzPublished = null;
         _nuzStarted = _nuzLoading = _nuzResume = _nuzBattleOpen = _nuzRetryPending = _nuzRetryFade = false;
         _nuzBattleId = 0;
