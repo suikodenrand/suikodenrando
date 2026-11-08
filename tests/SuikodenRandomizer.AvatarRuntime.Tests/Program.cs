@@ -330,6 +330,7 @@ internal static partial class Program
    RunViktorStartChecks();
    RunTirShuffleChecks();
    RunNuzlockeRuntimeChecks();
+   RunDiagnosticChecks();
    Console.WriteLine(_passed+"/"+_passed+" production-runtime managed adapter checks passed.");
    Console.WriteLine("Scope: actual linked AvatarRuntime with managed native test doubles; not full-plugin compilation or native gameplay.");
   }
@@ -345,6 +346,7 @@ internal static partial class Program
   internal AvatarRuntime Runtime;
   internal World(bool admit=true)
   {
+   CrashDiagnostics.Breadcrumbs.Clear();CrashDiagnostics.Exceptions.Clear();
    Runtime=new AvatarRuntime(()=>Now);
    AvatarNativeData.CopyCalls=0;AvatarNativeData.FailCopyRoleOnce=null;AvatarBindingStore.Bindings.Clear();FixedRosterBindingStore.Bindings.Clear();NuzlockeBindingStore.Bindings.Clear();
    GSD1.BattleBase.battle_work=null;

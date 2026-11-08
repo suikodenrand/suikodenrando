@@ -29,24 +29,35 @@ internal static class AvatarNewGamePatch
                 || step == (int)GSD1.TitleChapter.State.MenuSelect)
                 ViktorStart.Cancel();
         }
-        catch (Exception exception) { AvatarRuntime.Current?.Fail("New Game boundary inspection failed: " + exception.Message); }
+        catch (Exception exception) { CrashDiagnostics.Exception("New Game boundary", exception); AvatarRuntime.Current?.Fail("New Game boundary inspection failed: " + exception.Message); }
     }
 }
 
 [HarmonyPatch(typeof(GSD1.GameInit), "LoadPlayerData")]
 internal static class AvatarGameInitPatch
 {
+    private static int _lastDiagnosticStep = int.MinValue;
     [HarmonyPrefix]
-    private static void Prefix(int __0)
+    private static void Prefix(int __0, out bool __state)
     {
+        __state = _lastDiagnosticStep != __0;
+        _lastDiagnosticStep = __0;
+        if (__state) CrashDiagnostics.Breadcrumb("native.reconstruction.before", "GameInit.LoadPlayerData step=" + __0);
         ViktorStart.BeforeGameInit("LoadPlayerData", __0);
         AvatarRuntime.Current?.EnsureProxy("native party reconstruction", false);
     }
     [HarmonyPostfix]
-    private static void Postfix()
+    private static void Postfix(bool __state)
     {
         var runtime = AvatarRuntime.Current;
         if (runtime?.IsAdmitted == true) runtime.EnsureProxy("native party reconstruction complete step", false);
+        if (__state) runtime?.DiagnosticCheckpoint("native.reconstruction.after");
+    }
+    [HarmonyFinalizer]
+    private static Exception? Failed(Exception? __exception)
+    {
+        if (__exception is not null) CrashDiagnostics.Exception("native player reconstruction", __exception);
+        return __exception;
     }
 }
 
@@ -74,6 +85,7 @@ internal static class AvatarResidentLoadPatch
     [HarmonyPrefix]
     private static void Prefix(int __0)
     {
+        CrashDiagnostics.Breadcrumb("resident.load.before", "role=" + __0);
         var runtime = AvatarRuntime.Current;
         if (runtime?.IsAdmitted == true && runtime.IsRole(__0))
             runtime.EnsureProxy("canonical resident load", false);
@@ -84,17 +96,21 @@ internal static class AvatarResidentLoadPatch
     {
         var runtime = AvatarRuntime.Current;
         if (runtime?.IsAdmitted == true) runtime.EnsureProxy("after native canonical resident load", false, force: true);
+        CrashDiagnostics.Breadcrumb("resident.load.after");
     }
 }
 
 [HarmonyPatch(typeof(GSD1.P_player_c), "AddPlayer")]
 internal static class AvatarResidentBindPatch
 {
+    [HarmonyPrefix]
+    private static void Before() => CrashDiagnostics.Breadcrumb("resident.bind.before");
     [HarmonyPostfix]
     private static void Postfix()
     {
         var runtime = AvatarRuntime.Current;
         if (runtime?.IsAdmitted == true) runtime.EnsureProxy("after native canonical base binding", false, force: true);
+        CrashDiagnostics.Breadcrumb("resident.bind.after");
     }
 }
 
@@ -115,7 +131,7 @@ internal static class AvatarBattleEntryPatch
             if (runtime.IsFixedRoster || runtime.IsNuzlocke) runtime.VerifyFinalParty("fixed roster battle entry");
             return true;
         }
-        catch (Exception exception) { runtime.Fail("Battle entry inspection failed: " + exception.Message); __result = 0; return false; }
+        catch (Exception exception) { CrashDiagnostics.Exception("battle entry inspection", exception); runtime.Fail("Battle entry inspection failed: " + exception.Message); __result = 0; return false; }
     }
 }
 
@@ -161,7 +177,7 @@ internal static class AvatarBattleObservationPatch
                     }
             }
         }
-        catch (Exception exception) { runtime.Fail("Battle identity check failed: " + exception.Message); }
+        catch (Exception exception) { CrashDiagnostics.Exception("battle identity check", exception); runtime.Fail("Battle identity check failed: " + exception.Message); }
     }
 }
 
@@ -189,11 +205,16 @@ internal static class FixedRosterPartyChangePatch
                 ?? throw new MissingMethodException("P_player_c." + name);
     }
 
+    [HarmonyPrefix]
+    private static void Before(MethodBase __originalMethod, int __0) =>
+        CrashDiagnostics.Breadcrumb("party.change.before", __originalMethod.Name + "; role=" + __0);
+
     [HarmonyPostfix]
-    private static void Postfix()
+    private static void Postfix(MethodBase __originalMethod)
     {
         var runtime = AvatarRuntime.Current;
         if (runtime?.IsFixedRoster == true || runtime?.IsNuzlocke == true)
             runtime.EnsureProxy("active party change", false, force: true);
+        runtime?.DiagnosticCheckpoint("party.change.after." + __originalMethod.Name);
     }
 }

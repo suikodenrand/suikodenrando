@@ -28,8 +28,9 @@ internal static class Program
 
     private static void Main(string[] args)
     {
-        if (args.Length != 1 || !File.Exists(args[0]))
-            throw new ArgumentException("Supply the installed GSD1.dll path.");
+        if (args.Length < 1 || args.Length > 2 || !File.Exists(args[0])
+            || (args.Length == 2 && !File.Exists(args[1])))
+            throw new ArgumentException("Supply GSD1.dll and optionally UnityEngine.CoreModule.dll paths.");
         BuildContracts();
         using var stream = File.OpenRead(args[0]);
         using var pe = new PEReader(stream);
@@ -51,7 +52,8 @@ internal static class Program
                 throw new InvalidDataException(contract.Type + "." + contract.Member
                     + ": an untyped Harmony target requires exactly one declared method; found " + overloads.Length);
             string expectedParameters = contract.Signature[contract.Signature.IndexOf('(')..];
-            var matches = overloads.Where(m => ParameterSignature(m, provider) == expectedParameters).ToArray();
+            var matches = overloads.Where(m => m.GetGenericParameters().Count == 0
+                && ParameterSignature(m, provider) == expectedParameters).ToArray();
             // Constructors are selected by their exact parameter list. The normal
             // generated .ctor(IntPtr) does not make the required .ctor() ambiguous.
             if (matches.Length != 1)
@@ -87,12 +89,72 @@ internal static class Program
         Console.WriteLine("Scope: GSD1 metadata only. External SystemSave.Save/cb, Unity Object cloning, SOBase, "
             + "Framework.Chapter.activeChapter, inherited GlobalWork.Instance and OPDSprite.data are not verified here. "
             + "Native detours and gameplay require game-start/runtime checks.");
+        if (args.Length == 2) CheckUnityDiagnostics(args[1]);
+    }
+
+    private static void CheckUnityDiagnostics(string path)
+    {
+        using var stream = File.OpenRead(path);
+        using var pe = new PEReader(stream);
+        if (!pe.HasMetadata) throw new InvalidDataException("Unity interop has no managed metadata.");
+        var reader = pe.GetMetadataReader();
+        if (reader.GetString(reader.GetAssemblyDefinition().Name) != "UnityEngine.CoreModule")
+            throw new InvalidDataException("Expected UnityEngine.CoreModule interop assembly.");
+        var definitions = reader.TypeDefinitions.ToDictionary(h => Types.DefinitionName(reader, h), h => h,
+            StringComparer.Ordinal);
+        var provider = new Types();
+        var contracts = new[]
+        {
+            new Contract("UnityEngine.Application", "add_logMessageReceivedThreaded", true, "Void(UnityEngine.Application+LogCallback)"),
+            new Contract("UnityEngine.Application", "remove_logMessageReceivedThreaded", true, "Void(UnityEngine.Application+LogCallback)"),
+            new Contract("UnityEngine.Application", "add_quitting", true, "Void(Il2CppSystem.Action)"),
+            new Contract("UnityEngine.Application", "remove_quitting", true, "Void(Il2CppSystem.Action)"),
+            new Contract("UnityEngine.Application", "get_consoleLogPath", true, "String()"),
+            new Contract("UnityEngine.Application", "get_companyName", true, "String()"),
+            new Contract("UnityEngine.Application", "get_productName", true, "String()"),
+            new Contract("UnityEngine.Application", "get_temporaryCachePath", true, "String()"),
+            new Contract("UnityEngine.Application+LogCallback", "Invoke", false, "Void(String,String,UnityEngine.LogType)"),
+            new Contract("UnityEngine.SceneManagement.SceneManager", "add_sceneLoaded", true,
+                "Void(UnityEngine.Events.UnityAction`2<UnityEngine.SceneManagement.Scene,UnityEngine.SceneManagement.LoadSceneMode>)"),
+            new Contract("UnityEngine.SceneManagement.SceneManager", "remove_sceneLoaded", true,
+                "Void(UnityEngine.Events.UnityAction`2<UnityEngine.SceneManagement.Scene,UnityEngine.SceneManagement.LoadSceneMode>)"),
+            new Contract("UnityEngine.SceneManagement.SceneManager", "add_sceneUnloaded", true,
+                "Void(UnityEngine.Events.UnityAction`1<UnityEngine.SceneManagement.Scene>)"),
+            new Contract("UnityEngine.SceneManagement.SceneManager", "remove_sceneUnloaded", true,
+                "Void(UnityEngine.Events.UnityAction`1<UnityEngine.SceneManagement.Scene>)"),
+            new Contract("UnityEngine.SceneManagement.SceneManager", "add_activeSceneChanged", true,
+                "Void(UnityEngine.Events.UnityAction`2<UnityEngine.SceneManagement.Scene,UnityEngine.SceneManagement.Scene>)"),
+            new Contract("UnityEngine.SceneManagement.SceneManager", "remove_activeSceneChanged", true,
+                "Void(UnityEngine.Events.UnityAction`2<UnityEngine.SceneManagement.Scene,UnityEngine.SceneManagement.Scene>)"),
+            new Contract("UnityEngine.SceneManagement.Scene", "get_handle", false, "Int32()"),
+            new Contract("UnityEngine.SceneManagement.Scene", "get_buildIndex", false, "Int32()"),
+            new Contract("UnityEngine.SceneManagement.Scene", "get_name", false, "String()"),
+            new Contract("UnityEngine.Events.UnityAction`1", "Invoke", false, "Void(!0)"),
+            new Contract("UnityEngine.Events.UnityAction`2", "Invoke", false, "Void(!0,!1)")
+        };
+        foreach (var contract in contracts)
+        {
+            var type = RequirePublicType(reader, definitions, contract.Type);
+            var matches = type.GetMethods().Select(reader.GetMethodDefinition)
+                .Where(method => reader.GetString(method.Name) == contract.Member
+                    && Signature(method, provider) == contract.Signature).ToArray();
+            if (matches.Length != 1
+                || (matches[0].Attributes & MethodAttributes.MemberAccessMask) != MethodAttributes.Public
+                || ((matches[0].Attributes & MethodAttributes.Static) != 0) != contract.Static)
+                throw new MissingMethodException("Unity diagnostics contract mismatch: "
+                    + contract.Type + "." + contract.Member + " " + contract.Signature);
+            Console.WriteLine("PASS Unity diagnostics " + contract.Type + "." + contract.Member
+                + " " + contract.Signature);
+        }
+        Console.WriteLine(contracts.Length + "/" + contracts.Length
+            + " Unity diagnostics metadata contracts verified; callbacks require live runtime testing.");
     }
 
     private static void BuildContracts()
     {
         Method("TitleChapter", "TitleMain", false, "Int32(Int32)", true);
         Method("ChapterManager", "GetGameStepSeq", true, "Int32(Int32)");
+        Method("ChapterManager", "BattleEndInternal", false, "Void()", true);
         Property("ChapterManager", "GR1Instance", "ChapterManager", isStatic: true);
         Method("GameInit", "LoadPlayerData", false, "Int32(Int32)", true);
         Method("GameInit", "LoadMapData", false, "Int32(Int32)", true);

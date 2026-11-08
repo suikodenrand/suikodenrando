@@ -30,10 +30,13 @@ public sealed class AvatarOverlay : MonoBehaviour
             if (runtime.IsActive)
             {
                 try { runtime.VerifyFinalParty("manual F6 checkpoint"); }
-                catch (Exception exception) { runtime.Trace("Checkpoint during a transition: " + exception.Message); }
+                catch (Exception exception) { CrashDiagnostics.Exception("manual checkpoint", exception); runtime.Trace("Checkpoint during a transition: " + exception.Message); }
             }
+            runtime.DiagnosticCheckpoint("manual F6");
+            string? report = CrashDiagnostics.Export();
+            if (report is not null) runtime.Trace("DIAGNOSTIC REPORT: " + report);
         }
-        catch (Exception exception) { _inputFailed = true; runtime.Trace("F6 input unavailable: " + exception.Message); }
+        catch (Exception exception) { CrashDiagnostics.Exception("overlay F6 input", exception); _inputFailed = true; runtime.Trace("F6 input unavailable: " + exception.Message); }
     }
 
     public void OnGUI()
@@ -48,6 +51,7 @@ public sealed class AvatarOverlay : MonoBehaviour
         }
         catch (Exception exception)
         {
+            CrashDiagnostics.Exception("overlay drawing", exception);
             _drawFailed = true;
             AvatarRuntime.Current?.Trace("Pilot status overlay unavailable: " + exception.Message);
         }

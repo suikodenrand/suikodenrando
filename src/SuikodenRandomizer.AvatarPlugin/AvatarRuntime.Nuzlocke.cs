@@ -112,6 +112,7 @@ internal sealed partial class AvatarRuntime
                 && proxy.player_base?.Pointer == AvatarNativeData.FindBase(party.chara_code[slot]).Pointer
                 && cache.TryGetValue(party.chara_code[slot], out var cached) && cached?.Pointer == proxy.Pointer))
             return true;
+        CrashDiagnostics.Breadcrumb("nuz.prepare.begin", "reason=" + reason + "; activeRoles=" + string.Join(",", activeRoles));
         var needed = new HashSet<int>(activeRoles);
         needed.UnionWith(_nuzRoleBases.Keys);
         if (_nuzTemplates.Count == 0) needed.UnionWith(next.Assignments.Values);
@@ -191,8 +192,13 @@ internal sealed partial class AvatarRuntime
             int donor = next.GetDonor(role);
             if (!changed.Contains(role) && _proxies.TryGetValue(role, out var old)
                 && old.player_base?.Pointer == bases[role].Pointer) proxies.Add(role, old);
-            else proxies.Add(role, AvatarNativeData.CreateProxy(originals[role], originals[donor], bases[role],
-                loadoutSource: originals[rules[role]]));
+            else
+            {
+                CrashDiagnostics.Breadcrumb("nuz.proxy.create.before", "role=" + role + "; donor=" + donor + "; rules=" + rules[role]);
+                proxies.Add(role, AvatarNativeData.CreateProxy(originals[role], originals[donor], bases[role],
+                    loadoutSource: originals[rules[role]]));
+                CrashDiagnostics.Breadcrumb("nuz.proxy.create.after", "role=" + role);
+            }
         }
 
         var cacheIds = _proxies.Keys.Union(proxies.Keys).Distinct().ToArray();
@@ -202,10 +208,19 @@ internal sealed partial class AvatarRuntime
         var orderBefore = party.narabi.ToArray();
         byte countBefore = party.player_kazu;
         _preparing = true;
+        CrashDiagnostics.Breadcrumb("nuz.publish.begin", "reason=" + reason + "; writes=" + string.Join(",", writes.Keys)
+            + "; proxies=" + proxies.Count + "; retired=" + next.RetiredHeroIds.Count);
         try
         {
-            foreach (var entry in writes) AvatarNativeData.CopyBase(entry.Value, bases[entry.Key]);
+            foreach (var entry in writes)
+            {
+                CrashDiagnostics.Breadcrumb("nuz.publish.base.before", "role=" + entry.Key);
+                AvatarNativeData.CopyBase(entry.Value, bases[entry.Key]);
+                CrashDiagnostics.Breadcrumb("nuz.publish.base.after", "role=" + entry.Key);
+            }
+            CrashDiagnostics.Breadcrumb("nuz.publish.cache.before");
             foreach (int id in cacheIds) cache[id] = proxies.TryGetValue(id, out var proxy) ? proxy : originals[id];
+            CrashDiagnostics.Breadcrumb("nuz.publish.residents.before");
             for (int i = 0; i < residents.Count; i++)
             {
                 int role = i < party.chara_code.Count ? party.chara_code[i] : -1;
@@ -215,9 +230,11 @@ internal sealed partial class AvatarRuntime
                     && old.Pointer == prior.Pointer) residents[i] = originals[old.chara_id];
             }
             var surviving = slots.Where(slot => next.GetDonor(party.chara_code[slot]) >= 0).ToArray();
+            CrashDiagnostics.Breadcrumb("nuz.publish.order.before", "slots=" + string.Join(",", surviving));
             for (int i = 0; i < surviving.Length; i++) party.narabi[i] = (sbyte)surviving[i];
             for (int i = surviving.Length; i < party.narabi.Count; i++) party.narabi[i] = -1;
             party.player_kazu = (byte)surviving.Length;
+            CrashDiagnostics.Breadcrumb("nuz.publish.verify.before");
             foreach (var entry in writes)
                 if (AvatarNativeData.Fingerprint(bases[entry.Key]) != AvatarNativeData.Fingerprint(entry.Value))
                     throw new InvalidOperationException("Nuzlocke base publication did not verify.");
@@ -229,6 +246,7 @@ internal sealed partial class AvatarRuntime
         }
         catch (Exception failure)
         {
+            CrashDiagnostics.Exception("Nuzlocke publication; starting rollback", failure);
             var errors = new List<Exception> { failure };
             foreach (var entry in basesBefore)
                 try { AvatarNativeData.CopyBase(entry.Value, bases[entry.Key]); } catch (Exception e) { errors.Add(e); }
@@ -251,6 +269,7 @@ internal sealed partial class AvatarRuntime
         _nuzRules = rules; _nuzRoleBases = roleRecords;
         _nuzCampaign = _nuzPublished = next;
         _nuzResume = false; _nuzStarted = true;
+        CrashDiagnostics.Breadcrumb("nuz.publish.complete", "activeRoles=" + string.Join(",", activeRoles));
         if (changed.Count != 0) { AvatarPresentation.Reset(); Trace("NUZLOCKE " + reason + "; retired=" + next.RetiredHeroIds.Count + "; reserves=" + next.RemainingReserves); }
         return true;
     }
@@ -258,6 +277,7 @@ internal sealed partial class AvatarRuntime
     internal void BeginNuzlockeBattle()
     {
         if (!IsNuzlocke || _nuzBattleOpen) return;
+        CrashDiagnostics.Breadcrumb("nuz.battle.begin");
         _nuzBattleOpen = true; _nuzRetryPending = false;
         _nuzBattleId = _nuzCampaign!.LastBattleId + 1;
         _nuzBattleHeroes.Clear(); _nuzKnockouts.Clear();
@@ -284,7 +304,10 @@ internal sealed partial class AvatarRuntime
             if (entry.Value == CombatCatalog.TirId) continue;
             var fighter = battle.pm_data[entry.Key];
             if (fighter is not null && fighter.IsDead && fighter.hp == 0 && _nuzKnockouts.Add(entry.Value))
+            {
+                CrashDiagnostics.Breadcrumb("nuz.ko.confirmed", "battle=" + _nuzBattleId + "; slot=" + entry.Key + "; fighter=" + entry.Value);
                 Trace("NUZLOCKE KO " + CombatCatalog.GetName(entry.Value));
+            }
             if (fighter is not null && _nuzKnockouts.Contains(entry.Value))
             {
                 fighter.hp = 0; fighter.dead_flg = 1; fighter.finished_flg = 1;
@@ -296,6 +319,7 @@ internal sealed partial class AvatarRuntime
     {
         if (!_nuzRetryPending) return false;
         if (_nuzCampaign!.IsExhausted) return false;
+        CrashDiagnostics.Breadcrumb("nuz.retry.prepare", "battle=" + _nuzBattleId);
         if (!EnsureProxy("Nuzlocke reserve retry", true, force: true))
             throw new InvalidOperationException("Replacement team is unavailable.");
         if (GSD1.OldSrcBase.game_work.party_data.player_kazu == 0)
@@ -303,6 +327,7 @@ internal sealed partial class AvatarRuntime
         RecoverNuzlockeTir(fullRecovery: true);
         _nuzRetryPending = false;
         _nuzRetryFade = true;
+        DiagnosticCheckpoint("nuz.retry.ready");
         Trace("NUZLOCKE full wipe; retrying the same encounter with reserves.");
         return true;
     }
@@ -314,9 +339,11 @@ internal sealed partial class AvatarRuntime
             || !ActiveResidentSlots().Any(slot => party.chara_code[slot] == CombatCatalog.TirId)) return;
         var protagonist = AvatarNativeData.FindBase(CombatCatalog.TirId);
         if (!fullRecovery && protagonist.hp != 0) return;
+        CrashDiagnostics.Breadcrumb("nuz.tir.recovery.before", "base=0x" + protagonist.Pointer.ToString("X") + "; full=" + fullRecovery);
         protagonist.hp = 1;
         if (fullRecovery) protagonist.hp = protagonist.max_hp;
         protagonist.status = 0;
+        CrashDiagnostics.Breadcrumb("nuz.tir.recovery.after", "hp=" + protagonist.hp);
         Trace("NUZLOCKE protected Tir recovered; HP=" + protagonist.hp);
     }
 
@@ -330,8 +357,11 @@ internal sealed partial class AvatarRuntime
     internal void FinishNuzlockeBattle(bool nativeDefeat)
     {
         if (!IsNuzlocke || !_nuzBattleOpen) return;
+        CrashDiagnostics.Breadcrumb("nuz.battle.finish.begin", "battle=" + _nuzBattleId + "; defeatHint=" + nativeDefeat
+            + "; knockouts=" + string.Join(",", _nuzKnockouts));
         ObserveNuzlockeKnockouts();
         var next = _nuzCampaign!.CommitBattle(_nuzBattleId, _nuzKnockouts);
+        CrashDiagnostics.Breadcrumb("nuz.battle.retirement.committed", "retired=" + next.RetiredHeroIds.Count);
         _nuzCampaign = next;
         _nuzBattleOpen = false;
         // Native overlay cleanup can change defeat routing. Only the actual
@@ -340,6 +370,7 @@ internal sealed partial class AvatarRuntime
         if (!EnsureProxy("battle retirement", true, force: true))
             throw new InvalidOperationException("Nuzlocke replacement preparation failed.");
         RecoverNuzlockeTir(fullRecovery: false);
+        DiagnosticCheckpoint("nuz.battle.finish.complete");
         if (next.IsExhausted) Trace("NUZLOCKE companion pool exhausted; Tir remains; next full defeat ends the run.");
     }
 }

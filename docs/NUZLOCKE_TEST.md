@@ -1,4 +1,4 @@
-# Nuzlocke test 0.8.9: Tir protected
+# Nuzlocke diagnostics test 0.8.10
 
 This standalone test starts a new campaign with a shuffled cast and a finite pool of 75 companion fighters. A confirmed battle KO retires that companion. A fresh reserve takes over the same story role after battle and inherits its level, equipment and runes, with full HP. Revival after a confirmed KO cannot restore a life. An automatic revival that prevents the native KO state does not retire a fighter.
 
@@ -22,7 +22,7 @@ IncludeTir = false
 Point = Opening
 ```
 
-Use Point = BeforeViktor to test from the later checkpoint. Start a separate New Game for this version. Version 0.8.8 Nuzlocke campaigns are not supported in this test. Other existing randomized saves retain their original campaign mode.
+Use Point = BeforeViktor to test from the later checkpoint. You can continue a 0.8.9 Nuzlocke save with this diagnostics test. Version 0.8.8 Nuzlocke campaigns are not supported. Other existing randomized saves retain their original campaign mode.
 
 ## Playtest
 
@@ -36,6 +36,12 @@ Use Point = BeforeViktor to test from the later checkpoint. Start a separate New
 
 Deaths and assignments are stored with the campaign's native saves and matching BepInEx config data. Loading an older save restores its older run state.
 
-Managed checks and a production build are available. The Tir protection change, battle transitions, full-wipe retry, and special scripted battles need live Windows playtesting. This test addresses Tir swapping; the reported crash has not been diagnosed. The setup is unsigned.
+This version records additional diagnostics for the reported crash. Battle transitions, full-wipe retry, and special scripted battles need live Windows playtesting. The crash has not been diagnosed. The setup is unsigned.
 
-If the test stops, press F6 if the game responds and send BepInEx/LogOutput.log plus a description of the battle and action.
+## Collect a crash report
+
+Reproduce the crash, then launch the game once more. The next launch automatically packages the previous unfinished session. Open BepInEx/StarsOfDestiny-Diagnostics in the game folder and send the newest stars-crash-report ZIP, along with the area, battle and action immediately before the crash.
+
+If the game still responds, press F6 to export a report immediately. The report path is written to BepInEx/LogOutput.log. Keep the diagnostic folder until the report has been collected.
+
+Reports contain the randomizer's last recorded actions, managed exception details and available game logs or native crash files. A native crash can bypass managed exception handlers; an absent exception message does not establish the cause.

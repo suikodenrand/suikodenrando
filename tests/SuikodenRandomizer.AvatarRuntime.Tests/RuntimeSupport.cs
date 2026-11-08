@@ -31,6 +31,15 @@ namespace HarmonyLib
 }
 namespace SuikodenRandomizer.AvatarPlugin
 {
+ // Observe actual runtime diagnostic evidence without creating files. The
+ // production journal, persistence and rotation have their own test suite.
+ internal static class CrashDiagnostics
+ {
+  internal static List<(string EventName,string? Detail,bool Durable)> Breadcrumbs { get; } = new();
+  internal static List<(string Operation,global::System.Exception Error)> Exceptions { get; } = new();
+  internal static void Breadcrumb(string eventName,string? detail=null,bool durable=true) => Breadcrumbs.Add((eventName,detail,durable));
+  internal static void Exception(string operation,global::System.Exception error) => Exceptions.Add((operation,error));
+ }
  internal sealed class TestLogger
  {
   internal List<string> Messages { get; } = new List<string>();

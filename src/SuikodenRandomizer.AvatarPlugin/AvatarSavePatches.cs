@@ -24,6 +24,7 @@ internal static class AvatarSavePreparationPatch
         var runtime = AvatarRuntime.Current;
         try
         {
+            CrashDiagnostics.Breadcrumb("save.prepare.begin");
             if (runtime is null || !runtime.IsAdmitted || runtime.FaultReason is not null)
                 throw new InvalidOperationException(runtime?.FaultReason ?? "This shuffle saves only its own New Game/bound campaign; pilot/older saves are read-only.");
             if (!runtime.EnsureProxy("save preparation", false, force: true))
@@ -36,6 +37,7 @@ internal static class AvatarSavePreparationPatch
         }
         catch (Exception exception)
         {
+            CrashDiagnostics.Exception("save preparation", exception);
             __result = false;
             runtime?.Trace("SAVE REFUSED: " + exception.Message);
             try { callback?.Invoke(false, null!); }
@@ -61,13 +63,15 @@ internal static class AvatarSaveCapturePatch
         if (call is null) return;
         try
         {
+            CrashDiagnostics.Breadcrumb("save.capture.begin");
             var runtime = AvatarRuntime.Current ?? throw new InvalidOperationException("Avatar runtime unavailable.");
             if (!__result || !runtime.IsActive) throw new InvalidOperationException("Native snapshot/active pilot unavailable.");
             string identity = runtime.WriteCampaignBinding(save_data);
             call.BindingFailed = false;
             runtime.Trace("SAVE BOUND: canonical native snapshot=" + identity + "; profile=" + runtime.CampaignFingerprint);
+            CrashDiagnostics.Breadcrumb("save.capture.bound", identity);
         }
-        catch (Exception exception) { call.BindingFailed = true; call.Failure = exception.Message; }
+        catch (Exception exception) { CrashDiagnostics.Exception("save capture", exception); call.BindingFailed = true; call.Failure = exception.Message; }
     }
 }
 
@@ -94,12 +98,14 @@ internal static class AvatarSaveRestorePatch
     [HarmonyPrefix]
     private static void Prefix(GSD1.SaveDataManager.SaveData save_data)
     {
+        CrashDiagnostics.Breadcrumb("load.native.before");
         ViktorStart.Cancel();
         AvatarRuntime.Current?.PrepareLoad(save_data);
     }
     [HarmonyPostfix]
     private static void Postfix(bool __result)
     {
+        CrashDiagnostics.Breadcrumb("load.native.after", "success=" + __result);
         var runtime = AvatarRuntime.Current;
         if (runtime is null) return;
         runtime.CompleteFixedLoad();
@@ -111,6 +117,7 @@ internal static class AvatarSaveRestorePatch
     private static Exception? Finalizer(Exception? __exception)
     {
         if (__exception is not null) AvatarRuntime.Current?.Fail("Native save restoration threw: " + __exception.Message);
+        if (__exception is not null) CrashDiagnostics.Exception("native save restoration", __exception);
         return __exception;
     }
 }

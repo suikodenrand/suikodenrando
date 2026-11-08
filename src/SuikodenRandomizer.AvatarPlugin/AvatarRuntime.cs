@@ -74,6 +74,7 @@ internal sealed partial class AvatarRuntime
 
     internal void BeginNewGame()
     {
+        CrashDiagnostics.Breadcrumb("campaign.new.begin", "mode=" + AvatarPlugin.ConfiguredMode);
         try
         {
             RestoreCache();
@@ -92,11 +93,12 @@ internal sealed partial class AvatarRuntime
             Trace("NEW GAME seed=" + Profile.Seed + "; mapping=" + Profile.Fingerprint
                 + "; roles=" + Profile.RoleIds.Count + "; Tir included=" + Profile.IncludesTir);
         }
-        catch (Exception exception) { Fail("Shuffle New Game admission failed: " + exception.Message); }
+        catch (Exception exception) { CrashDiagnostics.Exception("New Game admission", exception); Fail("Shuffle New Game admission failed: " + exception.Message); }
     }
 
     internal void PrepareLoad(GSD1.SaveDataManager.SaveData save)
     {
+        CrashDiagnostics.Breadcrumb("campaign.load.begin");
         try
         {
             RestoreCache(); ResetFixedRoster(); ResetNuzlocke(); FaultReason = null;
@@ -116,7 +118,7 @@ internal sealed partial class AvatarRuntime
             else Trace("BOUND SHUFFLE RESTORED before native reconstruction; seed=" + Profile.Seed
                 + "; mapping=" + Profile.Fingerprint + "; configured seed ignored for this save.");
         }
-        catch (Exception exception) { Fail("Shuffle save binding rejected: " + exception.Message); }
+        catch (Exception exception) { CrashDiagnostics.Exception("save binding restore", exception); Fail("Shuffle save binding rejected: " + exception.Message); }
     }
 
     internal bool EnsureProxy(string reason, bool required, bool force = false)
@@ -136,7 +138,7 @@ internal sealed partial class AvatarRuntime
             _nextAutomaticCheck = now + AutomaticCheckInterval;
             return IsNuzlocke ? EnsureNuzlocke(reason, required) : IsFixedRoster ? EnsureFixedRoster(reason, required) : EnsureProxiesCore(reason, required);
         }
-        catch (Exception exception) { Fail("Shuffle preparation failed: " + exception.Message); return false; }
+        catch (Exception exception) { CrashDiagnostics.Exception("roster preparation: " + reason, exception); Fail("Shuffle preparation failed: " + exception.Message); return false; }
     }
 
     private bool WaitFor(string message, bool required)
@@ -499,6 +501,7 @@ internal sealed partial class AvatarRuntime
     {
         try
         {
+            ObserveDiagnosticState();
             if (SceneManager.GetActiveScene().name != "GSD1") return;
             bool title = GSD1.ChapterManager.GR1Instance?.activeChapter?.TryCast<GSD1.TitleChapter>() is not null;
             if (title && !_wasTitle)
@@ -511,7 +514,7 @@ internal sealed partial class AvatarRuntime
             if (!title && IsAdmitted && (IsNuzlocke || IsFixedRoster || !IsActive || _game != GSD1.OldSrcBase.game_work?.Pointer))
                 EnsureProxy("native initialization observation", false);
         }
-        catch (Exception exception) { Fail("Shuffle lifecycle observation failed: " + exception.Message); }
+        catch (Exception exception) { CrashDiagnostics.Exception("lifecycle observation", exception); Fail("Shuffle lifecycle observation failed: " + exception.Message); }
     }
 
     private void RestoreCache()
@@ -549,6 +552,7 @@ internal sealed partial class AvatarRuntime
     internal void Fail(string reason)
     {
         if (FaultReason is not null) return;
+        CrashDiagnostics.Breadcrumb("runtime.fault", reason);
         FaultReason = reason; Trace("STOP — saving blocked: " + reason);
     }
     private void ResetPerformanceCounters()
@@ -557,6 +561,7 @@ internal sealed partial class AvatarRuntime
     }
     internal void Trace(string message)
     {
+        CrashDiagnostics.Breadcrumb("runtime.trace", message, durable: false);
         AvatarPlugin.PluginLog.LogInfo("[SRR AVATAR] " + message);
         try
         {

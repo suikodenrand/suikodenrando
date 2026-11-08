@@ -25,7 +25,7 @@ internal static class NuzlockeBattlePatches
         var runtime = AvatarRuntime.Current;
         if (runtime?.IsNuzlocke != true || runtime.FaultReason is not null) return;
         try { runtime.ObserveNuzlockeKnockouts(); }
-        catch (Exception error) { runtime.Fail("Nuzlocke knockout observation failed: " + error.Message); }
+        catch (Exception error) { CrashDiagnostics.Exception("Nuzlocke knockout observation", error); runtime.Fail("Nuzlocke knockout observation failed: " + error.Message); }
     }
 }
 
@@ -40,11 +40,12 @@ internal static class NuzlockeBattleCleanupPatch
         if (runtime?.IsNuzlocke != true) return;
         try
         {
+            CrashDiagnostics.Breadcrumb("nuz.cleanup.before");
             runtime.ObserveNuzlockeKnockouts();
             var work = GSD1.BattleBase.battle_work;
             __state = work?.flg_table is not null && work.flg_table.Count > 2 && work.flg_table[2];
         }
-        catch (Exception error) { runtime.Fail("Nuzlocke result capture failed: " + error.Message); }
+        catch (Exception error) { CrashDiagnostics.Exception("Nuzlocke result capture", error); runtime.Fail("Nuzlocke result capture failed: " + error.Message); }
     }
 
     [HarmonyPostfix]
@@ -52,8 +53,8 @@ internal static class NuzlockeBattleCleanupPatch
     {
         var runtime = AvatarRuntime.Current;
         if (runtime?.IsNuzlocke != true || runtime.FaultReason is not null || GSD1.BattleBase.battle_work is not null) return;
-        try { runtime.FinishNuzlockeBattle(__state); }
-        catch (Exception error) { runtime.Fail("Nuzlocke replacement failed: " + error.Message); }
+        try { CrashDiagnostics.Breadcrumb("nuz.cleanup.after"); runtime.FinishNuzlockeBattle(__state); }
+        catch (Exception error) { CrashDiagnostics.Exception("Nuzlocke replacement", error); runtime.Fail("Nuzlocke replacement failed: " + error.Message); }
     }
 }
 
@@ -74,12 +75,15 @@ internal static class NuzlockeRetryPatch
         try
         {
             if (!runtime.TakeNuzlockeRetry()) return true;
+            CrashDiagnostics.Breadcrumb("nuz.retry.schedule.before", "step=" + __0);
             GSD1.BattleBase.NextGameStep(Retry, __0, "Nuzlocke reserve team retry");
+            CrashDiagnostics.Breadcrumb("nuz.retry.schedule.after");
             __result = -1;
             return false;
         }
         catch (Exception error)
         {
+            CrashDiagnostics.Exception("Nuzlocke retry", error);
             runtime.Fail("Nuzlocke retry failed: " + error.Message);
             __result = -1;
             return false;
@@ -94,6 +98,10 @@ internal static class NuzlockeRetryFadePatch
     private static void Prefix()
     {
         if (AvatarRuntime.Current?.TakeNuzlockeRetryFade() == true)
+        {
+            CrashDiagnostics.Breadcrumb("nuz.retry.fade.before");
             global::UIManager.FadeIn(0f);
+            CrashDiagnostics.Breadcrumb("nuz.retry.fade.after");
+        }
     }
 }
