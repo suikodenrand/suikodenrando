@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <BuildInParallel>false</BuildInParallel>
+    <RestoreBuildInParallel>false</RestoreBuildInParallel>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/SuikodenRandomizer.Core/SuikodenRandomizer.Core.csproj" />
+    <ProjectReference Include="NativeDoubles/NativeDoubles.csproj" Aliases="global,GSD1" />
+    <Compile Remove="NativeDoubles/**/*.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/AvatarTreasurePatches.cs" Link="Production/AvatarTreasurePatches.cs" />
+  </ItemGroup>
+</Project>

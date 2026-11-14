@@ -1,0 +1,70 @@
+STARS OF DESTINY 0.14.3 - MOD-ONLY MANUAL WINDOWS PACKAGE
+Suikoden I & II HD Remaster | Steam | Windows x64
+
+REQUIRED FIRST: BEPINEX, DOWNLOADED SEPARATELY
+This ZIP contains the mod and launcher. BepInEx is required and is NOT bundled.
+Use the tested BepInEx 6 Unity IL2CPP Windows x64 build 697 (5362580):
+https://builds.bepinex.dev/projects/bepinex_be/697/BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.697%2B5362580.zip
+See REQUIREMENTS.txt for the exact file name, checksum and official guide.
+Do not substitute BepInEx 5, Unity Mono, x86 or an unreviewed newer build.
+
+FRESH INSTALL
+1. Close the game and launcher. In Steam, right-click the game > Manage >
+   Browse local files. This is the folder containing
+   Suikoden I and II HD Remaster.exe and GameAssembly.dll.
+2. If the game already has mods, BepInEx or a randomized campaign, read
+   StarsOfDestiny Manual/MANUAL UPGRADE.txt first. Copying files manually
+   does not make backups, detect conflicts or preserve settings for you.
+3. Keep a backup of Save and BepInEx/config together outside the game folder
+   if either exists. Back up files you are about to replace as well.
+4. Download the external BepInEx ZIP above and extract its contents into the
+   game folder first. Its BepInEx/core, dotnet, winhttp.dll, doorstop_config.ini
+   and .doorstop_version belong beside the game EXE as supplied upstream.
+5. Extract THIS mod ZIP into that same game folder. Its BepInEx folder adds
+   mod plugins, default settings and dormant ATB; it is not the loader itself.
+   StarsOfDestiny Launcher also goes directly beside the game EXE. Do not
+   create an extra mod-named folder around either package's contents.
+6. Run StarsOfDestiny Launcher/StarsOfDestiny.Launcher.exe. Choose S1 or S2,
+   your seed and options. Use Apply settings or Save & launch game with the
+   game closed. All launcher files and its private .NET 10 runtime must stay
+   together. A separate .NET installation, compiler or SDK is not required.
+7. Keep Steam and internet access available on the first modded game launch.
+   BepInEx downloads Unity reference libraries and generates interop files;
+   this can take several minutes. Wait for the title screen. Progress and
+   errors are in BepInEx/LogOutput.log.
+8. Start New Game for a new randomized campaign. Existing bound saves retain
+   their saved seed, mapping and weapon policy. The F6 panel starts hidden;
+   press F6 to cycle Full, Compact and Hidden text views for this session.
+
+This ZIP includes the combined randomizer, launcher and Suikoden Fix, but no
+BepInEx core, loader runtime, Doorstop files, setup EXE or install script.
+There is no automatic backup, transaction or Start Menu shortcut.
+
+FRESH DEFAULTS
+Character Shuffle, normal opening, English dialogue replacement and shuffled
+Unites are on. Protagonist shuffle, chest shuffle and ATB are off. F6 starts
+Hidden with text only. First joining weapons follow Tir in S1 or Riou in S2
+with seeded -3 to +3 variance, including an exact match. Existing campaigns
+retain their own mapping and weapon policy.
+
+OPTIONAL S1 ATB
+The optional plugin is bundled dormant at
+BepInEx/SuikodenRandomizer.S1BattlePreview.dll, outside the active plugins
+tree. With the game closed, open S1's Battle & ATB tab in the launcher. Turn
+off Enable shuffled-character Unite attacks, use Activate ATB preview, then
+enable ATB, apply and relaunch. The launcher checks and copies the reviewed
+DLL into plugins. Activation alone leaves ATB disabled. Keep only one active
+ATB DLL inside plugins. To return to normal battles, disable ATB before
+re-enabling shuffled Unites. S2 has no ATB implementation.
+
+HELP, NOTICES AND RECOVERY
+Read Troubleshooting.txt and MANUAL UPGRADE.txt inside StarsOfDestiny Manual.
+Manual undo uses the backup you made and this mod package's file list.
+Redistributed-component notices are in StarsOfDestiny Manual/Licenses and
+beside the launcher runtime. BepInEx is obtained separately from its publisher.
+
+This is a preview. Wider campaign, encounter and Unite playtesting is still
+needed. S1 chest shuffle and ATB remain experimental; Riou-based joining
+weapons have managed regression coverage, with native first-join playtesting
+pending. The website is unchanged. Local scan results do not establish Nexus
+acceptance or replace review of a specific antivirus detection.

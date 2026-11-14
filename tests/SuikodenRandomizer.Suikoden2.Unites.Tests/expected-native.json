@@ -1,0 +1,1097 @@
+[
+  {
+    "index": 0,
+    "name": "(disabled)",
+    "raw": {
+      "name": 0,
+      "text": 0,
+      "info": 0,
+      "atrb": 0,
+      "player_kazu": 0,
+      "player_id": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "func_no": 0,
+      "hosei": 0,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 1,
+    "name": "Cross Attack",
+    "raw": {
+      "name": 1234,
+      "text": 1235,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        3,
+        2
+      ],
+      "func_no": 86,
+      "hosei": 150,
+      "m_status": 7,
+      "m_status_prob": 30,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 2,
+    "name": "Knight Attack",
+    "raw": {
+      "name": 1236,
+      "text": 1237,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        33,
+        32
+      ],
+      "func_no": 87,
+      "hosei": 200,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 7,
+      "p_status_prob": 30
+    }
+  },
+  {
+    "index": 3,
+    "name": "Kobold Attack",
+    "raw": {
+      "name": 1238,
+      "text": 1239,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        156,
+        29
+      ],
+      "func_no": 88,
+      "hosei": 100,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 7,
+      "p_status_prob": 100
+    }
+  },
+  {
+    "index": 4,
+    "name": "Manly Attack",
+    "raw": {
+      "name": 1240,
+      "text": 1241,
+      "info": 160,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        16,
+        37
+      ],
+      "func_no": 89,
+      "hosei": 200,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 5,
+    "name": "Double Monster Attack",
+    "raw": {
+      "name": 1242,
+      "text": 1243,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        72,
+        50
+      ],
+      "func_no": 90,
+      "hosei": 300,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 7,
+      "p_status_prob": 100
+    }
+  },
+  {
+    "index": 6,
+    "name": "Rivals Attack",
+    "raw": {
+      "name": 1244,
+      "text": 1245,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        12,
+        167
+      ],
+      "func_no": 91,
+      "hosei": 300,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 7,
+      "p_status_prob": 100
+    }
+  },
+  {
+    "index": 7,
+    "name": "Loyal Dog Attack",
+    "raw": {
+      "name": 1246,
+      "text": 1247,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        30,
+        26
+      ],
+      "func_no": 92,
+      "hosei": 150,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 8,
+    "name": "Bow Wow Attack",
+    "raw": {
+      "name": 1248,
+      "text": 1249,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        28,
+        26
+      ],
+      "func_no": 93,
+      "hosei": 150,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 9,
+    "name": "Bow Wow Attack",
+    "raw": {
+      "name": 1248,
+      "text": 1249,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        29,
+        26
+      ],
+      "func_no": 94,
+      "hosei": 150,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 10,
+    "name": "Head Up!",
+    "raw": {
+      "name": 1250,
+      "text": 1251,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        132,
+        49
+      ],
+      "func_no": 95,
+      "hosei": 200,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 7,
+      "p_status_prob": 100
+    }
+  },
+  {
+    "index": 11,
+    "name": "Head Up!",
+    "raw": {
+      "name": 1250,
+      "text": 1251,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        132,
+        74
+      ],
+      "func_no": 96,
+      "hosei": 200,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 7,
+      "p_status_prob": 100
+    }
+  },
+  {
+    "index": 12,
+    "name": "Bow Attack",
+    "raw": {
+      "name": 1252,
+      "text": 1253,
+      "info": 96,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        30,
+        43
+      ],
+      "func_no": 97,
+      "hosei": 50,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 13,
+    "name": "Bow Attack",
+    "raw": {
+      "name": 1252,
+      "text": 1253,
+      "info": 96,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        30,
+        67
+      ],
+      "func_no": 98,
+      "hosei": 50,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 14,
+    "name": "Bow Attack",
+    "raw": {
+      "name": 1252,
+      "text": 1253,
+      "info": 96,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        43,
+        67
+      ],
+      "func_no": 99,
+      "hosei": 50,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 15,
+    "name": "Trick Attack",
+    "raw": {
+      "name": 1254,
+      "text": 1255,
+      "info": 96,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        41,
+        42
+      ],
+      "func_no": 100,
+      "hosei": 100,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 16,
+    "name": "Narcissists Attack",
+    "raw": {
+      "name": 1256,
+      "text": 1253,
+      "info": 96,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        64,
+        65
+      ],
+      "func_no": 101,
+      "hosei": 50,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 17,
+    "name": "Winger Attack",
+    "raw": {
+      "name": 1257,
+      "text": 1258,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        54,
+        56
+      ],
+      "func_no": 102,
+      "hosei": 150,
+      "m_status": 32,
+      "m_status_prob": 30,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 18,
+    "name": "Dad & Daughter Attack",
+    "raw": {
+      "name": 1259,
+      "text": 1260,
+      "info": 48,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        52,
+        17
+      ],
+      "func_no": 103,
+      "hosei": 100,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 19,
+    "name": "Twin Fighter Attack",
+    "raw": {
+      "name": 1261,
+      "text": 1262,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        68,
+        69
+      ],
+      "func_no": 104,
+      "hosei": 300,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 20,
+    "name": "Buddy Attack",
+    "raw": {
+      "name": 1263,
+      "text": 1264,
+      "info": 96,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        1,
+        80
+      ],
+      "func_no": 105,
+      "hosei": 100,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 21,
+    "name": "Ninja Attack",
+    "raw": {
+      "name": 1265,
+      "text": 1235,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        73,
+        63
+      ],
+      "func_no": 106,
+      "hosei": 150,
+      "m_status": 7,
+      "m_status_prob": 30,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 22,
+    "name": "Husband & Wife Attack",
+    "raw": {
+      "name": 1266,
+      "text": 1267,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        163,
+        57
+      ],
+      "func_no": 107,
+      "hosei": 200,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 7,
+      "p_status_prob": 100
+    }
+  },
+  {
+    "index": 23,
+    "name": "Double Kraken Attack",
+    "raw": {
+      "name": 1268,
+      "text": 1260,
+      "info": 224,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        49,
+        74
+      ],
+      "func_no": 108,
+      "hosei": 100,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 24,
+    "name": "Swordsman Attack",
+    "raw": {
+      "name": 1269,
+      "text": 1270,
+      "info": 96,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        15,
+        47
+      ],
+      "func_no": 109,
+      "hosei": 50,
+      "m_status": 25,
+      "m_status_prob": 20,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 25,
+    "name": "Copycat Attack",
+    "raw": {
+      "name": 1271,
+      "text": 1272,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        1,
+        71
+      ],
+      "func_no": 110,
+      "hosei": 100,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 26,
+    "name": "Double Leader Attack",
+    "raw": {
+      "name": 1273,
+      "text": 1274,
+      "info": 96,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        1,
+        82
+      ],
+      "func_no": 111,
+      "hosei": 75,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 27,
+    "name": "Circus Attack",
+    "raw": {
+      "name": 1275,
+      "text": 1276,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 3,
+      "player_id": [
+        147,
+        148,
+        21
+      ],
+      "func_no": 112,
+      "hosei": 200,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 7,
+      "p_status_prob": 100
+    }
+  },
+  {
+    "index": 28,
+    "name": "Flash Attack",
+    "raw": {
+      "name": 1277,
+      "text": 1278,
+      "info": 96,
+      "atrb": 0,
+      "player_kazu": 3,
+      "player_id": [
+        21,
+        70,
+        69
+      ],
+      "func_no": 113,
+      "hosei": 150,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 29,
+    "name": "Beauty Attack",
+    "raw": {
+      "name": 1279,
+      "text": 1280,
+      "info": 96,
+      "atrb": 0,
+      "player_kazu": 3,
+      "player_id": [
+        14,
+        20,
+        25
+      ],
+      "func_no": 114,
+      "hosei": 25,
+      "m_status": 10,
+      "m_status_prob": 30,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 30,
+    "name": "Warriors' Village Attack",
+    "raw": {
+      "name": 1281,
+      "text": 1282,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        7,
+        8
+      ],
+      "func_no": 115,
+      "hosei": 200,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 31,
+    "name": "Beauty Attack",
+    "raw": {
+      "name": 1279,
+      "text": 1280,
+      "info": 96,
+      "atrb": 0,
+      "player_kazu": 3,
+      "player_id": [
+        14,
+        20,
+        73
+      ],
+      "func_no": 116,
+      "hosei": 25,
+      "m_status": 10,
+      "m_status_prob": 30,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 32,
+    "name": "Groupie Attack",
+    "raw": {
+      "name": 1283,
+      "text": 1284,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        2,
+        55
+      ],
+      "func_no": 125,
+      "hosei": 250,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 33,
+    "name": "Beauty Attack",
+    "raw": {
+      "name": 1279,
+      "text": 1280,
+      "info": 96,
+      "atrb": 0,
+      "player_kazu": 3,
+      "player_id": [
+        14,
+        25,
+        73
+      ],
+      "func_no": 118,
+      "hosei": 25,
+      "m_status": 10,
+      "m_status_prob": 30,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 34,
+    "name": "Beauty Attack",
+    "raw": {
+      "name": 1279,
+      "text": 1280,
+      "info": 96,
+      "atrb": 0,
+      "player_kazu": 3,
+      "player_id": [
+        20,
+        25,
+        73
+      ],
+      "func_no": 119,
+      "hosei": 25,
+      "m_status": 10,
+      "m_status_prob": 30,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 35,
+    "name": "Tackle Attack",
+    "raw": {
+      "name": 1285,
+      "text": 1286,
+      "info": 96,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        23,
+        46
+      ],
+      "func_no": 120,
+      "hosei": 75,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 7,
+      "p_status_prob": 100
+    }
+  },
+  {
+    "index": 36,
+    "name": "Family Attack",
+    "raw": {
+      "name": 1287,
+      "text": 1288,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        129,
+        18
+      ],
+      "func_no": 121,
+      "hosei": 200,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 7,
+      "p_status_prob": 100
+    }
+  },
+  {
+    "index": 37,
+    "name": "Pretty Boy Attack",
+    "raw": {
+      "name": 1289,
+      "text": 1290,
+      "info": 96,
+      "atrb": 0,
+      "player_kazu": 3,
+      "player_id": [
+        9,
+        62,
+        53
+      ],
+      "func_no": 122,
+      "hosei": 100,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 23,
+      "p_status_prob": 100
+    }
+  },
+  {
+    "index": 38,
+    "name": "Pretty Girl Attack",
+    "raw": {
+      "name": 1291,
+      "text": 1253,
+      "info": 96,
+      "atrb": 0,
+      "player_kazu": 3,
+      "player_id": [
+        8,
+        24,
+        41
+      ],
+      "func_no": 123,
+      "hosei": 50,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 39,
+    "name": "Pretty Girl Attack",
+    "raw": {
+      "name": 1291,
+      "text": 1253,
+      "info": 96,
+      "atrb": 0,
+      "player_kazu": 3,
+      "player_id": [
+        8,
+        83,
+        41
+      ],
+      "func_no": 124,
+      "hosei": 50,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 40,
+    "name": "100 Kobolds Attack",
+    "raw": {
+      "name": 1292,
+      "text": 1239,
+      "info": 96,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        28,
+        29
+      ],
+      "func_no": 121,
+      "hosei": 300,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 7,
+      "p_status_prob": 100
+    }
+  },
+  {
+    "index": 41,
+    "name": "Fancy Lad Attack",
+    "raw": {
+      "name": 1293,
+      "text": 1294,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 3,
+      "player_id": [
+        2,
+        33,
+        32
+      ],
+      "func_no": 126,
+      "hosei": 150,
+      "m_status": 25,
+      "m_status_prob": 25,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 42,
+    "name": "Bandit Attack",
+    "raw": {
+      "name": 1295,
+      "text": 1235,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 3,
+      "player_id": [
+        58,
+        59,
+        60
+      ],
+      "func_no": 127,
+      "hosei": 150,
+      "m_status": 7,
+      "m_status_prob": 30,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 43,
+    "name": "Underling Attack",
+    "raw": {
+      "name": 1296,
+      "text": 1297,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 3,
+      "player_id": [
+        45,
+        40,
+        21
+      ],
+      "func_no": 128,
+      "hosei": 400,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 44,
+    "name": "True Beauty Attack",
+    "raw": {
+      "name": 1298,
+      "text": 1299,
+      "info": 96,
+      "atrb": 0,
+      "player_kazu": 4,
+      "player_id": [
+        14,
+        20,
+        25,
+        73
+      ],
+      "func_no": 129,
+      "hosei": 25,
+      "m_status": 10,
+      "m_status_prob": 70,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 45,
+    "name": "Five Squirrel Attack",
+    "raw": {
+      "name": 1300,
+      "text": 1301,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 5,
+      "player_id": [
+        48,
+        75,
+        76,
+        77,
+        78
+      ],
+      "func_no": 130,
+      "hosei": 0,
+      "m_status": 19,
+      "m_status_prob": 90,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 46,
+    "name": "Buddy Attack",
+    "raw": {
+      "name": 1263,
+      "text": 1264,
+      "info": 96,
+      "atrb": 0,
+      "player_kazu": 2,
+      "player_id": [
+        1,
+        81
+      ],
+      "func_no": 131,
+      "hosei": 100,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 0,
+      "p_status_prob": 0
+    }
+  },
+  {
+    "index": 47,
+    "name": "Beastmaster Attack",
+    "raw": {
+      "name": 1302,
+      "text": 1303,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 3,
+      "player_id": [
+        179,
+        49,
+        74
+      ],
+      "func_no": 132,
+      "hosei": 150,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 11,
+      "p_status_prob": 100
+    }
+  },
+  {
+    "index": 48,
+    "name": "Beastmaster Attack",
+    "raw": {
+      "name": 1302,
+      "text": 1303,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 3,
+      "player_id": [
+        179,
+        49,
+        72
+      ],
+      "func_no": 133,
+      "hosei": 150,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 11,
+      "p_status_prob": 100
+    }
+  },
+  {
+    "index": 49,
+    "name": "Beastmaster Attack",
+    "raw": {
+      "name": 1302,
+      "text": 1303,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 3,
+      "player_id": [
+        179,
+        49,
+        50
+      ],
+      "func_no": 134,
+      "hosei": 150,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 11,
+      "p_status_prob": 100
+    }
+  },
+  {
+    "index": 50,
+    "name": "Beastmaster Attack",
+    "raw": {
+      "name": 1302,
+      "text": 1303,
+      "info": 32,
+      "atrb": 0,
+      "player_kazu": 3,
+      "player_id": [
+        179,
+        72,
+        50
+      ],
+      "func_no": 135,
+      "hosei": 150,
+      "m_status": 0,
+      "m_status_prob": 0,
+      "p_status": 11,
+      "p_status_prob": 100
+    }
+  }
+]

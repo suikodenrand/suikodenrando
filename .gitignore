@@ -1,0 +1,49 @@
+# Generated .NET output
+**/bin/
+**/obj/
+.build/
+artifacts/
+out/
+
+# Build caches, dependencies and local game references
+.cache/
+.dependencies/
+dependencies/
+work/
+**/interop/
+**/Il2CppInteropAssemblies/
+**/unity-libs/
+**/BepInEx/cache/
+**/BepInEx/LogOutput.*
+
+# Local settings, saves and credentials
+.vs/
+.idea/
+*.user
+*.suo
+*.log
+*.tmp
+*.bak
+*.pdb
+**/launcher-preferences.json
+**/Save/
+**/SRR-Backups/
+.env
+.env.*
+!.env.example
+*.pem
+*.pfx
+*.p12
+
+# Release binaries belong in GitHub Releases, not source history
+*.dll
+*.exe
+*.zip
+*.7z
+*.nupkg
+
+# Python and local test output
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+TestResults/

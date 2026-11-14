@@ -1,0 +1,12 @@
+{
+  "sourceKind": "Genuine same-run first-camp Fix mirror; native save also preserved and replayed by user",
+  "mirrorSha256": "d47406a9dc94b0ccd389ffa59e2c7e6b89941b0046e9f21a21fcbfd4e94ecc9c",
+  "nativeSaveSha256": "1b972c8788ec153c29034d26dd07dcfaa33252d00daf3aafe478b512b9cced08",
+  "game_data": { "area_no": 1, "town_no": 10, "map_no": 2, "area_no2": 1, "town_no2": 1, "mem_type": 1 },
+  "savedPosition": [167,206],
+  "party_info": 1,
+  "party_cha_no": [1,0,0,0,0,0,0,0],
+  "chara_flag": [[1,71]],
+  "town_flag": [[0,128],[3,128]],
+  "event_flag": [[0,161],[1,249],[2,57],[3,3],[5,128],[160,193],[161,1],[236,1]]
+}

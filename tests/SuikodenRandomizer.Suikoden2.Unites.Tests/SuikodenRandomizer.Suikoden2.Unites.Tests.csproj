@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><BuildInParallel>false</BuildInParallel><RestoreBuildInParallel>false</RestoreBuildInParallel></PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="FakeGsd2/**/*.cs" />
+    <ProjectReference Include="FakeGsd2/FakeGsd2.csproj"><Aliases>global,GSD2</Aliases></ProjectReference>
+    <Compile Include="../../src/SuikodenRandomizer.Suikoden2Plugin/Gsd2UniteRecipes.cs" Link="Production/Gsd2UniteRecipes.cs" />
+    <ProjectReference Include="../../src/SuikodenRandomizer.Suikoden2.Core/SuikodenRandomizer.Suikoden2.Core.csproj" />
+    <Compile Include="../../src/SuikodenRandomizer.Suikoden2Plugin/Gsd2Unites.cs" Link="Production/Gsd2Unites.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.Suikoden2Plugin/Gsd2ShuffledUnites.cs" Link="Production/Gsd2ShuffledUnites.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.Suikoden2Plugin/Gsd2UniteRawResources.cs" Link="Production/Gsd2UniteRawResources.cs" />
+    <EmbeddedResource Include="expected-native.json" />
+    <EmbeddedResource Include="expected-iterator-property.json" />
+  </ItemGroup>
+</Project>

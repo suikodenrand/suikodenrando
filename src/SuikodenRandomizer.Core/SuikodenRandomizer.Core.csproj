@@ -4,5 +4,6 @@
     <AssemblyName>SuikodenRandomizer.Core</AssemblyName>
     <RootNamespace>SuikodenRandomizer.Core</RootNamespace>
   </PropertyGroup>
+  <ItemGroup><Compile Remove="Suikoden2/**/*.cs" /></ItemGroup>
 </Project>
 

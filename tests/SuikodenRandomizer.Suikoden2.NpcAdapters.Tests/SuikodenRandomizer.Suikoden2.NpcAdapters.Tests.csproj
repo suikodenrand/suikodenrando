@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../SuikodenRandomizer.Suikoden2.NpcSprites.Tests/FakeNative/FakeNative.csproj" Aliases="global,GSD2" />
+    <Compile Include="../SuikodenRandomizer.Suikoden2.NpcSprites.Tests/HarmonyStubs.cs" Link="HarmonyStubs.cs" />
+    <Compile Include="../SuikodenRandomizer.Suikoden2.NpcSprites.Tests/RuntimeSupport.cs" Link="RuntimeSupport.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.Suikoden2Plugin/Gsd2NpcDirectionAdapters.cs" Link="Production/Gsd2NpcDirectionAdapters.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.Suikoden2Plugin/Gsd2NpcSprites.cs" Link="Production/Gsd2NpcSprites.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.Suikoden2Plugin/Gsd2NpcSpriteAliases.cs" Link="Production/Gsd2NpcSpriteAliases.cs" />
+    <None Update="Fixtures/original-small-field-banks.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

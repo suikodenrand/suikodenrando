@@ -49,6 +49,7 @@ internal static class Program
     };
     private static AvatarRuntime Setup(int[] players, params GSD1.KYORYOKU_DATA?[] groups)
     {
+        AvatarUniteTableScope.ProjectRequirements = null;
         var runtime = new AvatarRuntime();
         AvatarRuntime.Current = runtime;
         GSD1.BattleBase.battle_work = new GSD1.BATTLE_WORK
@@ -232,6 +233,13 @@ internal static class Program
             Setup(new[] { 2, 6 }, Group(2, 255)); Check(!Prefix().Run, "Invalid required identity passed native call.");
             Setup(Array.Empty<int>(), Group(2, 6)); Check(!Prefix().Run, "Empty battle data passed native call.");
         });
+        Test("A retained S1 fault cannot suppress another owner's native Unite call", () =>
+        {
+            var runtime = AvatarRuntime.Current!; runtime.Fail("retained S1 fault"); runtime.Owns = false;
+            GSD1.BattleBase.battle_work = null;
+            var call = Prefix();
+            Check(call.Run && call.Result == 918273 && call.State is null, "Foreign owner was blocked by S1 fault.");
+        });
         Test("Safety hooks target all seven candidate builders and leave native cancellation unpatched", () =>
         {
             var targets = (IEnumerable<MethodBase>)Patch.GetMethod("Targets", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, null)!;
@@ -243,6 +251,149 @@ internal static class Program
             var group = Group(2, 6); var runtime = Setup(new[] { 2, 6 }, group); runtime.Profile.Fingerprint = "bounded-log-test"; Swap(runtime, 6, new[] { 2, 6 });
             for (int n = 0; n < 25; n++) { var call = Prefix(); Postfix(call.State); Finalizer(null, call.State); }
             Check(runtime.Logs.Count == 1 && runtime.Logs[0].Contains("incompatible native groups=1"), "Repeated command checks spammed logs.");
+        });
+        Test("Projected Talisman follows Gremio and Pahn into foreign canonical roles and restores exactly", () =>
+        {
+            var group = Group(2, 6);
+            var runtime = Setup(new[] { 12, 31 }, group);
+            runtime.Profile.Assignments[12] = 2; runtime.Profile.Assignments[31] = 6;
+            var array = group.player_id; var table = GSD1.BattleBase.kyoryoku_data_table;
+            int callbackCalls = 0;
+            AvatarUniteTableScope.ProjectRequirements = (index, candidate) =>
+            {
+                callbackCalls++;
+                Check(index == 0 && ReferenceEquals(candidate, group), "Projection received the wrong recipe.");
+                return new byte[] { 12, 31 };
+            };
+            Check(!Matches(group, new[] { 12, 31 }), "Original recipe unexpectedly matched foreign roles.");
+            var call = Prefix();
+            Check(call.Run && call.Result == 918273 && callbackCalls == 1, "Projection replaced native candidate handling.");
+            Check(call.State?.MaskedGroupCount == 0 && Matches(group, new[] { 12, 31 }), "Projected natural partners remained unavailable.");
+            Check(group.player_id![0] == 12 && group.player_id[1] == 31, "Projected recipe order was lost.");
+            Check(ReferenceEquals(array, group.player_id) && ReferenceEquals(table, GSD1.BattleBase.kyoryoku_data_table), "Projection replaced shared native containers.");
+            Check(group.player_kazu == 2 && group.func_no == 42 && group.type == 123 && group.name == 456 && group.help == 789, "Projection changed native effects or recipe metadata.");
+            Check(GSD1.BattleBase.battle_work!.p_battle_data![0]!.player_data!.chara_id == 12
+                && GSD1.BattleBase.battle_work.p_battle_data[1]!.player_data!.chara_id == 31, "Projection changed canonical actor identities.");
+            Postfix(call.State); Finalizer(null, call.State);
+            Check(group.player_id[0] == 2 && group.player_id[1] == 6 && group.player_id.Writes == 4, "Projected requirements were not restored exactly once.");
+        });
+        Test("Projecting Talisman retains suppression of an unrelated incompatible recipe", () =>
+        {
+            var talisman = Group(2, 6); var bandit = Group(12, 31);
+            var runtime = Setup(new[] { 12, 31 }, talisman, bandit);
+            runtime.Profile.Assignments[12] = 2; runtime.Profile.Assignments[31] = 6;
+            AvatarUniteTableScope.ProjectRequirements = (index, _) => index == 0 ? new byte[] { 12, 31 } : null;
+            using (var scope = AvatarUniteTableScope.Begin())
+            {
+                Check(Matches(talisman, new[] { 12, 31 }), "Qualified Talisman did not match.");
+                Check(scope?.MaskedGroupCount == 1 && !Matches(bandit, new[] { 12, 31 }), "Unrelated incompatible choreography became available.");
+            }
+            Check(talisman.player_id![0] == 2 && talisman.player_id[1] == 6
+                && bandit.player_id![0] == 12 && bandit.player_id[1] == 31, "Mixed projection/safety restoration was not exact.");
+        });
+        Test("A null projection preserves existing safety handling", () =>
+        {
+            var group = Group(2, 6); var runtime = Setup(new[] { 2, 6 }, group); Swap(runtime, 6, new[] { 2, 6 });
+            AvatarUniteTableScope.ProjectRequirements = (_, _) => null;
+            using (var scope = AvatarUniteTableScope.Begin())
+                Check(scope?.MaskedGroupCount == 1 && !Matches(group, new[] { 2, 6 }), "Null projection bypassed the established safety guard.");
+            Check(group.player_id![0] == 2 && group.player_id[1] == 6, "Null projection changed restoration.");
+        });
+        foreach (var invalid in new (string Name, byte[] Members)[]
+        {
+            ("missing active participant", new byte[] { 12, 99 }),
+            ("duplicate participant", new byte[] { 12, 12 }),
+            ("out-of-range participant", new byte[] { 12, 110 }),
+            ("short participant list", new byte[] { 12 }),
+            ("long participant list", new byte[] { 12, 31, 32 }),
+            ("empty participant list", Array.Empty<byte>())
+        })
+        {
+            Test("Projection preflight rejects " + invalid.Name + " before any native write", () =>
+            {
+                var first = Group(2, 6); var second = Group(2, 6);
+                var runtime = Setup(new[] { 12, 31 }, first, second);
+                AvatarUniteTableScope.ProjectRequirements = (index, _) => index == 0 ? new byte[] { 12, 31 } : invalid.Members;
+                var call = Prefix();
+                Check(!call.Run && call.State is null && runtime.FaultReason is not null, "Invalid projection did not stop native eligibility.");
+                Check(first.player_id!.Writes == 0 && second.player_id!.Writes == 0, "Projection preflight partially changed an earlier group.");
+                Check(first.player_id[0] == 2 && first.player_id[1] == 6 && second.player_id![0] == 2 && second.player_id[1] == 6, "Rejected projection changed requirements.");
+            });
+        }
+        Test("Nested projected scopes retain the outer mapping until its own completion", () =>
+        {
+            var group = Group(2, 6); Setup(new[] { 12, 31 }, group); int callbackCalls = 0;
+            AvatarUniteTableScope.ProjectRequirements = (_, _) => { callbackCalls++; return new byte[] { 12, 31 }; };
+            var outer = Prefix(); var inner = Prefix(typeof(GSD1.BattleBase).GetMethod("make_command_data"));
+            Check(callbackCalls == 1 && Matches(group, new[] { 12, 31 }), "Nested callback projected an already projected recipe.");
+            Postfix(inner.State); Finalizer(null, inner.State);
+            Check(Matches(group, new[] { 12, 31 }) && group.player_id!.Writes == 2, "Nested scope restored the outer projection early.");
+            Postfix(outer.State); Finalizer(null, outer.State);
+            Check(group.player_id![0] == 2 && group.player_id[1] == 6 && group.player_id.Writes == 4, "Outer projection did not restore exactly once.");
+        });
+        Test("A partially applied projected list rolls back both participant requirements", () =>
+        {
+            var group = Group(2, 6); var runtime = Setup(new[] { 12, 31 }, group);
+            AvatarUniteTableScope.ProjectRequirements = (_, _) => new byte[] { 12, 31 };
+            group.player_id!.FailOnWrite = 2;
+            var call = Prefix();
+            Check(!call.Run && call.State is null && runtime.FaultReason is not null, "Projected setter failure did not fail closed.");
+            Check(group.player_id[0] == 2 && group.player_id[1] == 6, "Projected setter rollback left a partial identity map.");
+            Setup(new[] { 2, 6 }, Group(2, 6));
+            using var scope = AvatarUniteTableScope.Begin();
+            Check(scope?.MaskedGroupCount == 0, "Projected setter failure leaked nesting depth.");
+        });
+        Test("A projection callback failure leaves previously planned groups untouched", () =>
+        {
+            var first = Group(2, 6); var second = Group(2, 6); var runtime = Setup(new[] { 12, 31 }, first, second);
+            AvatarUniteTableScope.ProjectRequirements = (index, _) => index == 0
+                ? new byte[] { 12, 31 } : throw new InvalidOperationException("Injected projection failure");
+            var call = Prefix();
+            Check(!call.Run && runtime.FaultReason is not null && first.player_id!.Writes == 0 && second.player_id!.Writes == 0, "Callback failure leaked a planned projection.");
+        });
+        Test("Canonical identity zero is valid in a projected participant list", () =>
+        {
+            var group = Group(2, 6); Setup(new[] { 0, 12 }, group);
+            AvatarUniteTableScope.ProjectRequirements = (_, _) => new byte[] { 0, 12 };
+            using (var scope = AvatarUniteTableScope.Begin())
+                Check(scope?.MaskedGroupCount == 0 && group.player_id![0] == 0 && Matches(group, new[] { 0, 12 }), "Valid canonical role zero was rejected.");
+            Check(group.player_id![0] == 2 && group.player_id[1] == 6, "Role-zero projection did not restore.");
+        });
+        Test("Matching projections of an aliased native buffer write and restore each operand once", () =>
+        {
+            var first = Group(2, 6); var second = Group(2, 6); second.player_id = first.player_id;
+            Setup(new[] { 12, 31 }, first, second);
+            AvatarUniteTableScope.ProjectRequirements = (_, _) => new byte[] { 12, 31 };
+            using (var scope = AvatarUniteTableScope.Begin())
+                Check(scope?.MaskedGroupCount == 0 && first.player_id!.Writes == 2
+                    && Matches(first, new[] { 12, 31 }) && Matches(second, new[] { 12, 31 }), "Aliased equivalent projections duplicated native writes.");
+            Check(first.player_id![0] == 2 && first.player_id[1] == 6 && first.player_id.Writes == 4, "Aliased equivalent projections restored incorrectly.");
+        });
+        Test("Conflicting projections of an aliased buffer fail before applying either mapping", () =>
+        {
+            var first = Group(2, 6); var second = Group(2, 6); second.player_id = first.player_id;
+            var runtime = Setup(new[] { 12, 31 }, first, second);
+            AvatarUniteTableScope.ProjectRequirements = (index, _) => index == 0 ? new byte[] { 12, 31 } : new byte[] { 31, 12 };
+            var call = Prefix();
+            Check(!call.Run && runtime.FaultReason is not null && first.player_id!.Writes == 0, "Conflicting aliases changed a shared buffer.");
+            Check(first.player_id![0] == 2 && first.player_id[1] == 6, "Rejected aliased projection changed requirements.");
+        });
+        Test("A projected recipe cannot overwrite an aliased incompatible safety mask", () =>
+        {
+            var first = Group(2, 6); var second = Group(2, 6); second.player_id = first.player_id;
+            var runtime = Setup(new[] { 12, 31 }, first, second); runtime.Profile.Assignments[2] = 12;
+            AvatarUniteTableScope.ProjectRequirements = (index, _) => index == 0 ? new byte[] { 12, 31 } : null;
+            var call = Prefix();
+            Check(!call.Run && runtime.FaultReason is not null && first.player_id!.Writes == 0, "Mixed projection and safety aliases were silently combined.");
+            Check(first.player_id![0] == 2 && first.player_id[1] == 6, "Mixed alias rejection changed requirements.");
+        });
+        Test("A projection cannot conceal an invalid original native participant identity", () =>
+        {
+            var group = Group(2, 255); var runtime = Setup(new[] { 12, 31 }, group); int callbackCalls = 0;
+            AvatarUniteTableScope.ProjectRequirements = (_, _) => { callbackCalls++; return new byte[] { 12, 31 }; };
+            var call = Prefix();
+            Check(!call.Run && runtime.FaultReason is not null && callbackCalls == 0 && group.player_id!.Writes == 0, "Projection concealed malformed original data.");
+            Check(group.player_id![0] == 2 && group.player_id[1] == 255, "Malformed original data changed.");
         });
         Console.WriteLine(_passed + "/" + _passed + " avatar Unite safety managed checks passed.");
         Console.WriteLine("Scope: actual production table scope and Harmony callbacks with explicit native models; 27 supplied participant combinations. Native matching, detours and full-plugin compilation are not executed.");

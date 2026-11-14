@@ -1,0 +1,136 @@
+STARS OF DESTINY 0.14.3 - TROUBLESHOOTING
+
+SETUP CANNOT FIND THE GAME
+In Steam, right-click the game > Manage > Browse local files. Select that
+folder in setup. It must contain Suikoden I and II HD Remaster.exe and
+GameAssembly.dll. The NSIS setup EXE contains the components; no old bundle
+or separately installed .NET runtime is needed.
+
+GAME OR LAUNCHER RUNNING / ACCESS DENIED
+Close both programs before installation or restore. Setup does not close
+them for you. Wait for Steam to report that the game has stopped. If Windows
+permissions protect the game folder, run setup as administrator after
+checking its destination. The installer reports a blocked write rather than
+silently accepting a partial installation.
+
+UNSUPPORTED GAME BUILD
+Setup verifies GameAssembly.dll against the supported SHA-256 recorded in
+the package manifest. Preserve any previous patch's backup, then verify the
+game through Steam. If the verified game still differs, report its hash to
+the package sender. Do not bypass the build check or replace game binaries
+with files from another user.
+
+DIFFERENT BEPINEX LOADER
+This bundle uses Unity IL2CPP Windows x64 BepInEx build 697. Setup accepts
+matching loader files and fills in missing files, but stops on differing
+ones. Close the game and keep a paired backup of Save and BepInEx/config.
+Keep the previous loader, runtime and plugins together in a backup outside
+the game directory before replacing a conflicting loader. Do not merge an
+old core/runtime into the new one. Preserve campaign configs and bindings;
+ask the package sender for help if you cannot identify a conflicting file.
+
+DUPLICATE RANDOMIZER, ATB OR FIX
+The four combined randomizer DLLs belong together in
+BepInEx/plugins/SuikodenRandomizer. Keep only one ATB DLL and one Suikoden_Fix
+DLL in the plugins tree. A renamed folder under plugins still loads DLLs.
+Move duplicate copies outside plugins. Old Fix builds with an embedded
+randomizer conflict with the standalone combined host. Setup reports known
+conflicts before changing files; unrelated plugins are not removed.
+
+FIRST LAUNCH TAKES A LONG TIME
+Keep Steam and the game open with internet access while BepInEx downloads
+Unity reference libraries and generates interop. Wait for the title screen.
+BepInEx/LogOutput.log records progress and errors. Check access to
+unity.bepinex.dev if a reference download fails. Do not install extra loaders
+or delete campaign settings to address a reference download error.
+
+NO F6 PANEL
+This is the fresh default in 0.14.3. Focus the game and press F6 to display
+the text panel. Further presses cycle Full, Compact and Hidden. Visible text
+has no black background. F6 changes are for this session. To choose a startup
+view, change Interface/ViewMode in the launcher with the game closed.
+If F6 never responds, check BepInEx/LogOutput.log for Stars of Destiny 0.14.3
+and errors. Verify winhttp.dll, doorstop_config.ini and BepInEx are beside
+the game executable and that the randomizer is enabled in the launcher.
+
+SEED, PARTY OR QUICK START DID NOT CHANGE
+Those settings apply to new campaigns. Bound saves restore their original
+seed, mapping and start progress. Check the active seed in the Full F6 view.
+Keep native saves and BepInEx/config paired. S1 unbound ordinary saves remain
+read-only while randomization is active; S2 unbound ordinary saves remain
+vanilla. Restore missing bindings from their matching backup rather than
+treating an existing randomized save as a new campaign.
+
+JOINING WEAPONS DID NOT CHANGE IN AN EXISTING SAVE
+The weapon policy applies to a new campaign and the replacement's first
+joining assignment. Saved campaigns retain their policy and earned upgrades.
+Old saves without policy metadata retain prior behavior. Do not delete
+campaign bindings to force an update. S1 offers TirVariance, MatchRole and
+Level1; S2 offers RiouVariance (Riou's current weapon level +/-3), MatchRole
+and Level1. RiouVariance is the fresh default in 0.14.3; an upgrade preserves
+an existing config, so choose it in the S2 launcher settings for new campaigns
+if MatchRole or Level1 was already saved there. Natural S2 weapons remain
+level 0. Existing campaign policies and earned sharpening stay unchanged.
+
+UNITES ARE MISSING OR ATB IS NOT ACTIVE
+Use normal turn-based battles for shuffled Unites. In S1, disable ATB and
+OneShotAttack before enabling shuffled Unites. All actual required fighters
+must be available in the active party and satisfy native conditions.
+If you want ATB instead, select "Experimental S1 ATB (installed disabled)"
+when running setup, turn off S1's "Enable shuffled-character Unite attacks"
+in the launcher's Battle & ATB tab, enable ATB,
+apply and relaunch. Merely installing ATB does not enable it. An upgrade
+preserves existing ATB configs; review old dependent options in Battle & ATB.
+To return to standard battles, turn ATB off, then re-enable shuffled Unites
+if desired. S2 does not implement ATB. Every scripted encounter and Unite
+recipe has not been tested in-game.
+
+CHESTS STILL HAVE ORIGINAL REWARDS
+S1 chest shuffle is off by default. Enable both Treasure switches for a new
+or unbound chest policy. If a save already has a disabled policy, select its
+snapshot and reset that chest policy through the launcher, then reload.
+The global allowance must remain on even for a saved enabled mapping.
+Protected recruitment items, potch and special rewards remain original.
+Disabling chest shuffle does not remove acquired items or close open chests.
+S2 chest shuffle is not implemented.
+
+DIALOGUE IS UNCHANGED OR WRAPS BADLY
+Only admitted English messages are rewritten. Ambiguous names, unsupported
+messages and other languages stay original. Report a screenshot and the
+original role/replacement if a line is wrong. To disable replacement, turn
+off Replace character mentions in Dialogue & UI, apply and relaunch.
+
+LAUNCHER WILL NOT OPEN
+The entire StarsOfDestiny Launcher folder must stay together, including
+runtime DLLs and subfolders. Its private Windows Desktop runtime is separate
+from BepInEx's dotnet folder. Do not mix those folders. Run on Windows x64.
+If Windows blocked a downloaded file, verify its sender/checksum before
+using Properties > Unblock. Re-run setup if required launcher files are
+missing; do not copy only the EXE from an old version.
+
+UNDO THIS INSTALLATION
+Close the game and launcher. Open the Start Menu support folder shortcut or
+<game>/StarsOfDestiny Setup, then run Restore.cmd. Supply the FullPreview-*
+transaction backup path printed by setup under <game>/SRR-Backups. Restore
+checks the transaction and current files before restoring. If files changed
+afterward, undo later transactions first or follow the conflict message.
+The restore tool does not rewind save progress or undo later settings edits.
+Restore a whole campaign only from a paired Save and BepInEx/config backup,
+keeping a backup of the current folders first. Start Menu shortcuts may be
+removed manually when no longer needed.
+
+For a command-line restore, Restore.cmd accepts -GamePath "<game folder>"
+and -TransactionPath "<full FullPreview backup folder>". The installed tool
+can infer its game folder; omit -TransactionPath to be prompted for it.
+
+UNDO A LAUNCHER SETTINGS CHANGE
+Changed configs are backed up under
+BepInEx/config/StarsOfDestiny.Launcher/backups. Close the game and restore
+the desired original CFG. Keep campaign sidecars and native save data paired.
+
+REPORT A PROBLEM
+Include S1/S2, randomizer and optional ATB versions, seed, mode, scene and
+the actions that triggered the issue. Supply BepInEx/LogOutput.log and a
+screenshot where useful. Review shared logs/configs for personal local paths.
+Package test coverage and limits are recorded in the companion
+Verification.json in the download ZIP; it is not installed in this folder.

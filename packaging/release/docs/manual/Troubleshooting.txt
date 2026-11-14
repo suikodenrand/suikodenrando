@@ -1,0 +1,113 @@
+STARS OF DESTINY 0.14.3 - MOD-ONLY PACKAGE TROUBLESHOOTING
+
+WHERE DO THE FILES GO?
+In Steam, right-click the game > Manage > Browse local files. Extract into
+the folder containing Suikoden I and II HD Remaster.exe and GameAssembly.dll.
+Install the external BepInEx package from REQUIREMENTS.txt first, then copy
+this mod package into the same folder. Its BepInEx folder contains our
+plugins/configs, not BepInEx/core or the loader. StarsOfDestiny Launcher
+also belongs beside the game EXE. Do not add an outer mod-named directory.
+Existing modded installations must follow MANUAL UPGRADE.txt before copying.
+
+ACCESS DENIED OR SOME FILES DID NOT COPY
+Close the game and launcher and wait for Steam to show the game has stopped.
+Use Windows file-copy permissions for the correct game folder. Do not launch
+a partially copied bundle. Recopy missing files from the extracted package
+while retaining existing configs as described in MANUAL UPGRADE.txt.
+This manual package has no installer to reject partial copies automatically.
+
+DIFFERENT GAME OR LOADER VERSION
+The supported GameAssembly hash is in Build information.txt. The manual ZIP
+does not enforce it. Preserve backups and use Steam's verified supported
+Windows game files; do not obtain game binaries from another user.
+This mod requires the separately downloaded BepInEx 6 IL2CPP Windows x64
+build 697. See REQUIREMENTS.txt for the exact official archive; BepInEx 5,
+Mono and x86 packages are not substitutes. Keep a working matching loader
+when upgrading the mod. Do not mix different core/runtime/loader versions.
+Keep any old loader and its dependencies together in an external backup.
+Ask for compatibility help if another mod requires a different loader.
+
+DUPLICATE RANDOMIZER, ATB OR FIX
+The four combined randomizer DLLs belong together in
+BepInEx/plugins/SuikodenRandomizer. The old standalone
+SuikodenRandomizer.Suikoden2.dll must be backed up and removed from that
+folder. Keep one copy of each current randomizer DLL, one active ATB DLL and
+one Suikoden_Fix.dll in the plugins tree. A renamed folder inside plugins
+still loads DLLs. Move duplicate copies outside the entire plugins tree.
+Old Fix builds with an embedded randomizer conflict with the combined host.
+There is no automatic duplicate check in this manual package. Keep unrelated
+mods and ask for help when the owner of a possible duplicate is unclear.
+
+FIRST LAUNCH TAKES A LONG TIME
+Keep Steam, the game and internet access available while BepInEx downloads
+Unity reference libraries and generates interop. Wait for the title screen.
+BepInEx/LogOutput.log records progress and errors. A download error needs
+working access to the reference service; installing another loader or
+deleting campaign settings does not repair a failed reference download.
+
+LAUNCHER WILL NOT OPEN
+Run StarsOfDestiny Launcher/StarsOfDestiny.Launcher.exe on Windows x64.
+The complete folder, including its private runtime files, must stay together.
+Its Windows Desktop runtime is separate from external BepInEx's dotnet folder.
+Recopy the complete launcher from this ZIP if files are missing. A separate
+.NET runtime or SDK is not required. Check the reported error and file
+source/checksum rather than disabling antivirus protection.
+
+NO F6 PANEL
+Hidden is the fresh default in 0.14.3. Focus the game and press F6 to cycle
+Full, Compact and Hidden. Visible modes use text without a black box. A
+startup view can be chosen in the launcher with the game closed.
+If F6 never responds, check BepInEx/LogOutput.log for Stars of Destiny 0.14.3
+and errors. Verify the loader and plugins are in the correct game folder
+and the randomizer is enabled in the launcher. Missing BepInEx/core or
+winhttp.dll means the external prerequisite has not been fully installed;
+this mod ZIP does not contain those files.
+
+SEED, PARTY, START OR JOINING WEAPONS DID NOT CHANGE
+These options apply to new campaigns. Bound saves retain their seed,
+mapping, progress, weapon policy and earned sharpening. Keep native saves
+and BepInEx/config paired. Do not delete sidecars to force a new policy.
+S1 offers TirVariance, MatchRole and Level1; S2 offers RiouVariance,
+MatchRole and Level1. Upgrades keep their old configs when the manual steps
+are followed; choose Riou's weapon level +/-3 for new S2 campaigns if wanted.
+Protected story handling stays native, and natural S2 weapons remain level 0.
+
+ATB IS NOT ACTIVE OR SHUFFLED UNITES ARE MISSING
+The bundled ATB DLL is dormant directly under BepInEx, outside plugins.
+With the game closed, use S1's Battle & ATB tab: disable Enable
+shuffled-character Unite attacks, use Activate ATB preview, then enable ATB
+and apply. Activation alone does not enable ATB. Keep only one active ATB
+DLL inside plugins. Existing ATB files and settings remain as you left them
+when performing an upgrade that preserves configs.
+Use normal turn-based battles for shuffled Unites. Disable ATB and the
+OneShotAttack probe before re-enabling S1 shuffled Unites. Actual required
+fighters must be in the active party and meet native conditions. S2 has no
+ATB implementation. Wider encounter and Unite playtesting is still needed.
+
+CHESTS OR DIALOGUE STILL LOOK ORIGINAL
+S1 chest shuffle is off by default. Enable both Treasure switches for a new
+or unbound policy. A saved disabled policy needs its chest-policy reset
+through the launcher's selected-save manager, then a reload. Keep the global
+allowance on for enabled mappings. Protected items and special rewards stay
+native; disabling shuffle does not remove acquired items or close chests.
+S2 chest shuffle is not implemented.
+Only supported English dialogue messages are rewritten. Ambiguous names,
+unsupported messages and other languages retain original text. Report the
+role/replacement, scene and screenshot for incorrect or badly wrapped lines.
+
+UNDO OR RESTORE
+Use the manual backup and added-file record made before installation; the
+steps are in MANUAL UPGRADE.txt. This ZIP has no new Restore.cmd transaction.
+Keep earlier SRR-Backups and StarsOfDestiny Setup tools. An old transaction
+does not cover a later manual copy; undo the manual copy from its backup
+before attempting old transaction recovery. Keep Save and BepInEx/config
+paired. This mod's removal does not uninstall external BepInEx. Leave its
+core, root dotnet, winhttp.dll and Doorstop files in place. Never delete all
+of BepInEx when other mods share it.
+
+REPORT A PROBLEM
+Include S1/S2, mod and optional ATB versions, seed/mode, scene and actions.
+Supply BepInEx/LogOutput.log and a screenshot where useful. Review shared
+logs/configs for personal local paths. The verification report records
+package checks and their limits. Local scanning does not establish Nexus
+acceptance or replace review of a specific antivirus detection.

@@ -1,0 +1,101 @@
+THIRD-PARTY SOFTWARE IN THE STARS OF DESTINY PACKAGE
+
+The mod loader and optional quality-of-life plug-in are unmodified upstream
+distributions. Stars of Destiny and its launcher are separate assemblies.
+The loader's .NET 6 runtime and the launcher's .NET 10 runtime serve separate
+programs and are installed in separate locations.
+
+BepInEx 6.0.0-be.697
+Commit 53625800b86f6c68751445248260edf0b27a71c2
+LGPL 2.1. See BepInEx-LICENSE.txt and Source/BepInEx-source-5362580/.
+Original Windows x64 Unity IL2CPP archive
+https://builds.bepinex.dev/projects/bepinex_be/697/BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.697%2B5362580.zip
+https://github.com/BepInEx/BepInEx/tree/53625800b86f6c68751445248260edf0b27a71c2
+
+Unity Doorstop 4.3.0
+LGPL 2.1. See UnityDoorstop-LICENSE.txt and
+Source/UnityDoorstop-source-v4.3.0/.
+https://github.com/NeighTools/UnityDoorstop/releases/tag/v4.3.0
+
+Il2CppInterop 1.4.6-ci.426
+Commit 56bf1dadede34de71f5a8f5812e7063ff553c90b
+LGPL 3. See Il2CppInterop-COPYING.LESSER.txt together with the GPL 3 text
+in Il2CppInterop-LICENSE.txt and GPL-3.0.txt. Matching source is included in
+Source/Il2CppInterop-source-56bf1da/.
+https://github.com/BepInEx/Il2CppInterop/tree/56bf1dadede34de71f5a8f5812e7063ff553c90b
+
+Microsoft .NET 6.0.7
+Runtime supplied by the original BepInEx archive. The official Windows
+runtime distribution supplies Microsoft .NET Library terms in
+net6-windows-LICENSE.txt and notices in net6-windows-ThirdPartyNotices.txt.
+The archive was verified against Microsoft's release-metadata SHA-512;
+180 core runtime files in the loader match the official runtime. See
+net6-windows-provenance.json for origin and verification details.
+The cached MIT source license and notices are retained separately as
+dotnet-LICENSE.txt and dotnet-THIRD-PARTY-NOTICES.txt.
+https://builds.dotnet.microsoft.com/dotnet/release-metadata/6.0/releases.json
+https://github.com/dotnet/runtime/tree/v6.0.7
+
+HarmonyX 2.10.2 and Harmony
+See HarmonyX-LICENSE.txt and Harmony-LICENSE.txt.
+https://github.com/BepInEx/HarmonyX/tree/v2.10.2
+https://github.com/pardeike/Harmony
+
+MonoMod.Utils and MonoMod.RuntimeDetour 22.05.01.01
+See MonoMod-LICENSE.txt. Assembly copyright includes 2022 0x0ade.
+https://github.com/MonoMod/MonoMod
+
+Mono.Cecil 0.11.4
+See Mono.Cecil-LICENSE.txt.
+https://github.com/jbevain/cecil/tree/0.11.4
+
+Cpp2IL, LibCpp2IL, Disarm, WasmDisassembler and StableNameDotNet
+Bundled Cpp2IL build with commit
+ba1003aa6e2d406b212e08818974fc83fe846fd7
+See Cpp2IL-LICENSE.txt.
+https://github.com/SamboyCoding/Cpp2IL/tree/ba1003aa6e2d406b212e08818974fc83fe846fd7
+
+AssetRipper.CIL 1.0.0
+Commit 1bbd32dd87c262b6690a7814a12b0fc550fa520c
+MIT. See AssetRipper.CIL-LICENSE.txt.
+https://github.com/AssetRipper/AssetRipper.CIL/tree/1bbd32dd87c262b6690a7814a12b0fc550fa520c
+
+AssetRipper.Primitives 3.1.3
+Commit 9c4a7d8127cc9af1e5f61edee8eeb90bd90676aa
+MIT. See AssetRipper.Primitives-LICENSE.txt and uTinyRipper-LICENSE.txt.
+https://github.com/AssetRipper/AssetRipper.Primitives/tree/9c4a7d8127cc9af1e5f61edee8eeb90bd90676aa
+
+Gee.External.Capstone 2.3.1 and its native Capstone runtime
+Commit de241200f81723ab7cc317d0e81433a3f9e80ca6
+See Capstone.NET-LICENSE.txt and Capstone-Native-LICENSE.txt.
+https://github.com/ds5678/Capstone.NET/tree/de241200f81723ab7cc317d0e81433a3f9e80ca6
+
+SemanticVersioning 2.0.2
+Commit c52c9d4c5d34a6a3bb6ff45f7276d8b6e951a42d
+MIT. See SemanticVersioning-LICENSE.txt.
+https://github.com/adamreeve/semver.net/tree/c52c9d4c5d34a6a3bb6ff45f7276d8b6e951a42d
+
+AsmResolver 5.5.0
+See AsmResolver-LICENSE.txt.
+https://github.com/Washi1337/AsmResolver
+
+Iced 1.21.0
+See Iced-LICENSE.txt.
+https://github.com/icedland/iced/tree/v1.21.0
+
+Dobby
+See Dobby-LICENSE.txt.
+https://github.com/jmpews/Dobby
+
+Suikoden Fix 1.5.2b by d3xMachina
+MIT. See Suikoden-Fix-LICENSE.txt.
+https://github.com/d3xMachina/Suikoden-Fix/releases/tag/v1.5.2b
+
+The launcher's Microsoft .NET 10.0.14 notices are supplied alongside its
+self-contained runtime. The package build manifest records the actual
+binary files and their SHA-256 hashes.
+
+NSIS 3.11
+The setup executable uses the Nullsoft Scriptable Install System.
+See NSIS-COPYING.txt for the NSIS and compression-module license notices.
+https://nsis.sourceforge.io/

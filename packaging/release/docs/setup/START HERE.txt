@@ -1,0 +1,95 @@
+STARS OF DESTINY 0.14.3 - FULL WINDOWS PREVIEW
+Suikoden I & II HD Remaster | Steam | Windows x64
+
+INSTALL
+1. Close the game and the Stars of Destiny launcher. Keep a paired backup
+   of the game's Save and BepInEx/config folders outside the game directory
+   if you already have a campaign. Starting New Game may replace autosave.
+2. Run the Stars of Destiny 0.14.3 setup EXE. Select the folder containing
+   Suikoden I and II HD Remaster.exe and GameAssembly.dll.
+3. The combined randomizer, launcher, BepInEx and Suikoden Fix are included.
+   Leave "Experimental S1 ATB (installed disabled)" unchecked for standard
+   turn-based battles. Select it only if you want to try the separate ATB
+   preview. Installing it does not enable it.
+4. Complete setup. Open the launcher from the current user's Start Menu:
+   Stars of Destiny Preview. You can also run
+   <game>/StarsOfDestiny Launcher/StarsOfDestiny.Launcher.exe.
+5. Choose Suikoden I or II, a seed, and your options. With the game closed,
+   use Apply settings or Save & launch game. The launcher has its own .NET
+   runtime; you do not need an SDK or a separately installed .NET runtime.
+6. Keep Steam and an internet connection available on the first modded
+   launch. BepInEx downloads Unity reference libraries and generates its
+   interop files. This can take several minutes. Wait for the title screen.
+7. Start New Game for a new randomized campaign. Existing randomized saves
+   restore their own seed and mapping. The F6 panel starts hidden; press F6
+   to show its text. F6 cycles Full, Compact and Hidden for that session.
+
+WHAT IS INCLUDED
+- Combined Suikoden I / II randomizer 0.14.3, with separate game settings.
+- Seeded character Shuffle, five chosen companions, or a seeded random
+  fixed roster; optional protagonist shuffle and each game's quick start.
+- Supported English dialogue-name replacement in both games.
+- Native shuffled-character Unite previews for both games.
+- Suikoden I seeded chest shuffle, off until you enable it.
+- Windows launcher 1.0.3, preset import/export and configuration backups.
+- BepInEx 6 IL2CPP x64 build 697 and its private loader runtime.
+- Suikoden Fix 1.5.2b and its launcher settings.
+- Optional separate Suikoden I ATB Preview 0.10.1, installed disabled.
+- Transaction restore tools, instructions, troubleshooting and notices.
+
+FRESH DEFAULTS AND UPGRADES
+Fresh installations use character Shuffle, the normal opening in both games,
+English dialogue-name replacement, and shuffled Unites. Protagonist shuffle
+and chest shuffle are off. F6 starts Hidden and uses text without a black box.
+Suikoden I joining weapons use Tir's current weapon level with seeded +/-3
+variance. Suikoden II now uses Riou's current weapon level with the same
+seeded +/-3 variance, including a possible exact match, at first join.
+Match original character and Level1 remain available for both games.
+Existing settings, saved campaign bindings, saves and unrelated plugins are
+preserved. Upgrades therefore retain previous settings rather than imposing
+the fresh defaults. Choose Riou's weapon level +/-3 in the updated launcher's
+S2 joining-weapon list for new campaigns if an older setting is retained.
+Existing campaigns keep their saved policy and earned sharpening.
+Not selecting ATB also preserves any existing ATB files.
+
+SETTINGS AND SAVES
+Close the game before applying settings. S1 and S2 seeds, rosters and starts
+are separate. Seed, roster, quick-start and joining-weapon choices apply to
+new campaigns. A saved campaign retains its own mapping and weapon policy.
+Do not delete its configuration sidecars to force new settings onto it.
+Keep Save and BepInEx/config together when backing up or sharing a campaign.
+
+OPTIONAL S1 CHESTS
+In Treasure, enable both the global chest allowance and the option for new
+campaigns/saves without a policy. A save with an existing disabled policy
+needs its chest policy reset through the selected-save manager, then a load.
+The manager keeps a backup. Acquired items and opened chest flags stay put.
+Disabling the global allowance pauses the saved shuffle without deleting it.
+
+OPTIONAL S1 ATB
+Select "Experimental S1 ATB (installed disabled)" during setup. In the
+launcher's Battle & ATB tab, turn off "Enable shuffled-character Unite
+attacks" for S1 before enabling ATB preview, then apply
+and relaunch. The two previews cannot run together. ATB uses native command
+menus, targeting and SPD bars. To return to standard battles, turn ATB off;
+you may then re-enable shuffled Unites. S2 has no ATB implementation.
+
+SUPPORT AND RESTORE
+Setup prints a transaction backup path under <game>/SRR-Backups/FullPreview-*.
+Keep that path. The Start Menu support shortcut opens StarsOfDestiny Setup in
+the game directory. Read Troubleshooting.txt there, or run Restore.cmd to
+undo one installation transaction while the game and launcher are closed.
+Restore does not rewind gameplay or undo later changes to settings.
+License notices and complete extracted upstream sources are bundled inside
+the installer and installed in <game>/StarsOfDestiny Setup/Licenses, with
+sources under Source. The outer download omits duplicate support files.
+
+PREVIEW STATUS
+This package is for testing. Representative Unite attacks, shuffled parties,
+save/load transitions and the F6 presentation have been tested in-game; every
+campaign, Unite recipe and scripted encounter has not been played through.
+S1 chest shuffle and optional ATB remain experimental. The website has not
+been published or changed by this package. See the companion Verification.json
+in the download ZIP for the package checks and their limits.
+Riou-based joining weapons have managed regression coverage; native first-join
+playtesting of this new option is still pending.

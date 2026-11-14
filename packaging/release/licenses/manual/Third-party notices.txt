@@ -1,0 +1,31 @@
+THIRD-PARTY SOFTWARE IN STARS OF DESTINY 0.14.3 MOD-ONLY PACKAGE
+
+Suikoden Fix 1.5.2b by d3xMachina
+The unchanged Suikoden_Fix.dll is included under its MIT license.
+See Suikoden-Fix-LICENSE.txt.
+https://github.com/d3xMachina/Suikoden-Fix/releases/tag/v1.5.2b
+
+Microsoft .NET 10.0.14
+The self-contained Windows launcher includes its own runtime. Its original
+notices remain alongside it in StarsOfDestiny Launcher:
+  dotnet10-Core-LICENSE.txt
+  dotnet10-Core-THIRD-PARTY-NOTICES.txt
+  dotnet10-WindowsDesktop-LICENSE.txt
+Keep the complete launcher folder together.
+
+EXTERNAL DEPENDENCY: BEPINEX
+BepInEx is required separately and is not redistributed in this ZIP.
+The loader's core libraries, Dobby, Unity Doorstop files, root dotnet runtime,
+and corresponding loader source bundles are not part of this distribution.
+The BepInEx folder here contains Stars of Destiny/Fix plugins, mod settings
+and the optional dormant ATB plugin, rather than a BepInEx installation.
+
+Tested prerequisite: BepInEx 6.0.0-be.697, commit 5362580,
+Unity IL2CPP Windows x64. Obtain it from the official distribution and keep
+its supplied components/notices together. See REQUIREMENTS.txt for the exact
+download and installation order.
+https://builds.bepinex.dev/projects/bepinex_be
+https://docs.bepinex.dev/master/articles/user_guide/installation/unity_il2cpp.html
+
+Stars of Destiny and its launcher remain separate project assemblies.
+No setup executable or NSIS components are included in this package.

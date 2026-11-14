@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>SuikodenRandomizer.Suikoden2.Core</AssemblyName>
+    <RootNamespace>SuikodenRandomizer.Core.Suikoden2</RootNamespace>
+    <Version>0.9.0</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../SuikodenRandomizer.Core/Suikoden2/*.cs" Link="Suikoden2/%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

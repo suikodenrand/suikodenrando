@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net6.0</TargetFramework><AssemblyName>NpcSprites.RealInteropContract</AssemblyName></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../RuntimeSupport.cs" Link="RuntimeSupport.cs" />
+    <Compile Include="../../../src/SuikodenRandomizer.Suikoden2Plugin/Gsd2NpcSprites.cs" Link="Production/Gsd2NpcSprites.cs" />
+    <Compile Include="../../../src/SuikodenRandomizer.Suikoden2Plugin/Gsd2NpcDirectionAdapters.cs" Link="Production/Gsd2NpcDirectionAdapters.cs" />
+    <Compile Include="../../../src/SuikodenRandomizer.Suikoden2Plugin/Gsd2NpcSpriteAliases.cs" Link="Production/Gsd2NpcSpriteAliases.cs" />
+    <Reference Include="0Harmony"><HintPath>$(BepInExPath)/core/0Harmony.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2CppInterop.Runtime"><HintPath>$(BepInExPath)/core/Il2CppInterop.Runtime.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="$(BepInExPath)/interop/*.dll" Exclude="$(BepInExPath)/interop/GSD1.dll;$(BepInExPath)/interop/GSD2.dll"><Private>false</Private></Reference>
+    <Reference Include="GSD2"><HintPath>$(BepInExPath)/interop/GSD2.dll</HintPath><Private>false</Private><Aliases>GSD2</Aliases></Reference>
+  </ItemGroup>
+  <Target Name="RequireGameReferences" BeforeTargets="ResolveReferences"><Error Condition="!Exists('$(BepInExPath)/interop/GSD2.dll')" Text="Pass BepInExPath for read-only compilation against generated game interop." /></Target>
+</Project>

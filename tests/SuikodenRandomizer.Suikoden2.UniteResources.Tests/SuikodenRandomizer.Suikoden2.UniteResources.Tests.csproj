@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="FakeNative/**/*.cs" />
+    <ProjectReference Include="FakeNative/FakeNative.csproj" Aliases="global,GSD2" />
+    <Compile Include="../../src/SuikodenRandomizer.Suikoden2Plugin/Gsd2Presentation.cs" Link="Production/Gsd2Presentation.cs" />
+  </ItemGroup>
+</Project>

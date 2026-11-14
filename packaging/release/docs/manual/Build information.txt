@@ -1,0 +1,52 @@
+Stars of Destiny 0.14.3 - Mod-only Manual Windows Preview
+Windows x64 / Steam Suikoden I & II HD Remaster
+
+BUNDLED
+Combined randomizer 0.14.3
+Launcher 1.0.3 with private Windows Desktop .NET 10.0.14 runtime
+Optional Suikoden I ATB Preview 0.10.1, dormant outside active plugins
+Suikoden Fix upstream release 1.5.2b
+Fresh mod configuration files and manual instructions
+
+REQUIRED SEPARATELY
+BepInEx 6.0.0-be.697+5362580, Unity IL2CPP Windows x64
+Obtain the exact upstream download and installation guide in REQUIREMENTS.txt.
+The external archive supplies BepInEx/core, its private .NET 6.0.7 loader
+runtime, winhttp.dll and Doorstop files. They are not bundled in this ZIP.
+The launcher's separate private .NET 10 runtime remains included; a separate
+system .NET installation, compiler or SDK is not required.
+
+Supported GameAssembly.dll SHA-256:
+e093f175eaf3734d293ca0a236c652dd7fcc72ea5fa10d7b21103edf12f11c3a
+
+This mod ZIP does not enforce the supported game hash or check conflicts.
+It is laid out for direct extraction into the game folder AFTER installing
+the required external BepInEx package. Existing modded installations need
+MANUAL UPGRADE.txt before copying. First BepInEx startup downloads Unity
+reference libraries and generates interop, so it still needs internet access.
+Proprietary game files, personal saves, generated interop/cache files and
+personal launcher preferences are not included.
+
+Fresh defaults: Shuffle, normal opening, English dialogue replacement ON,
+shuffled Unites ON for both games, chests OFF, optional ATB OFF, F6 Hidden.
+S1 joining weapons use TirVariance; S2 joining weapons use RiouVariance.
+Both use the protagonist's current weapon level with seeded -3 to +3
+variance at first join, including an exact match. MatchRole and Level1
+remain available. Existing campaigns retain their policy and sharpening;
+native Riou-policy first-join playtesting is pending.
+
+The optional ATB DLL is dormant at
+BepInEx/SuikodenRandomizer.S1BattlePreview.dll. The launcher can activate the
+reviewed DLL into plugins. Activation alone leaves ATB disabled. Disable S1
+shuffled Unites before enabling ATB. S2 does not implement ATB.
+
+There is no setup executable, automatic backup, transaction recovery helper
+or Start Menu shortcut. Manual recovery uses backups made before copying,
+plus this mod package's file list. Keep previous installer recovery files
+and transactions when upgrading an earlier installation.
+
+Redistributed-component notices are in StarsOfDestiny Manual/Licenses and
+alongside the launcher's .NET 10 runtime. The unbundled BepInEx package has
+its own publisher-provided notices and source information. See this mod's
+manifest and verification report for hashes, checks and limits.
+The website remains unchanged. Nexus acceptance has not been established.

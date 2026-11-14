@@ -1,0 +1,896 @@
+[
+  {
+    "index": 1,
+    "name": 67892,
+    "help": 1261,
+    "type": 3,
+    "player_kazu": 2,
+    "func_no": 1,
+    "player_id": [
+      6,
+      2
+    ],
+    "opd_nums": null,
+    "animationFamily": 1,
+    "englishName": "Guardian Attack",
+    "rows": [
+      [
+        9
+      ],
+      [
+        9,
+        15
+      ]
+    ]
+  },
+  {
+    "index": 2,
+    "name": 67893,
+    "help": 1262,
+    "type": 3,
+    "player_kazu": 2,
+    "func_no": 2,
+    "player_id": [
+      32,
+      38
+    ],
+    "opd_nums": null,
+    "animationFamily": 2,
+    "englishName": "Fisherman Attack",
+    "rows": [
+      [
+        9
+      ],
+      [
+        9,
+        15
+      ]
+    ]
+  },
+  {
+    "index": 3,
+    "name": 67894,
+    "help": 1264,
+    "type": 1,
+    "player_kazu": 2,
+    "func_no": 3,
+    "player_id": [
+      4,
+      9
+    ],
+    "opd_nums": null,
+    "animationFamily": 3,
+    "englishName": "Wild Arrow Attack",
+    "rows": [
+      [
+        10,
+        15
+      ],
+      [
+        10
+      ]
+    ]
+  },
+  {
+    "index": 4,
+    "name": 67895,
+    "help": 1276,
+    "type": 3,
+    "player_kazu": 3,
+    "func_no": 4,
+    "player_id": [
+      4,
+      75,
+      9
+    ],
+    "opd_nums": null,
+    "animationFamily": 4,
+    "englishName": "Elf Attack",
+    "rows": [
+      [
+        11,
+        15
+      ],
+      [
+        11
+      ],
+      [
+        11
+      ]
+    ]
+  },
+  {
+    "index": 5,
+    "name": 67896,
+    "help": 1275,
+    "type": 3,
+    "player_kazu": 3,
+    "func_no": 5,
+    "player_id": [
+      11,
+      43,
+      41
+    ],
+    "opd_nums": null,
+    "animationFamily": 5,
+    "englishName": "Pirate Attack",
+    "rows": [
+      [
+        9,
+        15
+      ],
+      [
+        9
+      ],
+      [
+        9
+      ]
+    ]
+  },
+  {
+    "index": 6,
+    "name": 67897,
+    "help": 1285,
+    "type": 3,
+    "player_kazu": 4,
+    "func_no": 6,
+    "player_id": [
+      70,
+      72,
+      69,
+      71
+    ],
+    "opd_nums": null,
+    "animationFamily": 6,
+    "englishName": "Blacksmith Attack",
+    "rows": [
+      [
+        9,
+        15
+      ],
+      [
+        9,
+        15
+      ],
+      [
+        9,
+        15
+      ],
+      [
+        9,
+        15
+      ]
+    ]
+  },
+  {
+    "index": 7,
+    "name": 67898,
+    "help": 1270,
+    "type": 3,
+    "player_kazu": 2,
+    "func_no": 7,
+    "player_id": [
+      15,
+      21
+    ],
+    "opd_nums": null,
+    "animationFamily": 7,
+    "englishName": "Opposites Attrack",
+    "rows": [
+      [
+        10,
+        11,
+        15
+      ],
+      [
+        9
+      ]
+    ]
+  },
+  {
+    "index": 8,
+    "name": 67899,
+    "help": 1278,
+    "type": 3,
+    "player_kazu": 3,
+    "func_no": 16,
+    "player_id": [
+      17,
+      48,
+      49
+    ],
+    "opd_nums": null,
+    "animationFamily": 16,
+    "englishName": "Fancy Lad Attack",
+    "rows": [
+      [
+        9,
+        15
+      ],
+      [
+        9,
+        15
+      ],
+      [
+        9,
+        15
+      ]
+    ]
+  },
+  {
+    "index": 9,
+    "name": 67900,
+    "help": 1281,
+    "type": 3,
+    "player_kazu": 3,
+    "func_no": 22,
+    "player_id": [
+      3,
+      33,
+      23
+    ],
+    "opd_nums": null,
+    "animationFamily": 22,
+    "englishName": "Pretty Girl Attack",
+    "rows": [
+      [],
+      [
+        11,
+        12
+      ],
+      [
+        16
+      ]
+    ]
+  },
+  {
+    "index": 10,
+    "name": 67901,
+    "help": 1280,
+    "type": 1,
+    "player_kazu": 3,
+    "func_no": 17,
+    "player_id": [
+      1,
+      0,
+      36
+    ],
+    "opd_nums": [
+      1,
+      3,
+      7
+    ],
+    "animationFamily": 17,
+    "englishName": "Beauty Attack",
+    "rows": [
+      [
+        10,
+        15
+      ],
+      [
+        10
+      ],
+      [
+        10
+      ]
+    ]
+  },
+  {
+    "index": 11,
+    "name": 67902,
+    "help": 1284,
+    "type": 3,
+    "player_kazu": 3,
+    "func_no": 15,
+    "player_id": [
+      7,
+      18,
+      91
+    ],
+    "opd_nums": null,
+    "animationFamily": 15,
+    "englishName": "Flash Attack",
+    "rows": [
+      [
+        9
+      ],
+      [
+        9
+      ],
+      [
+        9,
+        15
+      ]
+    ]
+  },
+  {
+    "index": 12,
+    "name": 67903,
+    "help": 1268,
+    "type": 3,
+    "player_kazu": 2,
+    "func_no": 12,
+    "player_id": [
+      14,
+      80
+    ],
+    "opd_nums": null,
+    "animationFamily": 1,
+    "englishName": "Kobold Attack",
+    "rows": [
+      [
+        9
+      ],
+      [
+        9,
+        15
+      ]
+    ]
+  },
+  {
+    "index": 13,
+    "name": 67904,
+    "help": 1269,
+    "type": 3,
+    "player_kazu": 2,
+    "func_no": 11,
+    "player_id": [
+      19,
+      29
+    ],
+    "opd_nums": null,
+    "animationFamily": 1,
+    "englishName": "Dragon Knight Attack",
+    "rows": [
+      [
+        9
+      ],
+      [
+        9,
+        15
+      ]
+    ]
+  },
+  {
+    "index": 14,
+    "name": 67905,
+    "help": 1271,
+    "type": 3,
+    "player_kazu": 2,
+    "func_no": 13,
+    "player_id": [
+      20,
+      67
+    ],
+    "opd_nums": null,
+    "animationFamily": 13,
+    "englishName": "Stuck With You Attack",
+    "rows": [
+      [
+        9,
+        15
+      ],
+      [
+        9,
+        15
+      ]
+    ]
+  },
+  {
+    "index": 15,
+    "name": 67906,
+    "help": 1272,
+    "type": 1,
+    "player_kazu": 2,
+    "func_no": 10,
+    "player_id": [
+      76,
+      39
+    ],
+    "opd_nums": null,
+    "animationFamily": 10,
+    "englishName": "Trickster Attack",
+    "rows": [
+      [
+        11
+      ],
+      [
+        11,
+        12
+      ]
+    ]
+  },
+  {
+    "index": 16,
+    "name": 67907,
+    "help": 1265,
+    "type": 3,
+    "player_kazu": 2,
+    "func_no": 8,
+    "player_id": [
+      33,
+      63
+    ],
+    "opd_nums": [
+      1
+    ],
+    "animationFamily": 8,
+    "englishName": "Warrior Attack",
+    "rows": [
+      [
+        10,
+        15
+      ],
+      [
+        9
+      ]
+    ]
+  },
+  {
+    "index": 17,
+    "name": 67908,
+    "help": 1266,
+    "type": 3,
+    "player_kazu": 2,
+    "func_no": 9,
+    "player_id": [
+      0,
+      30
+    ],
+    "opd_nums": [
+      1
+    ],
+    "animationFamily": 9,
+    "englishName": "Couple Attack",
+    "rows": [
+      [
+        11,
+        16
+      ],
+      [
+        9,
+        10
+      ]
+    ]
+  },
+  {
+    "index": 18,
+    "name": 67909,
+    "help": 1267,
+    "type": 3,
+    "player_kazu": 2,
+    "func_no": 18,
+    "player_id": [
+      12,
+      31
+    ],
+    "opd_nums": null,
+    "animationFamily": 18,
+    "englishName": "Bandit Attack",
+    "rows": [
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        15
+      ]
+    ]
+  },
+  {
+    "index": 19,
+    "name": 67910,
+    "help": 1273,
+    "type": 3,
+    "player_kazu": 2,
+    "func_no": 14,
+    "player_id": [
+      20,
+      95
+    ],
+    "opd_nums": null,
+    "animationFamily": 1,
+    "englishName": "Carpenter Attack",
+    "rows": [
+      [
+        9
+      ],
+      [
+        9,
+        15
+      ]
+    ]
+  },
+  {
+    "index": 20,
+    "name": 67894,
+    "help": 1264,
+    "type": 1,
+    "player_kazu": 2,
+    "func_no": 3,
+    "player_id": [
+      4,
+      51
+    ],
+    "opd_nums": null,
+    "animationFamily": 3,
+    "englishName": "Wild Arrow Attack",
+    "rows": [
+      [
+        10,
+        15
+      ],
+      [
+        10
+      ]
+    ]
+  },
+  {
+    "index": 21,
+    "name": 67894,
+    "help": 1264,
+    "type": 1,
+    "player_kazu": 2,
+    "func_no": 3,
+    "player_id": [
+      4,
+      75
+    ],
+    "opd_nums": null,
+    "animationFamily": 3,
+    "englishName": "Wild Arrow Attack",
+    "rows": [
+      [
+        10,
+        15
+      ],
+      [
+        10
+      ]
+    ]
+  },
+  {
+    "index": 22,
+    "name": 67897,
+    "help": 1285,
+    "type": 3,
+    "player_kazu": 4,
+    "func_no": 6,
+    "player_id": [
+      70,
+      72,
+      69,
+      5
+    ],
+    "opd_nums": null,
+    "animationFamily": 6,
+    "englishName": "Blacksmith Attack",
+    "rows": [
+      [
+        9,
+        15
+      ],
+      [
+        9,
+        15
+      ],
+      [
+        9,
+        15
+      ],
+      [
+        9,
+        15
+      ]
+    ]
+  },
+  {
+    "index": 23,
+    "name": 67897,
+    "help": 1285,
+    "type": 3,
+    "player_kazu": 4,
+    "func_no": 6,
+    "player_id": [
+      5,
+      72,
+      69,
+      71
+    ],
+    "opd_nums": null,
+    "animationFamily": 6,
+    "englishName": "Blacksmith Attack",
+    "rows": [
+      [
+        9,
+        15
+      ],
+      [
+        9,
+        15
+      ],
+      [
+        9,
+        15
+      ],
+      [
+        9,
+        15
+      ]
+    ]
+  },
+  {
+    "index": 24,
+    "name": 67897,
+    "help": 1285,
+    "type": 3,
+    "player_kazu": 4,
+    "func_no": 6,
+    "player_id": [
+      70,
+      5,
+      69,
+      71
+    ],
+    "opd_nums": null,
+    "animationFamily": 6,
+    "englishName": "Blacksmith Attack",
+    "rows": [
+      [
+        9,
+        15
+      ],
+      [
+        9,
+        15
+      ],
+      [
+        9,
+        15
+      ],
+      [
+        9,
+        15
+      ]
+    ]
+  },
+  {
+    "index": 25,
+    "name": 67897,
+    "help": 1285,
+    "type": 3,
+    "player_kazu": 4,
+    "func_no": 6,
+    "player_id": [
+      70,
+      72,
+      5,
+      71
+    ],
+    "opd_nums": null,
+    "animationFamily": 6,
+    "englishName": "Blacksmith Attack",
+    "rows": [
+      [
+        9,
+        15
+      ],
+      [
+        9,
+        15
+      ],
+      [
+        9,
+        15
+      ],
+      [
+        9,
+        15
+      ]
+    ]
+  },
+  {
+    "index": 26,
+    "name": 67901,
+    "help": 1280,
+    "type": 1,
+    "player_kazu": 3,
+    "func_no": 17,
+    "player_id": [
+      1,
+      0,
+      10
+    ],
+    "opd_nums": [
+      1,
+      3,
+      7
+    ],
+    "animationFamily": 17,
+    "englishName": "Beauty Attack",
+    "rows": [
+      [
+        10,
+        15
+      ],
+      [
+        10
+      ],
+      [
+        10
+      ]
+    ]
+  },
+  {
+    "index": 27,
+    "name": 67911,
+    "help": 1282,
+    "type": 3,
+    "player_kazu": 3,
+    "func_no": 19,
+    "player_id": [
+      14,
+      65,
+      80
+    ],
+    "opd_nums": null,
+    "animationFamily": 19,
+    "englishName": "Kobolds & Pal Attack",
+    "rows": [
+      [
+        9,
+        15
+      ],
+      [
+        9,
+        15
+      ],
+      [
+        9
+      ]
+    ]
+  },
+  {
+    "index": 28,
+    "name": 67912,
+    "help": 1263,
+    "type": 3,
+    "player_kazu": 2,
+    "func_no": 20,
+    "player_id": [
+      6,
+      13
+    ],
+    "opd_nums": null,
+    "animationFamily": 20,
+    "englishName": "Beat 'Em Up Attack",
+    "rows": [
+      [
+        10,
+        15
+      ],
+      [
+        9,
+        10,
+        11,
+        12
+      ]
+    ]
+  },
+  {
+    "index": 29,
+    "name": 67913,
+    "help": 1277,
+    "type": 3,
+    "player_kazu": 3,
+    "func_no": 21,
+    "player_id": [
+      23,
+      55,
+      22
+    ],
+    "opd_nums": null,
+    "animationFamily": 21,
+    "englishName": "Ninja Attack",
+    "rows": [
+      [
+        15,
+        16
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        10,
+        11
+      ]
+    ]
+  },
+  {
+    "index": 30,
+    "name": 67914,
+    "help": 1283,
+    "type": 1,
+    "player_kazu": 3,
+    "func_no": 23,
+    "player_id": [
+      66,
+      6,
+      52
+    ],
+    "opd_nums": null,
+    "animationFamily": 23,
+    "englishName": "Martial Arts Attack",
+    "rows": [
+      [
+        9,
+        10,
+        11,
+        12
+      ],
+      [
+        11
+      ],
+      [
+        9
+      ]
+    ]
+  },
+  {
+    "index": 31,
+    "name": 67915,
+    "help": 1279,
+    "type": 3,
+    "player_kazu": 3,
+    "func_no": 24,
+    "player_id": [
+      30,
+      0,
+      62
+    ],
+    "opd_nums": null,
+    "animationFamily": 24,
+    "englishName": "Lepant Family Attack",
+    "rows": [
+      [
+        11,
+        15
+      ],
+      [
+        12,
+        15
+      ],
+      [
+        15
+      ]
+    ]
+  },
+  {
+    "index": 32,
+    "name": 67916,
+    "help": 1274,
+    "type": 1,
+    "player_kazu": 2,
+    "func_no": 25,
+    "player_id": [
+      8,
+      91
+    ],
+    "opd_nums": null,
+    "animationFamily": 25,
+    "englishName": "Master & Pupil Attack",
+    "rows": [
+      [
+        10,
+        11,
+        15
+      ],
+      [
+        10,
+        11
+      ]
+    ]
+  }
+]

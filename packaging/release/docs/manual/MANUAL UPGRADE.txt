@@ -1,0 +1,88 @@
+STARS OF DESTINY 0.14.3 - MOD-ONLY MANUAL UPGRADE
+
+Read this before copying into any game folder with existing mods or saves.
+This ZIP does not run conflict checks, back up replaced files or merge CFGs.
+BepInEx is an external prerequisite; see REQUIREMENTS.txt at the game root.
+
+1. Close the game and launcher. Keep a paired copy of Save and BepInEx/config
+   outside the game directory. Back up the current randomizer, launcher,
+   other mod files that will be replaced, and your current loader/runtime
+   if you plan to change it. Record files newly added by this upgrade.
+2. Extract this mod ZIP into a temporary folder outside the game directory.
+   Review the package's file list. Copy only individual packaged CFG files
+   that do not already exist into the game's BepInEx/config; keep every
+   existing CFG and campaign sidecar. Then remove BepInEx/config from the
+   EXTRACTED NEW MOD PACKAGE in that temporary folder before the bulk copy.
+   Do not remove the game's config folder. This lets you replace current
+   mod binaries without overwriting old configs. Apply desired new options
+   through the launcher after the upgrade.
+3. Check the external prerequisite. If matching BepInEx 6 IL2CPP Windows x64
+   build 697 is already working, keep it. This mod ZIP does not replace its
+   core, loader runtime or Doorstop files. If BepInEx is absent, install the
+   external package from REQUIREMENTS.txt first. If an older/different
+   loader is present, keep a complete backup and establish compatibility
+   before changing it. Do not mix different BepInEx/core, dotnet runtimes
+   or winhttp.dll versions. Seek help if another mod needs a different loader.
+4. Keep exactly the four current combined randomizer DLLs in
+   BepInEx/plugins/SuikodenRandomizer:
+     SuikodenRandomizer.dll
+     SuikodenRandomizer.Core.dll
+     SuikodenRandomizer.Suikoden2.Core.dll
+     SuikodenRandomizer.Shared.dll
+   Back up and remove the old standalone file, if present:
+   BepInEx/plugins/SuikodenRandomizer/SuikodenRandomizer.Suikoden2.dll
+   Back up and move other duplicate or renamed randomizer copies outside
+   the entire BepInEx/plugins tree. Renaming a folder inside plugins does
+   not disable its DLLs. Keep only one Suikoden_Fix.dll and one active ATB DLL.
+   An old Fix build containing an embedded randomizer also conflicts. Keep
+   unrelated mods; seek help if you cannot identify a possible conflict.
+5. Copy the current mod plugins, complete launcher and other files from
+   the extracted MOD PACKAGE into the game folder. Replace package-owned
+   files as intended, while keeping existing BepInEx/config files from step 2.
+   Do not copy just the launcher EXE; replace its folder as a complete set.
+   This mod copy must not remove or overwrite the separately installed
+   BepInEx/core, root dotnet, winhttp.dll or Doorstop configuration/version.
+6. Existing ATB installations are not removed or disabled by this manual
+   package. Keep your existing ATB config. If ATB was enabled, leave S1
+   shuffled Unites off. A fresh optional ATB DLL is dormant directly under
+   BepInEx, outside active plugins. Use Activate ATB preview in the launcher
+   only if needed, after disabling S1 shuffled Unites.
+7. Open the updated launcher with the game closed and review settings before
+   launch. New-campaign choices do not rewrite an existing campaign's seed,
+   mapping or weapon policy. Existing settings may retain their old values;
+   choose Riou's weapon level +/-3 for new S2 campaigns if desired.
+
+PREVIOUS FULL-PACKAGE OR INSTALLER USERS
+Keep your working matching BepInEx files. This ZIP does not remove BepInEx
+from an existing game folder; it only stops redistributing those files.
+Do not delete dobby.dll or .doorstop_version from your installed loader to
+imitate the mod ZIP's contents: the external prerequisite retains its own files.
+Keep existing SRR-Backups and StarsOfDestiny Setup recovery files. A manual
+copy does not create a FullPreview transaction and is not covered by an old
+Restore.cmd transaction. To undo the manual upgrade, restore your manual
+backup first before considering an earlier installer transaction.
+
+UNCHANGED SAVE RULES
+Keep Save and BepInEx/config paired when restoring a campaign. Never delete
+binding sidecars to force a new seed or weapon policy onto an old save.
+Starting New Game may replace the autosave. Manual mod rollback does not
+rewind gameplay progress or undo settings changed since your backup.
+
+MANUAL UNDO AND REMOVAL
+Restore exact overwritten mod files from your backup. Use your added-file
+record and this MOD PACKAGE's file list to remove newly introduced mod files.
+Back up configurations or other files changed since installation before
+removing or replacing them. If an original file existed before copying this
+ZIP, restore its backup instead of simply deleting it.
+
+This package's undo does not uninstall external BepInEx. Leave its core,
+root dotnet runtime, winhttp.dll, .doorstop_version and doorstop_config.ini
+in place. Other mods may require them. Do not delete the entire BepInEx
+folder; it can contain shared loader files, other mods and campaign data.
+If you separately changed BepInEx itself, restore that loader/runtime only
+from its own complete matching backup. Ask for help if ownership is unclear.
+
+The optional ATB DLL copied into BepInEx/plugins is also mod-package-owned,
+although its original package location is directly under BepInEx, outside
+plugins. Disable ATB and close the game before removing that active DLL.
+Existing ATB files from an earlier installation need their matching backup.

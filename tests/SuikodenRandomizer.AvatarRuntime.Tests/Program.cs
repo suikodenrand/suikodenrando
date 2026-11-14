@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-internal static class Program
+internal static partial class Program
 {
  private static int _passed;
  private static void Check(bool condition,string message){if(!condition)throw new Exception(message);}
@@ -252,6 +252,92 @@ internal static class Program
     Check(w.Game.player_base.Reads<=330&&w.Cache.Lookups==75,"Active rebind repeated per-role base searches");
     Check(w.Base(1).exp==912&&w.Base(1).hp==7&&AvatarNativeData.CopyCalls==75,"Rebind reset progression");
    });
+   Case("Fixed roster projects Ted only on activation and preserves the fighter across a role change",()=>{
+    var w=new World(false);
+    w.StageOpening();
+    AvatarPlugin.ConfiguredMode="FixedChosen";
+    AvatarPlugin.ConfiguredCompanions="11,12,13,14,15";
+    var ted=w.Base(108);
+    string tedStart=AvatarNativeData.Fingerprint(ted);
+    string tirStart=AvatarNativeData.Fingerprint(w.Base(8));
+    w.Runtime.BeginNewGame();
+    Check(w.Runtime.EnsureProxy("Tir only",true),"Fixed roster could not initialize with only Tir: "+w.Runtime.FaultReason);
+    Check(w.Runtime.MapDisplayId(108)==108&&w.Game.player_data[4]?.Pointer==w.Originals[108].Pointer,
+     "Inactive Ted consumed a fighter");
+    w.Game.party_data.narabi[1]=4;
+    w.Game.party_data.player_kazu=2;
+    w.Ready();
+    Check(w.Runtime.MapDisplayId(108)==11&&w.Game.player_data[4]?.chara_id==108&&w.Game.player_data[4]?.player_base?.Pointer==ted.Pointer,
+     "Ted lost his story identity or missed the chosen fighter");
+    ted.exp=727;ted.hp=17;ted.Equipment=438;ted.Rune=72;ted.Items=new[]{41,42};
+    w.Game.party_data.narabi[1]=2;
+    w.Ready();
+    var pahn=w.Base(6);
+    Check(w.Runtime.MapDisplayId(6)==11&&w.Runtime.MapDisplayId(108)==108,"Released fighter did not follow the new role");
+    Check(pahn.exp==727&&pahn.hp==17&&pahn.Equipment==438&&pahn.Rune==72&&pahn.Items.SequenceEqual(new[]{41,42}),
+     "Fighter progression did not travel intact");
+    Check(AvatarNativeData.Fingerprint(ted)==tedStart&&AvatarNativeData.Fingerprint(w.Base(8))==tirStart,
+     "Released Ted or protected Tir's native base changed");
+    Check(w.Game.player_data[4]?.Pointer==w.Originals[108].Pointer,"Inactive resident retained its previous fighter proxy");
+    w.Runtime.VerifyFinalParty("fixed role transfer");
+   });
+   Case("Fixed roster save resumes the same fighter and mutable progress after config changes",()=>{
+    var w=new World(false);
+    w.StageOpening();
+    AvatarPlugin.ConfiguredMode="FixedChosen";
+    AvatarPlugin.ConfiguredCompanions="11,12,13,14,15";
+    AvatarPlugin.ConfiguredSeed="fixed-display-seed";
+    w.Runtime.BeginNewGame();
+    Check(w.Runtime.FixedRosterIdentity is { } fresh && fresh.Mode=="FixedChosen"&&fresh.Seed=="fixed-display-seed",
+     "Fresh fixed roster status omitted its mode or seed");
+    w.Game.party_data.narabi[1]=4;
+    w.Game.party_data.player_kazu=2;
+    w.Ready();
+    var ted=w.Base(108);
+    ted.exp=975;ted.hp=23;ted.Equipment=888;
+    var save=new GSD1.SaveDataManager.SaveData{Identity=new string('e',64)};
+    w.Runtime.WriteCampaignBinding(save);
+    int copies=AvatarNativeData.CopyCalls;
+    AvatarPlugin.ConfiguredMode="FixedRandom";
+    AvatarPlugin.ConfiguredSeed="other future campaign";
+    w.Runtime.PrepareLoad(save);
+    Check(!w.Runtime.IsAdmitted,"Projection admitted before native save reconstruction");
+    w.Game.player_data[4]=w.Originals[108];
+    w.Runtime.CompleteFixedLoad();
+    w.Ready();
+    Check(w.Runtime.FixedRosterIdentity is { } restored && restored.Mode=="Fixed Roster"&&restored.Seed=="fixed-display-seed",
+     "Restored fixed roster status inferred a subtype or used future settings");
+    Check(w.Runtime.MapDisplayId(108)==11&&ted.exp==975&&ted.hp==23&&ted.Equipment==888
+     &&AvatarNativeData.CopyCalls==copies,"Fixed roster reload rerolled or reset the fighter");
+   });
+   Case("Fixed roster restores live bases and pointers when a transfer fails",()=>{
+    var w=new World(false);
+    w.StageOpening();
+    AvatarPlugin.ConfiguredMode="FixedChosen";
+    AvatarPlugin.ConfiguredCompanions="11,12,13,14,15";
+    w.Runtime.BeginNewGame();
+    w.Game.party_data.narabi[1]=4;
+    w.Game.party_data.player_kazu=2;
+    w.Ready();
+    w.Base(108).exp=811;
+    string ted=AvatarNativeData.Fingerprint(w.Base(108));
+    string pahn=AvatarNativeData.Fingerprint(w.Base(6));
+    var tedProxy=w.Game.player_data[4];
+    w.Game.party_data.narabi[1]=2;
+    string layout=w.Runtime.CanonicalLayoutFingerprint();
+    AvatarNativeData.FailCopyRoleOnce=6;
+    Check(!w.Runtime.EnsureProxy("transfer failure",true)&&w.Runtime.FaultReason is not null,
+     "Injected transfer error did not stop the campaign");
+    Check(AvatarNativeData.Fingerprint(w.Base(108))==ted&&AvatarNativeData.Fingerprint(w.Base(6))==pahn
+     &&w.Game.player_data[4]?.Pointer==tedProxy?.Pointer&&w.Cache[108]?.Pointer==tedProxy?.Pointer
+     &&w.Runtime.CanonicalLayoutFingerprint()==layout,"Failed transfer partially changed bases, pointers, or layout");
+   });
+   RunViktorStartChecks();
+   RunTirShuffleChecks();
+   RunExecutionOwnershipChecks();
+   RunTreasureLifecycleChecks();
+   RunJoiningWeaponChecks();
+   RunTirVarianceWeaponChecks();
    Console.WriteLine(_passed+"/"+_passed+" production-runtime managed adapter checks passed.");
    Console.WriteLine("Scope: actual linked AvatarRuntime with managed native test doubles; not full-plugin compilation or native gameplay.");
   }
@@ -268,7 +354,13 @@ internal static class Program
   internal World(bool admit=true)
   {
    Runtime=new AvatarRuntime(()=>Now);
-   AvatarNativeData.CopyCalls=0;AvatarNativeData.FailCopyRoleOnce=null;AvatarBindingStore.Bindings.Clear();AvatarPlugin.ConfiguredSeed="agilen-080";
+   AvatarNativeData.CopyCalls=0;AvatarNativeData.FailCopyRoleOnce=null;AvatarBindingStore.Bindings.Clear();FixedRosterBindingStore.Bindings.Clear();
+   AvatarPlugin.ConfiguredSeed="agilen-080";AvatarPlugin.ConfiguredMode="Shuffle";AvatarPlugin.ConfiguredCompanions=string.Empty;
+   AvatarPlugin.ConfiguredIncludeTir=false;
+   AvatarPlugin.ConfiguredJoiningWeaponLevel="MatchRole";
+   string joiningBindings=Path.Combine(AvatarRuntime.Folder,"joining-weapon-save-bindings");
+   if(Directory.Exists(joiningBindings))Directory.Delete(joiningBindings,true);
+   AvatarPlugin.ConfiguredTreasureShuffle=false;AvatarPlugin.ConfiguredTreasureEnabled=true;TreasureBindingStore.Bindings.Clear();
    for(int id=0;id<110;id++){
     var b=new GSD1.PLAYER_BASE{chara_no=id,level=(byte)(1+id%50),max_hp=(ushort)(100+id),hp=(ushort)(100+id),exp=(ushort)(id*3),Equipment=1000+id,Rune=2000+id,Items=new[]{3000+id},seicho_type=Enumerable.Repeat((byte)id,7).ToArray()};
     var p=new GSD1.PLAYER_DATA{chara_id=(byte)id,chara_name=0x10000u+(uint)id,player_base=b,seicho_type=Enumerable.Repeat((byte)id,7).ToArray()};

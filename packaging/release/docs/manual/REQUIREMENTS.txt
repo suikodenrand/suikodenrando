@@ -1,0 +1,35 @@
+STARS OF DESTINY 0.14.3 - REQUIRED EXTERNAL DOWNLOAD
+
+BepInEx is REQUIRED and is NOT included in this mod ZIP.
+
+Tested package: BepInEx 6.0.0-be.697+5362580
+Engine/type: Unity IL2CPP
+Operating system/architecture: Windows x64
+Exact archive: BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.697+5362580.zip
+Archive SHA-256:
+616ec7eb06cf11b2a0000e8fcef04d1b12bb58e84a2e0bdac9523234fc193ceb
+Official download:
+https://builds.bepinex.dev/projects/bepinex_be/697/BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.697%2B5362580.zip
+Official installation guide:
+https://docs.bepinex.dev/master/articles/user_guide/installation/unity_il2cpp.html
+
+Extract the external BepInEx archive into the Suikoden game folder FIRST.
+Then extract the Stars of Destiny mod-only ZIP into that same folder.
+Both packages' contents belong beside Suikoden I and II HD Remaster.exe.
+
+Do not use BepInEx 5, a Unity Mono build or x86. Newer bleeding-edge builds
+have not been qualified with this 0.14.3 package; use the tested build above.
+An existing working installation of this matching build can be retained.
+Read StarsOfDestiny Manual/MANUAL UPGRADE.txt before changing an existing
+modded installation or campaign.
+
+The BepInEx folder in the mod ZIP contains our plugins, default configs and
+optional dormant ATB DLL only. It does not supply BepInEx/core, the loader's
+dotnet runtime, winhttp.dll, doorstop_config.ini or .doorstop_version.
+The complete launcher and its private .NET 10 runtime ARE included.
+The first modded game launch still needs internet for Unity reference files.
+
+Suggested website/Nexus requirement entry:
+BepInEx 6 Unity IL2CPP Windows x64 - tested build 697 (5362580). Required;
+download and install separately from the official BepInEx link above before
+copying Stars of Destiny 0.14.3 into the game folder.

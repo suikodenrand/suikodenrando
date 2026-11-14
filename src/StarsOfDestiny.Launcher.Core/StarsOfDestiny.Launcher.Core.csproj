@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>StarsOfDestiny.Launcher.Core</AssemblyName>
+    <RootNamespace>StarsOfDestiny.Launcher.Core</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../SuikodenRandomizer.Core/SuikodenRandomizer.Core.csproj" />
+    <ProjectReference Include="../SuikodenRandomizer.Suikoden2.Core/SuikodenRandomizer.Suikoden2.Core.csproj" />
+  </ItemGroup>
+  <!-- Source builds can pair their locally compiled ATB binary with their
+       launcher without disabling the reviewed-file guard. Official/default
+       builds continue using the original reviewed release hash. -->
+  <ItemGroup Condition="'$(ReviewedAtbSha256)' != ''">
+    <AssemblyMetadata Include="StarsOfDestiny.ReviewedAtbSha256" Value="$(ReviewedAtbSha256)" />
+  </ItemGroup>
+  <Target Name="ValidateReviewedAtbSha256" BeforeTargets="GenerateAssemblyInfo"
+          Condition="'$(ReviewedAtbSha256)' != ''">
+    <Error Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('$(ReviewedAtbSha256)', '\A[0-9A-Fa-f]{64}\z'))"
+           Text="ReviewedAtbSha256 must contain exactly 64 hexadecimal SHA-256 characters." />
+  </Target>
+</Project>

@@ -1,6 +1,7 @@
 extern alias GSD1;
 
 using SuikodenRandomizer.AvatarPlugin;
+using SuikodenRandomizer.Core;
 using SuikodenRandomizer.Core.Avatars;
 using System;
 using System.Collections.Generic;
@@ -121,6 +122,19 @@ internal static class Program
                     Finish(typeof(AvatarNameTextIdPatch), nested.Entered);
                     Finish(typeof(AvatarNamePatch), call.Entered);
                 }
+            }),
+            ("Opt-in Tir gets the assigned face while his story name stays native", () => {
+                var profile = AvatarShuffleProfile.Create("presentation-regression-080", includeTir: true);
+                Runtime = new AvatarRuntime(profile);
+                AvatarRuntime.Current = Runtime;
+                const ushort hero = CombatCatalog.TirId;
+                int donor = profile.GetDonor(hero);
+                Check(donor != hero, "Opt-in fixture requires a different Tir avatar.");
+                var call = NamePrefix(typeof(AvatarNamePatch), hero);
+                Check(call.Entered && call.Id == hero, "Protagonist name lookup lost the native hero ID.");
+                Finish(typeof(AvatarNamePatch), call.Entered);
+                Check(ConvertFace(typeof(AvatarStaticFaceCharacterPatch), hero) == Face(donor),
+                    "Protagonist portrait did not follow the assigned avatar.");
             }),
             ("Negative encoded and out-of-range name inputs are never masked into roles", () => {
                 foreach (int id in new[] { -1, int.MinValue, int.MaxValue, 110, 65537 })

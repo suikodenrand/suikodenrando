@@ -1,0 +1,37 @@
+Stars of Destiny 0.14.3 - Full Windows Preview
+Windows x64 / Steam Suikoden I & II HD Remaster
+
+Combined randomizer 0.14.3
+Launcher 1.0.3 with private Windows Desktop .NET 10.0.14 runtime
+Optional Suikoden I ATB Preview 0.10.1, unchecked and installed disabled
+Suikoden Fix upstream release 1.5.2b
+BepInEx 6.0.0-be.697 IL2CPP Windows x64 with private .NET 6.0.7 loader runtime
+NSIS 3.11 setup
+
+Supported GameAssembly.dll SHA-256:
+e093f175eaf3734d293ca0a236c652dd7fcc72ea5fa10d7b21103edf12f11c3a
+
+This full installer includes the launcher and loader files. No separately
+installed .NET runtime, SDK or compiler is required. First BepInEx startup
+still downloads Unity reference libraries and generates interop; it needs
+internet access. Proprietary game files and personal saves are not included.
+
+Fresh defaults: Shuffle, normal opening, English dialogue replacement ON,
+shuffled Unites ON for both games, chests OFF, optional ATB OFF, F6 Hidden.
+S1 joining weapons use TirVariance; S2 joining weapons use RiouVariance.
+Both use the protagonist's current weapon level with a seeded -3 to +3
+offset at first join, including a possible exact match. Existing campaigns
+keep their policy and earned sharpening; native Riou-policy playtesting is
+pending. MatchRole and Level1 remain available for both games.
+Existing saves, settings and campaign bindings are preserved on upgrade.
+
+See payload-manifest.json for exact file versions/hashes. The companion
+Verification.json in the download ZIP records package checks and native
+playtest limits; it is not installed in the support folder. Third-party
+notices and complete extracted upstream sources are bundled inside the installer
+and installed in <game>/StarsOfDestiny Setup/Licenses (sources under Source).
+The unused Install.cmd wrapper and duplicate support/source copies are omitted.
+Restore.cmd, Restore.ps1 and their required Install.ps1 helper remain installed
+in <game>/StarsOfDestiny Setup for transaction recovery.
+
+The website remains unchanged and this preview is unpublished.

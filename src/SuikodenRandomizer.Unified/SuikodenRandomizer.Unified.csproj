@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>SuikodenRandomizer</AssemblyName>
+    <Version>0.14.3</Version>
+    <RootNamespace>SuikodenRandomizer.Unified</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <BepInExPath Condition="'$(BepInExPath)' == '' and '$(GamePath)' != ''">$(GamePath)/BepInEx</BepInExPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../SuikodenRandomizer.Core/SuikodenRandomizer.Core.csproj" />
+    <ProjectReference Include="../SuikodenRandomizer.Suikoden2.Core/SuikodenRandomizer.Suikoden2.Core.csproj" />
+    <ProjectReference Include="../SuikodenRandomizer.Shared/SuikodenRandomizer.Shared.csproj" />
+    <!-- The standalone bootstraps/UI are deliberately excluded: exactly one host patches and drives both engines. -->
+    <Compile Include="../SuikodenRandomizer.AvatarPlugin/*.cs" Exclude="../SuikodenRandomizer.AvatarPlugin/AvatarPlugin.cs;../SuikodenRandomizer.AvatarPlugin/AvatarOverlay.cs" Link="Engines/Gsd1/%(Filename)%(Extension)" />
+    <Compile Include="../SuikodenRandomizer.Suikoden2Plugin/*.cs" Exclude="../SuikodenRandomizer.Suikoden2Plugin/Gsd2Plugin.cs" Link="Engines/Gsd2/%(Filename)%(Extension)" />
+    <Compile Include="../SuikodenRandomizer.Plugin/Runtime/BuildCompatibility.cs" Link="BuildCompatibility.cs" />
+    <Compile Include="../Shared/AvatarShuffleBindingJson.cs" Link="Serialization/AvatarShuffleBindingJson.cs" />
+    <!-- Embed the tested pure rewriter into the one host: no extra runtime DLL or bootstrap. -->
+    <Compile Include="../SuikodenRandomizer.Dialogue/*.cs" Link="Dialogue/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="DialogueData/gsd1.en.json" LogicalName="StarsOfDestiny.Dialogue.GSD1.en.json" WithCulture="false" />
+    <EmbeddedResource Include="DialogueData/gsd2.en.json" LogicalName="StarsOfDestiny.Dialogue.GSD2.en.json" WithCulture="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="0Harmony"><HintPath>$(BepInExPath)/core/0Harmony.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="BepInEx.Core"><HintPath>$(BepInExPath)/core/BepInEx.Core.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="BepInEx.Unity.IL2CPP"><HintPath>$(BepInExPath)/core/BepInEx.Unity.IL2CPP.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2CppInterop.Runtime"><HintPath>$(BepInExPath)/core/Il2CppInterop.Runtime.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="$(BepInExPath)/interop/*.dll" Exclude="$(BepInExPath)/interop/GSD1.dll;$(BepInExPath)/interop/GSD2.dll"><Private>false</Private></Reference>
+    <Reference Include="GSD1"><HintPath>$(BepInExPath)/interop/GSD1.dll</HintPath><Private>false</Private><Aliases>GSD1</Aliases></Reference>
+    <Reference Include="GSD2"><HintPath>$(BepInExPath)/interop/GSD2.dll</HintPath><Private>false</Private><Aliases>GSD2</Aliases></Reference>
+  </ItemGroup>
+  <Target Name="RequireGameReferences" BeforeTargets="ResolveReferences">
+    <Error Condition="!Exists('$(BepInExPath)/interop/GSD1.dll') or !Exists('$(BepInExPath)/interop/GSD2.dll')" Text="Pass GamePath or BepInExPath for the combined remaster with both generated game interop assemblies." />
+  </Target>
+</Project>

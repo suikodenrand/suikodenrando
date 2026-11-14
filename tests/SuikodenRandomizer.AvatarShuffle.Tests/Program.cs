@@ -51,6 +51,18 @@ internal static class Program
                 for (int id = 0; id < 110; id++) if (!CombatCatalog.IsNormalCombat(id))
                     Check(!p.IsRole(id) && p.GetDonor(id) == id && !p.Assignments.Values.Contains(id), "Protected identity entered pool.");
             }),
+            ("Opt-in Tir joins both sides of the distinct permutation", () => {
+                var p = AvatarShuffleProfile.Create("Agilen-080", includeTir: true);
+                Check(p.IncludesTir && p.ProfileId == AvatarShuffleProfile.IncludeTirProfileId
+                    && p.RoleIds.Count == 76 && p.Fingerprint != Profile.Fingerprint, "Wrong opt-in profile.");
+                Check(p.RoleIds.SequenceEqual(CombatCatalog.NormalCombatIds.Append(CombatCatalog.TirId).OrderBy(x => x))
+                    && p.Assignments.Values.OrderBy(x => x).SequenceEqual(p.RoleIds), "Invalid opt-in permutation.");
+                int tirRole = p.Assignments.Single(pair => pair.Value == CombatCatalog.TirId).Key;
+                Check(p.KeepsCanonicalLoadout(CombatCatalog.TirId) && p.KeepsCanonicalLoadout(tirRole)
+                    && p.RoleIds.Where(id => id != CombatCatalog.TirId && id != tirRole).All(id => !p.KeepsCanonicalLoadout(id)),
+                    "Tir loadout isolation affected the wrong role.");
+                Check(!Profile.IncludesTir && !Profile.KeepsCanonicalLoadout(CombatCatalog.TirId), "Opt-in changed legacy policy.");
+            }),
             ("Invalid display identity inputs are rejected", () => { Reject(() => Profile.GetDonor(-1)); Reject(() => Profile.GetDonor(110)); }),
             ("Stable shuffle matches independent Python golden fixture", () => {
                 var p = Profile;
@@ -129,6 +141,17 @@ internal static class Program
                 string json = Json(); var loaded = AvatarShuffleBindingJson.Deserialize(json,Save,Build);
                 Check(loaded.Profile!.Fingerprint == Profile.Fingerprint && loaded.Profile.RoleIds.Count == 75, "Binding lost mapping.");
                 Check(AvatarShuffleBindingJson.Serialize(loaded.Profile,loaded,Save,Build) == json, "Codec was not canonical.");
+            }),
+            ("Tir opt-in binding restores exact profile and rejects relabeling", () => {
+                var profile = AvatarShuffleProfile.Create("Agilen-080", includeTir: true);
+                var state = AvatarShuffleCampaignState.CreateNew(profile);
+                Check(state.ApplyNewGame(() => true), "Opt-in fixture initialization failed.");
+                string json = AvatarShuffleBindingJson.Serialize(profile, state, Save, Build);
+                var loaded = AvatarShuffleBindingJson.Deserialize(json, Save, Build);
+                Check(loaded.Profile?.IncludesTir == true && loaded.Profile.Fingerprint == profile.Fingerprint
+                    && loaded.Profile.RoleIds.SequenceEqual(profile.RoleIds), "Opt-in profile was lost on load.");
+                RejectJson(json.Replace(AvatarShuffleProfile.IncludeTirProfileId, AvatarShuffleProfile.CurrentProfileId));
+                RejectJson(Json().Replace(AvatarShuffleProfile.CurrentProfileId, AvatarShuffleProfile.IncludeTirProfileId));
             }),
             ("Binding contains metadata only and no native progression", () => {
                 string json = Json();

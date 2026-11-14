@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "component": "Microsoft.NETCore.App 6.0.7 Windows x64",
+  "releaseMetadataUrl": "https://builds.dotnet.microsoft.com/dotnet/release-metadata/6.0/releases.json",
+  "releaseMetadataSha256": "f31daae9d9c1d34254dc895557a57570166fac95bf7f04d4df89c76ea270a0cd",
+  "archiveUrl": "https://builds.dotnet.microsoft.com/dotnet/Runtime/6.0.7/dotnet-runtime-6.0.7-win-x64.zip",
+  "archiveSha512": "8124484bfe21f0cf7c2bb4b15992afc8cd9fdb676f7c3f36cb720c3f1459107b2bb8a5ced770fd40292a0c42f5fe24cb39bcb064d06e4f20fdbf11ef5dd55140",
+  "archiveSha256": "28db424a3a44c6526e7a28540629d27ee4d0b5e157c1688b894f32b04d7dcbec",
+  "archiveChecksumVerified": true,
+  "bundledArchive": false,
+  "noticeEntries": [
+    {
+      "file": "net6-windows-LICENSE.txt",
+      "source": "https://builds.dotnet.microsoft.com/dotnet/Runtime/6.0.7/dotnet-runtime-6.0.7-win-x64.zip!/LICENSE.txt",
+      "sha256": "7f6839a61ce892b79c6549e2dc5a81fdbd240a0b260f8881216b45b7fda8b45d"
+    },
+    {
+      "file": "net6-windows-ThirdPartyNotices.txt",
+      "source": "https://builds.dotnet.microsoft.com/dotnet/Runtime/6.0.7/dotnet-runtime-6.0.7-win-x64.zip!/ThirdPartyNotices.txt",
+      "sha256": "d5db0ed54363e40717ae09e746dec99ad5b09223cc1273bb870703176dd226b7"
+    }
+  ],
+  "bepInExArchive": "BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.697.zip",
+  "bepInExRuntimeComparison": {
+    "matchingFiles": 180,
+    "additionalLoaderLibrariesNotInOfficialRuntime": [
+      "dotnet/Microsoft.Bcl.AsyncInterfaces.dll",
+      "dotnet/Microsoft.Extensions.Primitives.dll",
+      "dotnet/Microsoft.Extensions.Logging.dll",
+      "dotnet/Microsoft.Extensions.DependencyInjection.dll",
+      "dotnet/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+      "dotnet/Microsoft.Extensions.Logging.Abstractions.dll",
+      "dotnet/Microsoft.Extensions.Options.dll"
+    ],
+    "differingFiles": []
+  },
+  "note": "The official runtime archive is retained only in the build workspace. Only its LICENSE.txt and ThirdPartyNotices.txt are included in the package. Cached MIT source notices remain separately identified. The additional Microsoft.Bcl/Microsoft.Extensions assemblies are loader dependencies outside the core runtime archive."
+}

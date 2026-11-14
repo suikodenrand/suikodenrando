@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/SuikodenRandomizer.Core/SuikodenRandomizer.Core.csproj" />
+    <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/TreasureBindingStore.cs" Link="Production/TreasureBindingStore.cs" />
+  </ItemGroup>
+</Project>

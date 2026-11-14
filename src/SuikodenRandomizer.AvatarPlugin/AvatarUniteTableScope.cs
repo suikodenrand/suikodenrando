@@ -14,6 +14,10 @@ namespace SuikodenRandomizer.AvatarPlugin;
 /// </summary>
 internal sealed class AvatarUniteTableScope : IDisposable
 {
+    // Opt-in battle adapters may translate a qualified recipe's displayed
+    // participants to their current canonical roles. Null retains safety masking.
+    internal static Func<int, GSD1.KYORYOKU_DATA, byte[]?>? ProjectRequirements { get; set; }
+    internal static Action? BeginProjectionBatch { get; set; }
     [ThreadStatic] private static int _depth;
     private readonly List<Action>? _restore;
     private bool _disposed;
@@ -60,8 +64,9 @@ internal sealed class AvatarUniteTableScope : IDisposable
             ?? throw new InvalidOperationException("Unite eligibility has no native combination table.");
         var writes = new List<Action>();
         var restores = new List<Action>();
-        var planned = new HashSet<(IntPtr Pointer, int Index)>();
+        var planned = new Dictionary<(IntPtr Pointer, int Index), byte>();
         int maskedGroups = 0;
+        BeginProjectionBatch?.Invoke();
         // Read and validate every record before changing any shared native data.
         for (int n = 0; n < table.Count; n++)
         {
@@ -72,21 +77,46 @@ internal sealed class AvatarUniteTableScope : IDisposable
             var ids = group.player_id;
             if (count > 6 || ids is null || count > ids.Count)
                 throw new InvalidOperationException("Unite eligibility contains an invalid participant list.");
+            for (int p = 0; p < count; p++)
+                if (ids[p] > 109)
+                    throw new InvalidOperationException("Unite eligibility contains an invalid participant identity.");
+            var projected = ProjectRequirements?.Invoke(n, group);
+            if (projected is not null)
+            {
+                if (projected.Length != count)
+                    throw new InvalidOperationException("Projected Unite requirements have the wrong participant count.");
+                var distinct = new HashSet<byte>();
+                foreach (byte id in projected)
+                    if (id > 109 || !present.Contains(id) || !distinct.Add(id))
+                        throw new InvalidOperationException("Projected Unite requirements do not identify distinct present actors.");
+                for (int p = 0; p < count; p++) Plan(p, projected[p]);
+                continue;
+            }
             int changedIndex = -1;
             for (int p = 0; p < count; p++)
             {
                 int id = ids[p];
-                if (id > 109)
-                    throw new InvalidOperationException("Unite eligibility contains an invalid participant identity.");
-                if (changedIndex < 0 && runtime.Profile.GetDonor(id) != id) changedIndex = p;
+                if (changedIndex < 0 && runtime.MapDisplayId(id) != id) changedIndex = p;
             }
             if (changedIndex < 0) continue;
             maskedGroups++;
-            int index = changedIndex;
-            if (!planned.Add((ids.Pointer, index))) continue;
-            byte original = ids[index];
-            writes.Add(() => ids[index] = unavailableParticipant);
-            restores.Add(() => ids[index] = original);
+            Plan(changedIndex, unavailableParticipant);
+
+            void Plan(int index, byte replacement)
+            {
+                var key = (ids.Pointer, index);
+                if (planned.TryGetValue(key, out byte existing))
+                {
+                    if (existing != replacement)
+                        throw new InvalidOperationException("Unite requirements alias incompatible projections.");
+                    return;
+                }
+                planned.Add(key, replacement);
+                byte original = ids[index];
+                if (original == replacement) return;
+                writes.Add(() => ids[index] = replacement);
+                restores.Add(() => ids[index] = original);
+            }
         }
 
         int attempted = 0;

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "packageVersion": "0.14.3",
+  "scope": "Redistributed mod-only component notices; BepInEx is external and not bundled.",
+  "files": [
+    {
+      "file": "Suikoden-Fix-LICENSE.txt",
+      "sha256": "4dc0dca5756930e9659883fe710f6b30d599e4720f6257ff4fb4795c8ebe0eba",
+      "bytes": 1086
+    },
+    {
+      "file": "Third-party notices.txt",
+      "sha256": "757303aa1b8e3ad2f02244e43fe63f819dc6e654c4588637c6f4a0bd2e6da236",
+      "bytes": 1483
+    }
+  ],
+  "launcherRuntimeNotices": [
+    "StarsOfDestiny Launcher/dotnet10-Core-LICENSE.txt",
+    "StarsOfDestiny Launcher/dotnet10-Core-THIRD-PARTY-NOTICES.txt",
+    "StarsOfDestiny Launcher/dotnet10-WindowsDesktop-LICENSE.txt"
+  ]
+}

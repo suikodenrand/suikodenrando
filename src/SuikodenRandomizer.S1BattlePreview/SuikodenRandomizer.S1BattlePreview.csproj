@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Version>0.10.1</Version>
+    <AssemblyName>SuikodenRandomizer.S1BattlePreview</AssemblyName>
+    <BepInExPath Condition="'$(BepInExPath)' == '' and '$(GamePath)' != ''">$(GamePath)/BepInEx</BepInExPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../SuikodenRandomizer.Plugin/Runtime/BuildCompatibility.cs" Link="BuildCompatibility.cs" />
+    <Compile Include="../SuikodenRandomizer.Core/Combat/AtbReadiness.cs" Link="AtbReadiness.cs" />
+    <Reference Include="0Harmony"><HintPath>$(BepInExPath)/core/0Harmony.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="BepInEx.Core"><HintPath>$(BepInExPath)/core/BepInEx.Core.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="BepInEx.Unity.IL2CPP"><HintPath>$(BepInExPath)/core/BepInEx.Unity.IL2CPP.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2CppInterop.Runtime"><HintPath>$(BepInExPath)/core/Il2CppInterop.Runtime.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2Cppmscorlib"><HintPath>$(BepInExPath)/interop/Il2Cppmscorlib.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="GSDShare"><HintPath>$(BepInExPath)/interop/GSDShare.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="FrameWork"><HintPath>$(BepInExPath)/interop/FrameWork.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="ShareUI"><HintPath>$(BepInExPath)/interop/ShareUI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="GSD1"><HintPath>$(BepInExPath)/interop/GSD1.dll</HintPath><Aliases>GSD1</Aliases><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(BepInExPath)/interop/UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.UIModule"><HintPath>$(BepInExPath)/interop/UnityEngine.UIModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.UI"><HintPath>$(BepInExPath)/interop/UnityEngine.UI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.IMGUIModule"><HintPath>$(BepInExPath)/interop/UnityEngine.IMGUIModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.TextRenderingModule"><HintPath>$(BepInExPath)/interop/UnityEngine.TextRenderingModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.InputSystem"><HintPath>$(BepInExPath)/interop/Unity.InputSystem.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+  <Target Name="RequireS1Interop" BeforeTargets="ResolveReferences">
+    <Error Condition="!Exists('$(BepInExPath)/interop/GSD1.dll')" Text="Pass GamePath for a BepInEx IL2CPP installation with Suikoden I interop." />
+  </Target>
+</Project>

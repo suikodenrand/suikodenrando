@@ -1,0 +1,2675 @@
+{
+  "scope": "Original serialized metadata only; no sprite pixels",
+  "rows": [
+    {
+      "donorId": 1,
+      "source": {
+        "serializedFile": "CAB-b50e1f6282d2b064792526353ad61367",
+        "pathId": 1364011364389707384,
+        "rawObjectSha256": "876f71645365f777051c2309296e578574752a18747db6acef27824d6d6c3e3d"
+      },
+      "bank": {
+        "m_GameObject": {
+          "m_FileID": 0,
+          "m_PathID": 0
+        },
+        "m_Enabled": 1,
+        "m_Script": {
+          "m_FileID": 1,
+          "m_PathID": -3654021563660114729
+        },
+        "m_Name": "shu",
+        "id": "shu",
+        "path": "person",
+        "anime_kazu": 19,
+        "pattern_kazu": 28,
+        "anime_table": [
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 0,
+                "timer": 8
+              },
+              {
+                "pattern_no": 1,
+                "timer": 8
+              },
+              {
+                "pattern_no": 2,
+                "timer": 8
+              },
+              {
+                "pattern_no": 1,
+                "timer": 8
+              }
+            ]
+          },
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 3,
+                "timer": 8
+              },
+              {
+                "pattern_no": 4,
+                "timer": 8
+              },
+              {
+                "pattern_no": 5,
+                "timer": 8
+              },
+              {
+                "pattern_no": 4,
+                "timer": 8
+              }
+            ]
+          },
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 6,
+                "timer": 8
+              },
+              {
+                "pattern_no": 7,
+                "timer": 8
+              },
+              {
+                "pattern_no": 8,
+                "timer": 8
+              },
+              {
+                "pattern_no": 7,
+                "timer": 8
+              }
+            ]
+          },
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 9,
+                "timer": 8
+              },
+              {
+                "pattern_no": 10,
+                "timer": 8
+              },
+              {
+                "pattern_no": 11,
+                "timer": 8
+              },
+              {
+                "pattern_no": 10,
+                "timer": 8
+              }
+            ]
+          },
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 2,
+                "timer": 8
+              },
+              {
+                "pattern_no": 1,
+                "timer": 8
+              },
+              {
+                "pattern_no": 0,
+                "timer": 8
+              },
+              {
+                "pattern_no": 1,
+                "timer": 8
+              }
+            ]
+          },
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 5,
+                "timer": 8
+              },
+              {
+                "pattern_no": 4,
+                "timer": 8
+              },
+              {
+                "pattern_no": 3,
+                "timer": 8
+              },
+              {
+                "pattern_no": 4,
+                "timer": 8
+              }
+            ]
+          },
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 8,
+                "timer": 8
+              },
+              {
+                "pattern_no": 7,
+                "timer": 8
+              },
+              {
+                "pattern_no": 6,
+                "timer": 8
+              },
+              {
+                "pattern_no": 7,
+                "timer": 8
+              }
+            ]
+          },
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 11,
+                "timer": 8
+              },
+              {
+                "pattern_no": 10,
+                "timer": 8
+              },
+              {
+                "pattern_no": 9,
+                "timer": 8
+              },
+              {
+                "pattern_no": 10,
+                "timer": 8
+              }
+            ]
+          },
+          {
+            "timer_kazu": 2,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 1,
+                "timer": 8
+              },
+              {
+                "pattern_no": 12,
+                "timer": 8
+              }
+            ]
+          },
+          {
+            "timer_kazu": 1,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 13,
+                "timer": 3
+              }
+            ]
+          },
+          {
+            "timer_kazu": 2,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 14,
+                "timer": 8
+              },
+              {
+                "pattern_no": 15,
+                "timer": 24
+              }
+            ]
+          },
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 16,
+                "timer": 8
+              },
+              {
+                "pattern_no": 17,
+                "timer": 8
+              },
+              {
+                "pattern_no": 18,
+                "timer": 8
+              },
+              {
+                "pattern_no": 17,
+                "timer": 8
+              }
+            ]
+          },
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 19,
+                "timer": 8
+              },
+              {
+                "pattern_no": 20,
+                "timer": 8
+              },
+              {
+                "pattern_no": 21,
+                "timer": 8
+              },
+              {
+                "pattern_no": 20,
+                "timer": 8
+              }
+            ]
+          },
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 22,
+                "timer": 8
+              },
+              {
+                "pattern_no": 23,
+                "timer": 8
+              },
+              {
+                "pattern_no": 24,
+                "timer": 8
+              },
+              {
+                "pattern_no": 23,
+                "timer": 8
+              }
+            ]
+          },
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 25,
+                "timer": 8
+              },
+              {
+                "pattern_no": 26,
+                "timer": 8
+              },
+              {
+                "pattern_no": 27,
+                "timer": 8
+              },
+              {
+                "pattern_no": 26,
+                "timer": 8
+              }
+            ]
+          },
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 18,
+                "timer": 8
+              },
+              {
+                "pattern_no": 17,
+                "timer": 8
+              },
+              {
+                "pattern_no": 16,
+                "timer": 8
+              },
+              {
+                "pattern_no": 17,
+                "timer": 8
+              }
+            ]
+          },
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 21,
+                "timer": 8
+              },
+              {
+                "pattern_no": 20,
+                "timer": 8
+              },
+              {
+                "pattern_no": 19,
+                "timer": 8
+              },
+              {
+                "pattern_no": 20,
+                "timer": 8
+              }
+            ]
+          },
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 24,
+                "timer": 8
+              },
+              {
+                "pattern_no": 23,
+                "timer": 8
+              },
+              {
+                "pattern_no": 22,
+                "timer": 8
+              },
+              {
+                "pattern_no": 23,
+                "timer": 8
+              }
+            ]
+          },
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 27,
+                "timer": 8
+              },
+              {
+                "pattern_no": 26,
+                "timer": 8
+              },
+              {
+                "pattern_no": 25,
+                "timer": 8
+              },
+              {
+                "pattern_no": 26,
+                "timer": 8
+              }
+            ]
+          }
+        ],
+        "pattern_table": [
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 0,
+                "v": 0,
+                "sprite_name": "person_shu_00_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 24,
+                "v": 0,
+                "sprite_name": "person_shu_01_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 48,
+                "v": 0,
+                "sprite_name": "person_shu_02_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 0,
+                "v": 48,
+                "sprite_name": "person_shu_03_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 24,
+                "v": 48,
+                "sprite_name": "person_shu_04_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 48,
+                "v": 48,
+                "sprite_name": "person_shu_05_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 72,
+                "v": 0,
+                "sprite_name": "person_shu_06_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 96,
+                "v": 0,
+                "sprite_name": "person_shu_07_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 96,
+                "v": 48,
+                "sprite_name": "person_shu_08_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 2,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 72,
+                "v": 0,
+                "sprite_name": "person_shu_06_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 2,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 96,
+                "v": 0,
+                "sprite_name": "person_shu_07_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 2,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 96,
+                "v": 48,
+                "sprite_name": "person_shu_08_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 72,
+                "v": 48,
+                "sprite_name": "person_shu_12_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 32,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -32,
+                "size_x": 23,
+                "size_y": 31,
+                "u": 0,
+                "v": 96,
+                "sprite_name": "person_shu_13_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              },
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -56,
+                "size_x": 23,
+                "size_y": 31,
+                "u": 24,
+                "v": 96,
+                "sprite_name": "person_shu_13_01",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 32,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -32,
+                "size_x": 23,
+                "size_y": 31,
+                "u": 48,
+                "v": 96,
+                "sprite_name": "person_shu_14_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              },
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -44,
+                "size_x": 23,
+                "size_y": 15,
+                "u": 72,
+                "v": 96,
+                "sprite_name": "person_shu_14_01",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 32,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -32,
+                "size_x": 23,
+                "size_y": 31,
+                "u": 96,
+                "v": 96,
+                "sprite_name": "person_shu_15_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              },
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -44,
+                "size_x": 23,
+                "size_y": 15,
+                "u": 72,
+                "v": 112,
+                "sprite_name": "person_shu_15_01",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              },
+              {
+                "flag": 0,
+                "offset_x": 5,
+                "offset_y": -40,
+                "size_x": 7,
+                "size_y": 23,
+                "u": 120,
+                "v": 72,
+                "sprite_name": "person_shu_15_02",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 32,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -18,
+                "offset_y": -48,
+                "size_x": 31,
+                "size_y": 47,
+                "u": 0,
+                "v": 0,
+                "sprite_name": "person_shu_16_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 32,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -18,
+                "offset_y": -48,
+                "size_x": 31,
+                "size_y": 47,
+                "u": 32,
+                "v": 0,
+                "sprite_name": "person_shu_17_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 32,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -18,
+                "offset_y": -48,
+                "size_x": 31,
+                "size_y": 47,
+                "u": 64,
+                "v": 0,
+                "sprite_name": "person_shu_18_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 32,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -14,
+                "offset_y": -48,
+                "size_x": 31,
+                "size_y": 47,
+                "u": 0,
+                "v": 48,
+                "sprite_name": "person_shu_19_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 32,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -14,
+                "offset_y": -48,
+                "size_x": 31,
+                "size_y": 47,
+                "u": 32,
+                "v": 48,
+                "sprite_name": "person_shu_20_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 32,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -14,
+                "offset_y": -48,
+                "size_x": 31,
+                "size_y": 47,
+                "u": 64,
+                "v": 48,
+                "sprite_name": "person_shu_21_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 32,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -17,
+                "offset_y": -48,
+                "size_x": 31,
+                "size_y": 47,
+                "u": 0,
+                "v": 0,
+                "sprite_name": "person_shu_22_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 32,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -17,
+                "offset_y": -48,
+                "size_x": 31,
+                "size_y": 47,
+                "u": 32,
+                "v": 0,
+                "sprite_name": "person_shu_23_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 32,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -17,
+                "offset_y": -48,
+                "size_x": 31,
+                "size_y": 47,
+                "u": 64,
+                "v": 0,
+                "sprite_name": "person_shu_24_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 32,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -15,
+                "offset_y": -48,
+                "size_x": 31,
+                "size_y": 47,
+                "u": 0,
+                "v": 48,
+                "sprite_name": "person_shu_25_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 32,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -15,
+                "offset_y": -48,
+                "size_x": 31,
+                "size_y": 47,
+                "u": 32,
+                "v": 48,
+                "sprite_name": "person_shu_26_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 32,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -15,
+                "offset_y": -48,
+                "size_x": 31,
+                "size_y": 47,
+                "u": 64,
+                "v": 48,
+                "sprite_name": "person_shu_27_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          }
+        ],
+        "atlas": {
+          "m_FileID": 2,
+          "m_PathID": -6214870531120103014
+        },
+        "normal_atlas": {
+          "m_FileID": 0,
+          "m_PathID": 0
+        }
+      }
+    },
+    {
+      "donorId": 48,
+      "source": {
+        "serializedFile": "CAB-bdb5bc7f2c9bae61efcd02c1d6c3dee4",
+        "pathId": 8971014657494073732,
+        "rawObjectSha256": "6738b95d73614d03e018f8d46ff33e22e69f64fe2c2796b078b7db7ba7feb653"
+      },
+      "bank": {
+        "m_GameObject": {
+          "m_FileID": 0,
+          "m_PathID": 0
+        },
+        "m_Enabled": 1,
+        "m_Script": {
+          "m_FileID": 1,
+          "m_PathID": -3654021563660114729
+        },
+        "m_Name": "muk",
+        "id": "muk",
+        "path": "person",
+        "anime_kazu": 7,
+        "pattern_kazu": 17,
+        "anime_table": [
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 0,
+                "timer": 8
+              },
+              {
+                "pattern_no": 1,
+                "timer": 8
+              },
+              {
+                "pattern_no": 2,
+                "timer": 8
+              },
+              {
+                "pattern_no": 1,
+                "timer": 8
+              }
+            ]
+          },
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 3,
+                "timer": 8
+              },
+              {
+                "pattern_no": 4,
+                "timer": 8
+              },
+              {
+                "pattern_no": 5,
+                "timer": 8
+              },
+              {
+                "pattern_no": 4,
+                "timer": 8
+              }
+            ]
+          },
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 6,
+                "timer": 8
+              },
+              {
+                "pattern_no": 7,
+                "timer": 8
+              },
+              {
+                "pattern_no": 8,
+                "timer": 8
+              },
+              {
+                "pattern_no": 7,
+                "timer": 8
+              }
+            ]
+          },
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 9,
+                "timer": 8
+              },
+              {
+                "pattern_no": 10,
+                "timer": 8
+              },
+              {
+                "pattern_no": 11,
+                "timer": 8
+              },
+              {
+                "pattern_no": 10,
+                "timer": 8
+              }
+            ]
+          },
+          {
+            "timer_kazu": 7,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 12,
+                "timer": 8
+              },
+              {
+                "pattern_no": 13,
+                "timer": 5
+              },
+              {
+                "pattern_no": 14,
+                "timer": 3
+              },
+              {
+                "pattern_no": 15,
+                "timer": 3
+              },
+              {
+                "pattern_no": 16,
+                "timer": 3
+              },
+              {
+                "pattern_no": 15,
+                "timer": 3
+              },
+              {
+                "pattern_no": 16,
+                "timer": 16
+              }
+            ]
+          },
+          {
+            "timer_kazu": 1,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 16,
+                "timer": 1
+              }
+            ]
+          },
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 16,
+                "timer": 5
+              },
+              {
+                "pattern_no": 14,
+                "timer": 5
+              },
+              {
+                "pattern_no": 13,
+                "timer": 5
+              },
+              {
+                "pattern_no": 12,
+                "timer": 5
+              }
+            ]
+          }
+        ],
+        "pattern_table": [
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 0,
+                "v": 0,
+                "sprite_name": "person_muk_00_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 24,
+                "v": 0,
+                "sprite_name": "person_muk_01_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 48,
+                "v": 0,
+                "sprite_name": "person_muk_02_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 0,
+                "v": 48,
+                "sprite_name": "person_muk_03_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 24,
+                "v": 48,
+                "sprite_name": "person_muk_04_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 48,
+                "v": 48,
+                "sprite_name": "person_muk_05_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 72,
+                "v": 0,
+                "sprite_name": "person_muk_06_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 96,
+                "v": 0,
+                "sprite_name": "person_muk_07_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 96,
+                "v": 48,
+                "sprite_name": "person_muk_08_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 2,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 72,
+                "v": 0,
+                "sprite_name": "person_muk_06_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 2,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 96,
+                "v": 0,
+                "sprite_name": "person_muk_07_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 2,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 96,
+                "v": 48,
+                "sprite_name": "person_muk_08_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 32,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -32,
+                "size_x": 23,
+                "size_y": 31,
+                "u": 0,
+                "v": 96,
+                "sprite_name": "person_muk_12_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 32,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -32,
+                "size_x": 23,
+                "size_y": 31,
+                "u": 24,
+                "v": 96,
+                "sprite_name": "person_muk_13_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 32,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -32,
+                "size_x": 23,
+                "size_y": 31,
+                "u": 48,
+                "v": 96,
+                "sprite_name": "person_muk_14_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 32,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -32,
+                "size_x": 23,
+                "size_y": 31,
+                "u": 72,
+                "v": 96,
+                "sprite_name": "person_muk_15_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 32,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -32,
+                "size_x": 23,
+                "size_y": 31,
+                "u": 96,
+                "v": 96,
+                "sprite_name": "person_muk_16_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          }
+        ],
+        "atlas": {
+          "m_FileID": 2,
+          "m_PathID": -8840012254928460629
+        },
+        "normal_atlas": {
+          "m_FileID": 0,
+          "m_PathID": 0
+        }
+      }
+    },
+    {
+      "donorId": 79,
+      "source": {
+        "serializedFile": "CAB-bc28e158e5174ef47eec85990432f345",
+        "pathId": 528329291475064543,
+        "rawObjectSha256": "f21be0ac5786f2d42c741b81997a98e987167997e9fb8780435f3043a6a70139"
+      },
+      "bank": {
+        "m_GameObject": {
+          "m_FileID": 0,
+          "m_PathID": 0
+        },
+        "m_Enabled": 1,
+        "m_Script": {
+          "m_FileID": 1,
+          "m_PathID": -3654021563660114729
+        },
+        "m_Name": "kkl",
+        "id": "kkl",
+        "path": "person",
+        "anime_kazu": 8,
+        "pattern_kazu": 19,
+        "anime_table": [
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 0,
+                "timer": 11
+              },
+              {
+                "pattern_no": 1,
+                "timer": 11
+              },
+              {
+                "pattern_no": 2,
+                "timer": 11
+              },
+              {
+                "pattern_no": 1,
+                "timer": 11
+              }
+            ]
+          },
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 3,
+                "timer": 11
+              },
+              {
+                "pattern_no": 4,
+                "timer": 11
+              },
+              {
+                "pattern_no": 5,
+                "timer": 11
+              },
+              {
+                "pattern_no": 4,
+                "timer": 11
+              }
+            ]
+          },
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 6,
+                "timer": 11
+              },
+              {
+                "pattern_no": 7,
+                "timer": 11
+              },
+              {
+                "pattern_no": 8,
+                "timer": 11
+              },
+              {
+                "pattern_no": 7,
+                "timer": 11
+              }
+            ]
+          },
+          {
+            "timer_kazu": 4,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 9,
+                "timer": 11
+              },
+              {
+                "pattern_no": 10,
+                "timer": 11
+              },
+              {
+                "pattern_no": 11,
+                "timer": 11
+              },
+              {
+                "pattern_no": 10,
+                "timer": 11
+              }
+            ]
+          },
+          {
+            "timer_kazu": 1,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 12,
+                "timer": 1
+              }
+            ]
+          },
+          {
+            "timer_kazu": 1,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 13,
+                "timer": 1
+              }
+            ]
+          },
+          {
+            "timer_kazu": 1,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 0,
+            "timer_table": [
+              {
+                "pattern_no": 15,
+                "timer": 1
+              }
+            ]
+          },
+          {
+            "timer_kazu": 21,
+            "abe_flg": 0,
+            "timer_flg": 0,
+            "loop_flg": 1,
+            "timer_table": [
+              {
+                "pattern_no": 14,
+                "timer": 8
+              },
+              {
+                "pattern_no": 15,
+                "timer": 8
+              },
+              {
+                "pattern_no": 16,
+                "timer": 8
+              },
+              {
+                "pattern_no": 15,
+                "timer": 8
+              },
+              {
+                "pattern_no": 14,
+                "timer": 8
+              },
+              {
+                "pattern_no": 15,
+                "timer": 8
+              },
+              {
+                "pattern_no": 16,
+                "timer": 8
+              },
+              {
+                "pattern_no": 15,
+                "timer": 8
+              },
+              {
+                "pattern_no": 14,
+                "timer": 8
+              },
+              {
+                "pattern_no": 15,
+                "timer": 8
+              },
+              {
+                "pattern_no": 16,
+                "timer": 16
+              },
+              {
+                "pattern_no": 17,
+                "timer": 6
+              },
+              {
+                "pattern_no": 18,
+                "timer": 8
+              },
+              {
+                "pattern_no": 17,
+                "timer": 6
+              },
+              {
+                "pattern_no": 16,
+                "timer": 10
+              },
+              {
+                "pattern_no": 17,
+                "timer": 6
+              },
+              {
+                "pattern_no": 18,
+                "timer": 52
+              },
+              {
+                "pattern_no": 17,
+                "timer": 6
+              },
+              {
+                "pattern_no": 16,
+                "timer": 32
+              },
+              {
+                "pattern_no": 15,
+                "timer": 8
+              },
+              {
+                "pattern_no": 14,
+                "timer": 8
+              }
+            ]
+          }
+        ],
+        "pattern_table": [
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 0,
+                "v": 0,
+                "sprite_name": "person_kkl_00_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 24,
+                "v": 0,
+                "sprite_name": "person_kkl_01_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 48,
+                "v": 0,
+                "sprite_name": "person_kkl_02_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 0,
+                "v": 48,
+                "sprite_name": "person_kkl_03_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 24,
+                "v": 48,
+                "sprite_name": "person_kkl_04_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 48,
+                "v": 48,
+                "sprite_name": "person_kkl_05_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 72,
+                "v": 0,
+                "sprite_name": "person_kkl_06_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 96,
+                "v": 0,
+                "sprite_name": "person_kkl_07_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 96,
+                "v": 48,
+                "sprite_name": "person_kkl_08_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 2,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 72,
+                "v": 0,
+                "sprite_name": "person_kkl_06_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 2,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 96,
+                "v": 0,
+                "sprite_name": "person_kkl_07_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 48,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 2,
+                "offset_x": -12,
+                "offset_y": -48,
+                "size_x": 23,
+                "size_y": 47,
+                "u": 96,
+                "v": 48,
+                "sprite_name": "person_kkl_08_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 24,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -24,
+                "size_x": 23,
+                "size_y": 23,
+                "u": 72,
+                "v": 72,
+                "sprite_name": "person_kkl_12_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 32,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -32,
+                "size_x": 23,
+                "size_y": 31,
+                "u": 0,
+                "v": 96,
+                "sprite_name": "person_kkl_13_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 32,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -32,
+                "size_x": 23,
+                "size_y": 31,
+                "u": 48,
+                "v": 96,
+                "sprite_name": "person_kkl_14_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 32,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -32,
+                "size_x": 23,
+                "size_y": 31,
+                "u": 72,
+                "v": 96,
+                "sprite_name": "person_kkl_15_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 32,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -32,
+                "size_x": 23,
+                "size_y": 31,
+                "u": 96,
+                "v": 96,
+                "sprite_name": "person_kkl_16_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 32,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -32,
+                "size_x": 23,
+                "size_y": 31,
+                "u": 96,
+                "v": 96,
+                "sprite_name": "person_kkl_16_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              },
+              {
+                "flag": 0,
+                "offset_x": -4,
+                "offset_y": -24,
+                "size_x": 7,
+                "size_y": 7,
+                "u": 40,
+                "v": 96,
+                "sprite_name": "person_kkl_17_01",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          },
+          {
+            "flag": 0,
+            "center_x": 0,
+            "center_y": 0,
+            "size_x": 24,
+            "size_y": 32,
+            "padding0": 0,
+            "padding1": 0,
+            "atari_data": [],
+            "obj_table": [
+              {
+                "flag": 0,
+                "offset_x": -12,
+                "offset_y": -32,
+                "size_x": 23,
+                "size_y": 31,
+                "u": 96,
+                "v": 96,
+                "sprite_name": "person_kkl_16_00",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              },
+              {
+                "flag": 0,
+                "offset_x": -4,
+                "offset_y": -24,
+                "size_x": 7,
+                "size_y": 7,
+                "u": 40,
+                "v": 104,
+                "sprite_name": "person_kkl_18_01",
+                "tmp_sprite_name": "",
+                "overwriteBlendMode": 0,
+                "shadow_y": 0
+              }
+            ],
+            "isOverriteBlendMode": 0
+          }
+        ],
+        "atlas": {
+          "m_FileID": 2,
+          "m_PathID": 158942836758525598
+        },
+        "normal_atlas": {
+          "m_FileID": 0,
+          "m_PathID": 0
+        }
+      }
+    }
+  ]
+}

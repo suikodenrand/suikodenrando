@@ -31,7 +31,7 @@ internal static class AvatarUniteCandidatePatch
     {
         __state = null;
         var runtime = AvatarRuntime.Current;
-        if (runtime is null) return true;
+        if (runtime is null || !runtime.MatchesExecution(runtime.ExecutionEpoch)) return true;
         // A broken safety preflight must not fall through to unsafe choreography
         // on the next frame merely because IsActive becomes false after Fail().
         if (runtime.FaultReason is not null) { __result = 0; return false; }
@@ -41,7 +41,7 @@ internal static class AvatarUniteCandidatePatch
             __state = AvatarUniteTableScope.Begin();
             if (__state?.MaskedGroupCount > 0)
             {
-                string key = runtime.Profile.Fingerprint + ":" + __originalMethod.Name;
+                string key = runtime.CampaignFingerprint + ":" + __originalMethod.Name;
                 if (Reported.Count < 32 && Reported.Add(key))
                     runtime.Trace("UNITE SAFETY " + __originalMethod.Name + ": incompatible native groups="
                         + __state.MaskedGroupCount + "; compatible groups and native command handling retained.");

@@ -4,6 +4,16 @@
   <ProjectReference Include="../../src/SuikodenRandomizer.Core/SuikodenRandomizer.Core.csproj" />
   <ProjectReference Include="../AvatarRuntime.TestDoubles/AvatarRuntime.TestDoubles.csproj" Aliases="GSD1" />
   <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/AvatarRuntime.cs" Link="Production/AvatarRuntime.cs" />
+  <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/AvatarRuntime.FixedRoster.cs" Link="Production/AvatarRuntime.FixedRoster.cs" />
+  <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/AvatarRuntime.Treasure.cs" Link="Production/AvatarRuntime.Treasure.cs" />
+  <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/AvatarRuntime.JoiningWeapons.cs" Link="Production/AvatarRuntime.JoiningWeapons.cs" />
+  <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/JoiningWeaponBindingStore.cs" Link="Production/JoiningWeaponBindingStore.cs" />
+  <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/AvatarSavePatches.cs" Link="Production/AvatarSavePatches.cs" />
+  <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/AvatarSaveCall.cs" Link="Production/AvatarSaveCall.cs" />
+  <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/AvatarStorageGuardPatch.cs" Link="Production/AvatarStorageGuardPatch.cs" />
+  <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/AvatarLifecyclePatches.cs" Link="Production/AvatarLifecyclePatches.cs" />
+  <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/ViktorCheckpointData.cs" Link="Production/ViktorCheckpointData.cs" />
+  <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/ViktorStart.cs" Link="Production/ViktorStart.cs" />
   <Compile Include="../../src/Shared/AvatarShuffleBindingJson.cs" Link="Production/AvatarShuffleBindingJson.cs" />
  </ItemGroup>
 </Project>

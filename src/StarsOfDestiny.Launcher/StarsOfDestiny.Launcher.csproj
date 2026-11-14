@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>StarsOfDestiny.Launcher</AssemblyName>
+    <Version>1.0.3</Version>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../StarsOfDestiny.Launcher.Core/StarsOfDestiny.Launcher.Core.csproj" />
+    <ProjectReference Include="../SuikodenRandomizer.Core/SuikodenRandomizer.Core.csproj" />
+    <ProjectReference Include="../SuikodenRandomizer.Suikoden2.Core/SuikodenRandomizer.Suikoden2.Core.csproj" />
+  </ItemGroup>
+  <Target Name="CopyLauncherRuntimeNotices" AfterTargets="Publish" Condition="'$(SelfContained)' == 'true'">
+    <ItemGroup>
+      <_LauncherRuntimePack Include="@(ResolvedRuntimePack)"
+          Condition="'%(ResolvedRuntimePack.FrameworkName)' == 'Microsoft.NETCore.App' or '%(ResolvedRuntimePack.FrameworkName)' == 'Microsoft.WindowsDesktop.App'">
+        <LicensePath>%(PackageDirectory)/LICENSE.TXT</LicensePath>
+        <LicensePath Condition="!Exists('%(PackageDirectory)/LICENSE.TXT')">%(PackageDirectory)/LICENSE.txt</LicensePath>
+        <LicensePath Condition="!Exists('%(PackageDirectory)/LICENSE.TXT') and !Exists('%(PackageDirectory)/LICENSE.txt')">%(PackageDirectory)/LICENSE</LicensePath>
+      </_LauncherRuntimePack>
+      <_LauncherCorePack Include="@(_LauncherRuntimePack)" Condition="'%(_LauncherRuntimePack.FrameworkName)' == 'Microsoft.NETCore.App'" />
+      <_LauncherDesktopPack Include="@(_LauncherRuntimePack)" Condition="'%(_LauncherRuntimePack.FrameworkName)' == 'Microsoft.WindowsDesktop.App'" />
+      <_LauncherRuntimeNotice Include="@(_LauncherCorePack->'%(LicensePath)')">
+        <NoticeFileName>dotnet10-Core-LICENSE.txt</NoticeFileName>
+      </_LauncherRuntimeNotice>
+      <_LauncherRuntimeNotice Include="@(_LauncherCorePack->'%(PackageDirectory)/THIRD-PARTY-NOTICES.TXT')">
+        <NoticeFileName>dotnet10-Core-THIRD-PARTY-NOTICES.txt</NoticeFileName>
+      </_LauncherRuntimeNotice>
+      <_LauncherRuntimeNotice Include="@(_LauncherDesktopPack->'%(LicensePath)')">
+        <NoticeFileName>dotnet10-WindowsDesktop-LICENSE.txt</NoticeFileName>
+      </_LauncherRuntimeNotice>
+    </ItemGroup>
+    <Error Condition="'@(_LauncherCorePack->Count())' != '1' or '@(_LauncherDesktopPack->Count())' != '1'"
+           Text="Self-contained launcher publishing requires the Core and Windows Desktop runtime packs and their notices." />
+    <Error Condition="!Exists('%(_LauncherRuntimeNotice.Identity)')"
+           Text="A launcher runtime license or notice is missing: %(_LauncherRuntimeNotice.Identity)" />
+    <Copy SourceFiles="@(_LauncherRuntimeNotice)"
+          DestinationFiles="@(_LauncherRuntimeNotice->'$(PublishDir)%(NoticeFileName)')" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

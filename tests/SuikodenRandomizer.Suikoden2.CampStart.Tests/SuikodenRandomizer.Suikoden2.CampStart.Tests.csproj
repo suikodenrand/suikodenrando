@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework></PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="FakeGsd2/**/*.cs;InteropCompile/**/*.cs" />
+    <ProjectReference Include="FakeGsd2/FakeGsd2.csproj" Aliases="global,GSD2" />
+    <Compile Include="../../src/SuikodenRandomizer.Suikoden2Plugin/Gsd2CampStart.cs" Link="Production/Gsd2CampStart.cs" />
+    <None Include="Fixtures/camp-world.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

@@ -8,18 +8,20 @@ using System.Text;
 
 namespace SuikodenRandomizer.Core.Avatars;
 
-/// <summary>An immutable seed-defined bijection of the 75 reviewed combat roles.</summary>
+/// <summary>An immutable seed-defined bijection of the eligible combat roles.</summary>
 public sealed class AvatarShuffleProfile
 {
     public const int CurrentVersion = 1;
     public const string CurrentProfileId = "combat-avatar-shuffle-v1";
+    public const string IncludeTirProfileId = "combat-avatar-shuffle-with-tir-v1";
     public const string AlgorithmId = "sha256-splitmix64-fisher-yates-v1";
     public const int MaximumSeedLength = 128;
     private readonly IReadOnlyDictionary<int, int> _assignments;
 
-    private AvatarShuffleProfile(string seed, int[] roles, int[] donors)
+    private AvatarShuffleProfile(string seed, int[] roles, int[] donors, bool includeTir)
     {
         Seed = seed;
+        IncludesTir = includeTir;
         RoleIds = Array.AsReadOnly(roles);
         var assignments = new Dictionary<int, int>();
         for (int n = 0; n < roles.Length; n++) assignments.Add(roles[n], donors[n]);
@@ -27,7 +29,7 @@ public sealed class AvatarShuffleProfile
         using var stream = new MemoryStream();
         using (var writer = new BinaryWriter(stream, Encoding.UTF8, true))
         {
-            writer.Write(CurrentProfileId); writer.Write(CurrentVersion); writer.Write(AlgorithmId);
+            writer.Write(ProfileId); writer.Write(CurrentVersion); writer.Write(AlgorithmId);
             writer.Write(Seed); writer.Write(StartPolicy); writer.Write(ProgressionPolicy);
             writer.Write(roles.Length);
             foreach (int role in roles) { writer.Write(role); writer.Write(assignments[role]); }
@@ -36,7 +38,8 @@ public sealed class AvatarShuffleProfile
         Fingerprint = Hex(sha.ComputeHash(stream.ToArray()));
     }
 
-    public string ProfileId => CurrentProfileId;
+    public string ProfileId => IncludesTir ? IncludeTirProfileId : CurrentProfileId;
+    public bool IncludesTir { get; }
     public string Seed { get; }
     public string Fingerprint { get; }
     public string ShuffleAlgorithm => AlgorithmId;
@@ -46,6 +49,10 @@ public sealed class AvatarShuffleProfile
     public IReadOnlyDictionary<int, int> Assignments => _assignments;
     public bool IsRole(int roleId) => _assignments.ContainsKey(roleId);
 
+    /// <summary>Keep Tir's story rune, equipment and progression local to his canonical role.</summary>
+    public bool KeepsCanonicalLoadout(int roleId) =>
+        IncludesTir && (roleId == CombatCatalog.TirId || GetDonor(roleId) == CombatCatalog.TirId);
+
     /// <summary>Protected valid identities remain their own identity in all display lookups.</summary>
     public int GetDonor(int roleId)
     {
@@ -53,7 +60,7 @@ public sealed class AvatarShuffleProfile
         return _assignments.TryGetValue(roleId, out int donor) ? donor : roleId;
     }
 
-    public static AvatarShuffleProfile Create(string seed)
+    public static AvatarShuffleProfile Create(string seed, bool includeTir = false)
     {
         if (seed is null) throw new ArgumentNullException(nameof(seed));
         if (seed.Length > MaximumSeedLength) throw new ArgumentException("Seed exceeds 128 characters.", nameof(seed));
@@ -65,6 +72,7 @@ public sealed class AvatarShuffleProfile
         if (roles.Length != 75 || roles.Distinct().Count() != 75
             || roles.Any(id => id == CombatCatalog.TirId || id == CombatCatalog.TedId || id == CombatCatalog.OdessaId))
             throw new InvalidOperationException("The reviewed avatar shuffle requires exactly 75 distinct normal combat roles.");
+        if (includeTir) roles = roles.Append(CombatCatalog.TirId).OrderBy(id => id).ToArray();
         int[] donors = (int[])roles.Clone();
         var random = new StableRandom(normalized);
         for (int n = donors.Length - 1; n > 0; n--)
@@ -72,7 +80,7 @@ public sealed class AvatarShuffleProfile
             int other = random.Next(n + 1);
             int value = donors[n]; donors[n] = donors[other]; donors[other] = value;
         }
-        return new AvatarShuffleProfile(normalized, roles, donors);
+        return new AvatarShuffleProfile(normalized, roles, donors, includeTir);
     }
 
     internal static string Hex(byte[] bytes) => string.Concat(bytes.Select(value => value.ToString("x2")));

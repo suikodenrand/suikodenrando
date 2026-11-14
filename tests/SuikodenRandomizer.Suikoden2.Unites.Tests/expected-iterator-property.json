@@ -1,0 +1,116 @@
+{
+  "path": "G:\\SteamLibrary\\steamapps\\common\\Suikoden I and II HD Remaster\\BepInEx\\interop\\GSD2.dll",
+  "sha256": "8a63846ccc60be5e4255401d135d1f710b2b9349746f71b4cc54c7e6751d2d3d",
+  "mvid": "a4c7937a-ffeb-4b92-8990-3bb1a12f3d92",
+  "mode": "metadata-only; no assembly execution",
+  "types": [
+    {
+      "name": "Unite.Unite41\u002B_Load_d__19",
+      "token": "02000a3b",
+      "properties": [
+        {
+          "name": "__1__state",
+          "token": "1700c2ad",
+          "type": "Int32",
+          "parameters": [],
+          "getter": {
+            "name": "get___1__state",
+            "token": "0601c653",
+            "attributes": "Public, HideBySig, SpecialName",
+            "isStatic": false,
+            "returns": "Int32",
+            "parameters": []
+          },
+          "setter": {
+            "name": "set___1__state",
+            "token": "0601c654",
+            "attributes": "Public, HideBySig, SpecialName",
+            "isStatic": false,
+            "returns": "Void",
+            "parameters": [
+              "Int32"
+            ]
+          }
+        },
+        {
+          "name": "__2__current",
+          "token": "1700c2ae",
+          "type": "Il2CppSystem.Object",
+          "parameters": [],
+          "getter": {
+            "name": "get___2__current",
+            "token": "0601c655",
+            "attributes": "Public, HideBySig, SpecialName",
+            "isStatic": false,
+            "returns": "Il2CppSystem.Object",
+            "parameters": []
+          },
+          "setter": {
+            "name": "set___2__current",
+            "token": "0601c656",
+            "attributes": "Public, HideBySig, SpecialName",
+            "isStatic": false,
+            "returns": "Void",
+            "parameters": [
+              "Il2CppSystem.Object"
+            ]
+          }
+        },
+        {
+          "name": "__4__this",
+          "token": "1700c2af",
+          "type": "Unite.Unite41",
+          "parameters": [],
+          "getter": {
+            "name": "get___4__this",
+            "token": "0601c657",
+            "attributes": "Public, HideBySig, SpecialName",
+            "isStatic": false,
+            "returns": "Unite.Unite41",
+            "parameters": []
+          },
+          "setter": {
+            "name": "set___4__this",
+            "token": "0601c658",
+            "attributes": "Public, HideBySig, SpecialName",
+            "isStatic": false,
+            "returns": "Void",
+            "parameters": [
+              "Unite.Unite41"
+            ]
+          }
+        },
+        {
+          "name": "System.Collections.Generic.IEnumerator\u003CSystem.Object\u003E.Current",
+          "token": "1700c2b0",
+          "type": "Il2CppSystem.Object",
+          "parameters": [],
+          "getter": {
+            "name": "System_Collections_Generic_IEnumerator_System_Object__get_Current",
+            "token": "0601c64e",
+            "attributes": "Public, Virtual, HideBySig, VtableLayoutMask, SpecialName",
+            "isStatic": false,
+            "returns": "Il2CppSystem.Object",
+            "parameters": []
+          },
+          "setter": null
+        },
+        {
+          "name": "System.Collections.IEnumerator.Current",
+          "token": "1700c2b1",
+          "type": "Il2CppSystem.Object",
+          "parameters": [],
+          "getter": {
+            "name": "System_Collections_IEnumerator_get_Current",
+            "token": "0601c650",
+            "attributes": "Public, Virtual, HideBySig, VtableLayoutMask, SpecialName",
+            "isStatic": false,
+            "returns": "Il2CppSystem.Object",
+            "parameters": []
+          },
+          "setter": null
+        }
+      ]
+    }
+  ]
+}

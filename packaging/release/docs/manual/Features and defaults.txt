@@ -1,0 +1,125 @@
+STARS OF DESTINY 0.14.3 - MOD-ONLY PACKAGE FEATURES AND DEFAULTS
+
+COMPONENTS
+Combined randomizer       0.14.3
+Windows launcher          1.0.3, self-contained Windows x64
+Suikoden I ATB Preview    0.10.1, optional; dormant outside active plugins
+Suikoden Fix              upstream release 1.5.2b (plugin reports 1.5.2)
+BepInEx                   REQUIRED SEPARATELY: 6.0.0-be.697, Unity IL2CPP x64
+Loader .NET runtime      Supplied by the external BepInEx package, not this ZIP
+Launcher .NET runtime    10.0.14, private Windows Desktop runtime
+
+BOTH GAMES
+Seeded character-role shuffle; five chosen companions; seeded random fixed
+roster; optional protagonist shuffle; each game's quick start; separate
+campaign mappings and settings; one combined host and shared F6 interface.
+Recruitment requirements and story roles remain native. Names, portraits,
+party and combat appearances follow replacement characters. Some custom
+scene animations retain native handling. Saved campaigns retain their own
+seed and mapping even if the launcher is changed to a different seed.
+
+ENGLISH DIALOGUE
+Supported dialogue mentions use shuffled character names. Native custom-name
+tokens and event commands are preserved. This is a curated message system,
+not a blanket substitution in every string. Ambiguous references, unsupported
+messages and other languages retain the original text. Fresh default: on.
+
+SHUFFLED UNITES
+Native Unite eligibility follows the actual displayed fighters, including
+characters occupying unrelated story roles. The implementation covers 32 S1
+and 50 S2 recipe records, including alternate groups and native conditions;
+those counts are recipe records, not distinct attack names. Native targeting,
+animations, damage/effects and participant action use are retained. Both
+games' shuffled Unite previews are enabled by the fresh package defaults.
+They require normal turn-based battles. S1 ATB and the one-shot attack probe
+are not supported with shuffled Unites. Broader in-game coverage is pending.
+
+JOINING WEAPONS
+S1 fresh default: TirVariance. Each eligible replacement's first joining
+weapon level follows Tir's current weapon level with a seeded -3 to +3 offset,
+including a possible exact match, clamped to the legal weapon-level range.
+S1 also offers MatchRole and Level1.
+S2 fresh default: RiouVariance. Each eligible replacement's first joining
+weapon level follows Riou's current weapon level with the same seeded -3 to
++3 offset, including a possible exact match, clamped to the legal range.
+S2 also offers MatchRole (the original story role's joining level) and Level1.
+The replacement retains its own weapon identity. Adjustment happens once;
+later rejoining and saved games retain earned sharpening. Policies are bound
+to the campaign; changing the launcher does not downgrade old saves. Old
+campaigns without policy metadata retain their previous behavior. Protected
+story combat setups keep native handling; S2 natural weapons remain level 0.
+These options do not alter character level, armor, growth or runes.
+RiouVariance is new in 0.14.3. Managed tests cover the new policy; native
+first-join playtesting of this option is pending. Existing campaign policies
+are never silently replaced by the new default.
+
+QUICK STARTS
+Fresh default for both games: Opening.
+S1 BeforeViktor starts at the prepared Gregminster checkpoint before Viktor
+joins. S2 ViktorCamp starts at the first camp interior, before the first
+chores. These are new-campaign starts, not copies of a player's current save.
+
+S1 TREASURE (EXPERIMENTAL)
+132 ordinary item locations use a deterministic campaign-seeded reward map.
+Potch, Blinking Mirror, recruitment-related Sound Orb, Window Orb and
+Illustrated War Scroll, and the special Dwarves' Vault reward stay original.
+Native item granting and open-state handling are retained. A saved chest
+policy can be paused globally without deleting its map. Fresh defaults:
+Treasure/Enabled=false and Treasure/ShuffleChests=false. S2 chest shuffle is
+not implemented.
+
+S1 ATB (OPTIONAL, EXPERIMENTAL)
+The reviewed plugin is bundled dormant at
+BepInEx/SuikodenRandomizer.S1BattlePreview.dll, outside the active plugins
+tree. With the game closed, disable S1 shuffled Unites, use Activate ATB
+preview in the launcher, then enable ATB and apply. Activation alone does not
+enable ATB. A fresh ATB config starts disabled.
+Heroes and enemies act when SPD meters fill. DEX modifies enemy charging and
+can contribute to randomized opening charge. Individual native menus support
+native targeting, Attack, Defend, Rune, Item, escape options and Auto. Ready
+heroes can queue commands while other actions play. Meters reset and resume
+charging after actions; fighters can act repeatedly. Queued Attacks can
+retarget another enemy in range when their selected enemy dies. Enemy actions
+do not discard the player's selected command. Native party/enemy lists stay
+visible during targeting. Auto starts without its old confirmation.
+Fresh ATB config: Enabled=false, OneShotAttack=false, ActiveAtb=true,
+RepeatTurns=true, ReadyCommands=true, NativeReadyMenus=true,
+NativeSpdMeters=true, ActiveInput=true, EnemyDexCharge=true, OpeningCharge=true.
+Disable S1 shuffled Unites before enabling ATB. Scripted encounters and every
+command combination need wider testing. S2 keeps native turn-based combat.
+
+F6 AND LAUNCHER
+F6 is hidden at launch by default; visible modes use text with no black box.
+F6 cycles Full, Compact and Hidden for the current session. A configured
+startup view is respected. Fault messages can still appear as text.
+The Windows launcher manages per-game seeds, modes, companions, starts and
+weapon policy; settings tabs; JSON presets; config backups; saved chest
+policies; optional ATB; and launching the game. Many display, audio and QoL
+controls configure the included upstream Suikoden Fix plugin.
+
+SUIKODEN FIX
+Included unchanged with its notices. Fresh defaults use normal damage,
+experience, money, loot and encounter rates. Save Anywhere and save-slot
+settings retain upstream/default behavior. For upgrades, keep your existing
+Fix config as described in MANUAL UPGRADE.txt.
+
+MANUAL INSTALLATION AND RECOVERY
+Install the tested external BepInEx 6 Unity IL2CPP Windows x64 build 697
+FIRST; the official download is in REQUIREMENTS.txt at the game root.
+Then extract this mod ZIP into the same game folder. Its BepInEx folder
+contains mod plugins, default configs and dormant ATB only, not the loader.
+The complete launcher and its separate private .NET 10 runtime are included.
+There is no setup executable, automatic backup, conflict checker, CFG merge,
+transaction restore or Start Menu shortcut. Existing users must follow
+MANUAL UPGRADE.txt to preserve configs and avoid duplicate plugins. Undo uses
+your manual backup and the mod package's file list. It does not uninstall
+external BepInEx. Redistributed-component notices are in StarsOfDestiny
+Manual/Licenses and beside the launcher runtime. The first modded game launch
+still needs internet access for Unity reference libraries. Local package
+checks do not establish Nexus acceptance.
+
+NOT INCLUDED
+BepInEx/core, the external loader runtime and Doorstop files, personal saves,
+generated interop/cache files, custom music, the separate
+Audio Redirector, Nuzlocke, S2 ATB/chest randomization, extra rune slots and a
+shared-inventory or storage rewrite. The website remains unpublished.

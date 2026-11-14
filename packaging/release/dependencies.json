@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "dependencies": [
+    {
+      "name": "BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.697.zip",
+      "url": "https://builds.bepinex.dev/projects/bepinex_be/697/BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.697%2B5362580.zip",
+      "sha256": "616ec7eb06cf11b2a0000e8fcef04d1b12bb58e84a2e0bdac9523234fc193ceb",
+      "modes": [
+        "all"
+      ]
+    },
+    {
+      "name": "Suikoden_Fix-v1.5.2b.zip",
+      "url": "https://github.com/d3xMachina/Suikoden-Fix/releases/download/v1.5.2b/Suikoden_Fix.zip",
+      "sha256": "c79a3be2c0585281cb4b6bace4e6971774a83c17a86630898c83fcd3f7be3c61",
+      "modes": [
+        "manual",
+        "all"
+      ]
+    },
+    {
+      "name": "BepInEx-source-5362580.zip",
+      "url": "https://github.com/BepInEx/BepInEx/archive/53625800b86f6c68751445248260edf0b27a71c2.zip",
+      "sha256": "ed21ca48a9738cf07fbb95f0a791475f96c95af6fef24c7143f3f4c456e4cd3a",
+      "modes": [
+        "all"
+      ]
+    },
+    {
+      "name": "Il2CppInterop-source-56bf1da.zip",
+      "url": "https://github.com/BepInEx/Il2CppInterop/archive/56bf1dadede34de71f5a8f5812e7063ff553c90b.zip",
+      "sha256": "c54614d3e0200ecf977645b4f4420ca5be1d1640a7750a9ef4643f4cbe2654f8",
+      "modes": [
+        "all"
+      ]
+    },
+    {
+      "name": "UnityDoorstop-source-v4.3.0.zip",
+      "url": "https://github.com/NeighTools/UnityDoorstop/archive/refs/tags/v4.3.0.zip",
+      "sha256": "63a7364d13b82c18e646efb5504f0b9bda64650450632f85ac43622f981334ac",
+      "modes": [
+        "all"
+      ]
+    }
+  ]
+}

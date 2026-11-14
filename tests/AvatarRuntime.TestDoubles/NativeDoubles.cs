@@ -12,7 +12,24 @@ public abstract class NativeObject
 }
 public sealed class OPD_DATA : NativeObject { }
 public sealed class PLAYER_FIELD { public OPD_DATA? opd_data { get; set; } = new OPD_DATA(); }
-public sealed class PLAYER_BATTLE_SO { public OPD_DATA? opd_data { get; set; } = new OPD_DATA(); }
+public sealed class PLAYER_BATTLE_SO { public OPD_DATA? opd_data { get; set; } = new OPD_DATA(); public List<int> action_table { get; set; } = new(); }
+public sealed class PLAYER_MONSYO
+{
+    public byte monsyo_id { get; set; }
+    public byte monsyo_level { get; set; }
+    public ushort monsyo_exp { get; set; }
+}
+public sealed class PLAYER_BUKI : NativeObject
+{
+    private byte _level = 1;
+    public byte buki_id { get; set; }
+    public bool FailLevelWriteOnce { get; set; }
+    public byte level
+    {
+        get => _level;
+        set { if (FailLevelWriteOnce) { FailLevelWriteOnce = false; throw new InvalidOperationException("Injected weapon setter failure."); } _level = value; }
+    }
+}
 public sealed class PLAYER_BASE : NativeObject
 {
     public int chara_no { get; set; }
@@ -21,6 +38,9 @@ public sealed class PLAYER_BASE : NativeObject
     public ushort max_hp { get; set; }
     public ushort exp { get; set; }
     public ushort status { get; set; }
+    public List<byte> noryoku { get; set; } = new List<byte>(new byte[6]);
+    public PLAYER_MONSYO? monsyo_data { get; set; } = new PLAYER_MONSYO();
+    public PLAYER_BUKI buki_data { get; set; } = new PLAYER_BUKI();
     public byte[] seicho_type { get; set; } = new byte[7];
     public bool IsComplete { get; set; } = true;
     public int Equipment { get; set; }
@@ -65,32 +85,74 @@ public sealed class PLAYER_DATA : NativeObject
 }
 public sealed class PARTY_DATA
 {
+    private int _x;
     public List<short> chara_code { get; set; } = new List<short> { 1,2,6,8,108,-1 };
     public List<sbyte> narabi { get; set; } = new List<sbyte> { 0,1,2,3,4,-1 };
     public byte player_kazu { get; set; } = 5;
+    public byte vil_no { get; set; }
+    public byte map_no { get; set; }
+    public byte area_no { get; set; }
+    public int x
+    {
+        get => _x;
+        set
+        {
+            if (FailXSetterOnce)
+            {
+                FailXSetterOnce = false;
+                throw new InvalidOperationException("Injected position setter failure.");
+            }
+            _x = value;
+        }
+    }
+    public int y { get; set; }
+    public int mochi_kin { get; set; }
+    public bool FailXSetterOnce { get; set; }
 }
 public sealed class GAME_WORK : NativeObject
 {
     public PARTY_DATA party_data { get; set; } = new PARTY_DATA();
     public CountingBaseRecords player_base { get; set; } = new CountingBaseRecords();
     public List<PLAYER_DATA?> player_data { get; set; } = new List<PLAYER_DATA?>();
-    public byte[] member_flag { get; set; } = new byte[110];
+    public List<byte> member_flag { get; set; } = new List<byte>(new byte[128]);
+    public List<byte> tmpEventFlagS { get; set; } = new List<byte>(new byte[240]);
+    public List<byte> storyFlagS { get; set; } = new List<byte>(new byte[20]);
+    public string playerName { get; set; } = string.Empty;
+    public byte difficulty { get; set; }
 }
-public sealed class PlayerManager { public CountingPlayerCache player_cache { get; set; } = new CountingPlayerCache(); }
+public sealed class PlayerManager : NativeObject { public CountingPlayerCache player_cache { get; set; } = new CountingPlayerCache(); }
 public sealed class GlobalWork
 {
-    public static GlobalWork? Instance { get; set; }
+    private static GlobalWork? _instance;
+    public static int Reads;
+    public static GlobalWork? Instance { get { Reads++; return _instance; } set => _instance = value; }
     public PlayerManager? player_manager { get; set; }
 }
-public static class OldSrcBase { public static GAME_WORK? game_work { get; set; } }
-public class Chapter { public T? TryCast<T>() where T : class => this as T; }
-public sealed class TitleChapter : Chapter { }
+public static class OldSrcBase
+{
+    private static GAME_WORK? _game;
+    public static int Reads;
+    public static GAME_WORK? game_work { get { Reads++; return _game; } set => _game = value; }
+}
+public class Chapter : NativeObject { public T? TryCast<T>() where T : class => this as T; }
+public sealed class TitleChapter : Chapter { public enum State { DifficultyInit = 3, MenuInit = 9, MenuSelect = 10 } }
+public sealed class P_player_c { }
+public enum CHARACTER_ID { }
+public sealed class Event_c { public int ClearCalls; public void ClrEventRenzoku() => ClearCalls++; }
+public sealed class GameInit { }
+public sealed class Village_c { }
 public sealed class ChapterManager
 {
-    public static ChapterManager? GR1Instance { get; set; }
+    private static ChapterManager? _instance;
+    public static int Reads;
+    public static ChapterManager? GR1Instance { get { Reads++; return _instance; } set => _instance = value; }
     public Chapter? activeChapter { get; set; }
+    public static int GetGameStepSeq(int stepLevel) => stepLevel;
 }
 public sealed class SaveDataManager
 {
-    public sealed class SaveData { public string Identity { get; set; } = new string('a',64); }
+    public sealed class SaveData { public string Identity { get; set; } = new string('a',64); public PARTY_DATA? party_data { get; set; } = new PARTY_DATA(); }
 }
+public sealed class P_BATTLE_DATA { public PLAYER_DATA? player_data { get; set; } }
+public sealed class BATTLE_WORK { public List<P_BATTLE_DATA?>? p_battle_data { get; set; } }
+public static class BattleBase { public static BATTLE_WORK? battle_work { get; set; } }

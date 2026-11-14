@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/SuikodenRandomizer.Core/Combat/AtbReadiness.cs" Link="AtbReadiness.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.S1BattlePreview/BattleSampleClock.cs" Link="BattleSampleClock.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.S1BattlePreview/HeroCommandGate.cs" Link="HeroCommandGate.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.S1BattlePreview/MeterActionScheduler.cs" Link="MeterActionScheduler.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.S1BattlePreview/OneShotActionGate.cs" Link="OneShotActionGate.cs" />
+  </ItemGroup>
+</Project>

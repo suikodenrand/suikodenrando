@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><NoWarn>$(NoWarn);CS0649</NoWarn></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/AvatarSaveCall.cs" Link="Production/AvatarSaveCall.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/AvatarStorageGuardPatch.cs" Link="Production/AvatarStorageGuardPatch.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.Suikoden2Plugin/Gsd2SaveScope.cs" Link="Production/Gsd2SaveScope.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.Suikoden2Plugin/Gsd2StorageBindingPatch.cs" Link="Production/Gsd2StorageBindingPatch.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.Suikoden2Plugin/Gsd2RejectedSaveMirrorGuard.cs" Link="Production/Gsd2RejectedSaveMirrorGuard.cs" />
+  </ItemGroup>
+</Project>

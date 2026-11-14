@@ -80,7 +80,8 @@ public sealed class AvatarShuffleCampaignState
         if (snapshot is null) throw new ArgumentNullException(nameof(snapshot));
         RequireDigest(expectedSaveIdentitySha256, nameof(expectedSaveIdentitySha256));
         RequireDigest(expectedGameBuildSha256, nameof(expectedGameBuildSha256));
-        AvatarShuffleProfile profile = AvatarShuffleProfile.Create(snapshot.Seed);
+        AvatarShuffleProfile profile = AvatarShuffleProfile.Create(snapshot.Seed,
+            includeTir: snapshot.ProfileId == AvatarShuffleProfile.IncludeTirProfileId);
         if (snapshot.AvatarShuffleVersion != AvatarShuffleSnapshot.CurrentAvatarShuffleVersion
             || !snapshot.TemplateInitializationCompleted || snapshot.ProfileId != profile.ProfileId
             || snapshot.ProfileFingerprint != profile.Fingerprint || snapshot.Seed != profile.Seed
