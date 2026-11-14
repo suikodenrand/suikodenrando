@@ -1,4 +1,4 @@
-STARS OF DESTINY 0.14.3 - MOD-ONLY MANUAL UPGRADE
+STARS OF DESTINY 0.14.4 - MOD-ONLY MANUAL UPGRADE
 
 Read this before copying into any game folder with existing mods or saves.
 This ZIP does not run conflict checks, back up replaced files or merge CFGs.
@@ -49,8 +49,16 @@ BepInEx is an external prerequisite; see REQUIREMENTS.txt at the game root.
    only if needed, after disabling S1 shuffled Unites.
 7. Open the updated launcher with the game closed and review settings before
    launch. New-campaign choices do not rewrite an existing campaign's seed,
-   mapping or weapon policy. Existing settings may retain their old values;
+   mapping, weapon or joining-inventory policy. Existing settings may retain their old values;
    choose Riou's weapon level +/-3 for new S2 campaigns if desired.
+
+JOINING INVENTORY UPGRADE
+JoiningEquipment=MatchRole is the fresh default for new campaigns in all
+three modes and both games. It uses the original role's full starting
+inventory and comparable wearable gear. Donor retains replacement inventory.
+Existing campaigns without saved equipment metadata retain Donor behavior;
+this upgrade does not reset or retrofit their inventory. Keep all campaign
+sidecars with the matching saves. The joining-weapon policy stays separate.
 
 PREVIOUS FULL-PACKAGE OR INSTALLER USERS
 Keep your working matching BepInEx files. This ZIP does not remove BepInEx
@@ -64,7 +72,7 @@ backup first before considering an earlier installer transaction.
 
 UNCHANGED SAVE RULES
 Keep Save and BepInEx/config paired when restoring a campaign. Never delete
-binding sidecars to force a new seed or weapon policy onto an old save.
+binding sidecars to force a new seed, weapon or inventory policy onto an old save.
 Starting New Game may replace the autosave. Manual mod rollback does not
 rewind gameplay progress or undo settings changed since your backup.
 

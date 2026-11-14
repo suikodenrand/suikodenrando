@@ -44,15 +44,15 @@ const string s1Namespace = "SuikodenRandomizer.AvatarPlugin";
 const string s2Namespace = "SuikodenRandomizer.Suikoden2Plugin";
 const string bootstrap = unifiedNamespace + ".UnifiedPlugin";
 Version assemblyVersion = md.GetAssemblyDefinition().Version;
-Require("combined assembly version 0.14.3", assemblyVersion == new Version(0, 14, 3, 0));
+Require("combined assembly version 0.14.4", assemblyVersion == new Version(0, 14, 4, 0));
 var plugins = Attributed("BepInEx.BepInPlugin");
 Require("exactly one BepInEx bootstrap", plugins.SequenceEqual(new[] { bootstrap }));
 var pluginAttribute = types[bootstrap].GetCustomAttributes().Single(h => AttributeType(h) == "BepInEx.BepInPlugin");
 var pluginArguments = md.GetBlobReader(md.GetCustomAttribute(pluginAttribute).Value);
-Require("BepInEx bootstrap retains GUID and version 0.14.3", pluginArguments.ReadUInt16() == 1
+Require("BepInEx bootstrap retains GUID and version 0.14.4", pluginArguments.ReadUInt16() == 1
     && pluginArguments.ReadSerializedString() == "agilen.starsofdestiny"
     && !string.IsNullOrEmpty(pluginArguments.ReadSerializedString())
-    && pluginArguments.ReadSerializedString() == "0.14.3");
+    && pluginArguments.ReadSerializedString() == "0.14.4");
 Require("exactly one BasePlugin subclass", types.Count(p => TypeName(p.Value.BaseType) == "BepInEx.Unity.IL2CPP.BasePlugin") == 1);
 Require("exactly one Unity frame/UI component", types.Where(p => TypeName(p.Value.BaseType) == "UnityEngine.MonoBehaviour").Select(p => p.Key).SequenceEqual(new[] { "SuikodenRandomizer.Unified.UnifiedOverlay" }));
 Require("standalone UI drivers excluded", !types.ContainsKey("SuikodenRandomizer.AvatarPlugin.AvatarOverlay") && !types.ContainsKey("SuikodenRandomizer.Suikoden2Plugin.Gsd2Driver"));
@@ -63,6 +63,30 @@ Require("both native games use distinct interop references", refs.Contains("GSD1
 Require("no standalone S2 plugin dependency", !refs.Contains("SuikodenRandomizer.Suikoden2"));
 Require("dialogue gate compiled into the unified assembly", types.ContainsKey("SuikodenRandomizer.Dialogue.DialogueRewriteGate"));
 Require("no separate dialogue DLL dependency", !refs.Contains("SuikodenRandomizer.Dialogue", StringComparer.OrdinalIgnoreCase));
+var joiningEquipmentTypes = new[] {
+    s1Namespace + ".JoiningEquipmentPolicy", s1Namespace + ".JoiningEquipmentInventory",
+    s1Namespace + ".JoiningEquipmentCatalogEntry", s1Namespace + ".JoiningEquipmentPlan",
+    s1Namespace + ".JoiningEquipmentNative", s1Namespace + ".JoiningEquipmentBinding",
+    s1Namespace + ".JoiningEquipmentBindingStore", s2Namespace + ".Gsd2EquipmentBalance",
+    s2Namespace + ".Gsd2EquipmentSnapshot", s2Namespace + ".Gsd2PendingEquipment"
+};
+Require("both joining-inventory planners and saved-history helpers compiled into the host", joiningEquipmentTypes.All(types.ContainsKey));
+bool StaticStringProperty(string owner, string name)
+{
+    if (!types.TryGetValue(owner, out var type)) return false;
+    var matches = type.GetProperties().Select(md.GetPropertyDefinition).Where(p => md.GetString(p.Name) == name).ToArray();
+    if (matches.Length != 1) return false;
+    var property = matches[0];
+    var signature = md.GetBlobReader(property.Signature);
+    var header = signature.ReadSignatureHeader();
+    var getterHandle = property.GetAccessors().Getter;
+    return header.Kind == SignatureKind.Property && !header.IsInstance && signature.ReadCompressedInteger() == 0
+        && signature.ReadSignatureTypeCode() == SignatureTypeCode.String && signature.RemainingBytes == 0
+        && !getterHandle.IsNil && md.GetMethodDefinition(getterHandle).Attributes.HasFlag(MethodAttributes.Static)
+        && md.GetString(md.GetMethodDefinition(getterHandle).Name) == "get_" + name;
+}
+Require("S1 facade exposes static string ConfiguredJoiningEquipment", StaticStringProperty(s1Namespace + ".AvatarPlugin", "ConfiguredJoiningEquipment"));
+Require("S2 facade exposes static string JoiningEquipment", StaticStringProperty(s2Namespace + ".Gsd2Plugin", "JoiningEquipment"));
 
 string Sha256(byte[] bytes) => Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
 var catalogSources = new[]
@@ -101,6 +125,7 @@ var opcodes = typeof(OpCodes).GetFields(BindingFlags.Public | BindingFlags.Stati
     .Select(f => (OpCode)f.GetValue(null)!).ToDictionary(op => unchecked((ushort)op.Value));
 var calls = new List<(string Caller, string Owner, string Name)>();
 var literals = new HashSet<string>(StringComparer.Ordinal);
+var methodLiterals = new List<(string Caller, string Value)>();
 (string Owner, string Name) MethodTarget(EntityHandle handle)
 {
     if (handle.Kind == HandleKind.MethodSpecification) return MethodTarget(md.GetMethodSpecification((MethodSpecificationHandle)handle).Method);
@@ -136,7 +161,8 @@ foreach (var handle in type.Value.GetMethods())
             case OperandType.InlineI8: case OperandType.InlineR: reader.Offset += 8; break;
             case OperandType.InlineSwitch: int count = reader.ReadInt32(); reader.Offset += checked(count * 4); break;
             case OperandType.InlineString:
-                literals.Add(md.GetUserString(MetadataTokens.UserStringHandle(reader.ReadInt32() & 0xffffff))); break;
+                string literal = md.GetUserString(MetadataTokens.UserStringHandle(reader.ReadInt32() & 0xffffff));
+                literals.Add(literal); methodLiterals.Add((caller, literal)); break;
             case OperandType.InlineMethod:
                 var target = MetadataTokens.EntityHandle(reader.ReadInt32());
                 if (op == OpCodes.Call || op == OpCodes.Callvirt)
@@ -149,6 +175,27 @@ foreach (var handle in type.Value.GetMethods())
         }
     }
 }
+foreach (var facade in new[] {
+    (Type: s1Namespace + ".AvatarPlugin", Property: "ConfiguredJoiningEquipment"),
+    (Type: s2Namespace + ".Gsd2Plugin", Property: "JoiningEquipment")
+})
+{
+    string configure = facade.Type + ".Configure";
+    var configLiterals = methodLiterals.Where(value => value.Caller == configure).Select(value => value.Value).ToHashSet(StringComparer.Ordinal);
+    Require("joining-inventory config key and both policies bound by " + facade.Type,
+        new[] { "Shuffle", "JoiningEquipment", "MatchRole", "Donor" }.All(configLiterals.Contains)
+        && calls.Any(call => call.Caller == configure && call.Owner == facade.Type && call.Name == "set_" + facade.Property)
+        && calls.Any(call => call.Caller == configure && call.Owner == "BepInEx.Configuration.ConfigFile" && call.Name == "Bind"));
+}
+Require("S1 runtime consumes its joining-inventory facade policy", calls.Any(call => call.Caller.StartsWith(s1Namespace + ".AvatarRuntime.", StringComparison.Ordinal)
+    && call.Owner == s1Namespace + ".AvatarPlugin" && call.Name == "get_ConfiguredJoiningEquipment"));
+Require("S2 runtime consumes its joining-inventory facade policy", calls.Any(call => call.Caller.StartsWith(s2Namespace + ".Gsd2Runtime.", StringComparison.Ordinal)
+    && call.Owner == s2Namespace + ".Gsd2Plugin" && call.Name == "get_JoiningEquipment"));
+Require("S1 runtime calls the compiled inventory adapter and saved binding store", calls.Any(call => call.Caller.StartsWith(s1Namespace + ".AvatarRuntime.", StringComparison.Ordinal)
+    && call.Owner == s1Namespace + ".JoiningEquipmentNative" && call.Name == "Apply")
+    && calls.Any(call => call.Owner == s1Namespace + ".JoiningEquipmentBindingStore" && call.Name == "Write"));
+Require("S2 recruitment transaction calls the compiled compatible-equipment planner", calls.Any(call => call.Caller == s2Namespace + ".Gsd2Runtime.ObserveJoinedEquipment"
+    && call.Owner == s2Namespace + ".Gsd2EquipmentBalance" && call.Name == "Plan"));
 Require("no broad PatchAll call in combined assembly", !calls.Any(c => c.Name == "PatchAll"));
 Require("one explicit patch-class dispatcher", calls.Where(c => c.Name == "CreateClassProcessor")
     .SequenceEqual(new[] { (bootstrap + ".ApplyPatches", "HarmonyLib.Harmony", "CreateClassProcessor") }));

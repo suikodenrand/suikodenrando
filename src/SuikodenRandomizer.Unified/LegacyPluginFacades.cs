@@ -15,6 +15,7 @@ namespace SuikodenRandomizer.AvatarPlugin
         internal static string ConfiguredMode { get; private set; } = "Shuffle";
         internal static string ConfiguredCompanions { get; private set; } = "";
         internal static string ConfiguredJoiningWeaponLevel { get; private set; } = "TirVariance";
+        internal static string ConfiguredJoiningEquipment { get; private set; } = "MatchRole";
         internal static bool ConfiguredIncludeTir { get; private set; }
         internal static bool ConfiguredTreasureShuffle { get; private set; }
         internal static bool ConfiguredTreasureEnabled { get; private set; }
@@ -37,6 +38,12 @@ namespace SuikodenRandomizer.AvatarPlugin
                 throw new InvalidOperationException("S1 JoiningWeaponLevel must be TirVariance, MatchRole or Level1.");
             ConfiguredJoiningWeaponLevel = string.Equals(ConfiguredJoiningWeaponLevel, "Level1", StringComparison.OrdinalIgnoreCase) ? "Level1"
                 : string.Equals(ConfiguredJoiningWeaponLevel, "MatchRole", StringComparison.OrdinalIgnoreCase) ? "MatchRole" : "TirVariance";
+            ConfiguredJoiningEquipment = config.Bind("Shuffle", "JoiningEquipment", "MatchRole",
+                "New campaigns only: MatchRole uses the original story role's starting inventory and equipment, with comparable compatible gear when needed; Donor keeps the replacement's starting inventory. Saved campaigns retain their policy and acquired items.").Value.Trim();
+            if (!string.Equals(ConfiguredJoiningEquipment, "MatchRole", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(ConfiguredJoiningEquipment, "Donor", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("JoiningEquipment must be MatchRole or Donor.");
+            ConfiguredJoiningEquipment = string.Equals(ConfiguredJoiningEquipment, "Donor", StringComparison.OrdinalIgnoreCase) ? "Donor" : "MatchRole";
             ConfiguredIncludeTir = config.Bind("Shuffle", "IncludeTir", false, "Include Tir in new Suikoden I shuffles.").Value;
             ConfiguredTreasureShuffle = config.Bind("Treasure", "ShuffleChests", false,
                 "Shuffle ordinary S1 chest items for new or previously unbound treasure campaigns. Saved treasure profiles retain their settings.").Value;
@@ -61,6 +68,7 @@ namespace SuikodenRandomizer.Suikoden2Plugin
         internal static string Mode { get; private set; } = "Shuffle";
         internal static string Companions { get; private set; } = "";
         internal static string JoiningWeaponLevel { get; private set; } = "RiouVariance";
+        internal static string JoiningEquipment { get; private set; } = "MatchRole";
         internal static bool IncludeProtagonist { get; private set; }
         internal static string StartPoint { get; private set; } = "Opening";
         internal static bool NativeCheckpointCapture { get; private set; }
@@ -84,6 +92,12 @@ namespace SuikodenRandomizer.Suikoden2Plugin
                 throw new InvalidOperationException("S2 JoiningWeaponLevel must be RiouVariance, MatchRole or Level1.");
             JoiningWeaponLevel = string.Equals(JoiningWeaponLevel, "Level1", StringComparison.OrdinalIgnoreCase) ? "Level1"
                 : string.Equals(JoiningWeaponLevel, "MatchRole", StringComparison.OrdinalIgnoreCase) ? "MatchRole" : "RiouVariance";
+            JoiningEquipment = config.Bind("Shuffle", "JoiningEquipment", "MatchRole",
+                "New campaigns only: MatchRole uses the original story role's starting inventory and equipment, with comparable compatible gear when needed; Donor keeps the replacement's starting inventory. Saved campaigns retain their policy and acquired items.").Value.Trim();
+            if (!string.Equals(JoiningEquipment, "MatchRole", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(JoiningEquipment, "Donor", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("JoiningEquipment must be MatchRole or Donor.");
+            JoiningEquipment = string.Equals(JoiningEquipment, "Donor", StringComparison.OrdinalIgnoreCase) ? "Donor" : "MatchRole";
             IncludeProtagonist = config.Bind("Shuffle", "IncludeProtagonist", false, "Include the protagonist in new shuffles.").Value;
             string start = config.Bind("Start", "Point", "Opening", "Opening or ViktorCamp.").Value.Trim();
             StartPoint = MatchOption(start, "Opening", Gsd2CampStart.Point);

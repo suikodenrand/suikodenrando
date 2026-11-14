@@ -16,6 +16,7 @@ public sealed class Gsd2Plugin : BasePlugin
     internal static string Mode { get; private set; } = "Shuffle";
     internal static string Companions { get; private set; } = "";
     internal static string JoiningWeaponLevel { get; private set; } = "RiouVariance";
+    internal static string JoiningEquipment { get; private set; } = "MatchRole";
     internal static bool IncludeProtagonist { get; private set; }
     internal static string StartPoint { get; private set; } = "Opening";
     internal static bool NativeCheckpointCapture { get; private set; }
@@ -41,6 +42,12 @@ public sealed class Gsd2Plugin : BasePlugin
                 throw new InvalidOperationException("JoiningWeaponLevel must be RiouVariance, MatchRole or Level1.");
             JoiningWeaponLevel = string.Equals(JoiningWeaponLevel, "Level1", StringComparison.OrdinalIgnoreCase) ? "Level1"
                 : string.Equals(JoiningWeaponLevel, "MatchRole", StringComparison.OrdinalIgnoreCase) ? "MatchRole" : "RiouVariance";
+            JoiningEquipment = Config.Bind("Shuffle", "JoiningEquipment", "MatchRole",
+                "New campaigns only: MatchRole uses the original story role's starting inventory and equipment, with comparable compatible gear when needed; Donor keeps the replacement's starting inventory. Saved campaigns retain their policy and acquired items.").Value.Trim();
+            if (!string.Equals(JoiningEquipment, "MatchRole", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(JoiningEquipment, "Donor", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("JoiningEquipment must be MatchRole or Donor.");
+            JoiningEquipment = string.Equals(JoiningEquipment, "Donor", StringComparison.OrdinalIgnoreCase) ? "Donor" : "MatchRole";
             IncludeProtagonist = Config.Bind("Shuffle", "IncludeProtagonist", false, "Include the protagonist in the Suikoden II character shuffle.").Value;
             StartPoint = Config.Bind("Start", "Point", "Opening", "New Suikoden II campaign starting point.").Value.Trim();
             if (StartPoint != "Opening" && StartPoint != Gsd2CampStart.Point) throw new InvalidOperationException("Suikoden II start must be Opening or ViktorCamp.");

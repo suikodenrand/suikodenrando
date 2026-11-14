@@ -1,8 +1,8 @@
 # Stars of Destiny
 
-A seeded character randomizer for the Windows Steam release of **Suikoden I & II HD Remaster**. Version **0.14.3** combines both games in one plugin host, with a shared interface and separate game settings and saved campaign mappings.
+A seeded character randomizer for the Windows Steam release of **Suikoden I & II HD Remaster**. Both games share one plugin host and interface, with separate settings and saved campaign mappings. This source branch prepares the unpublished **0.14.4 test build** with launcher **1.0.4**.
 
-Download the [0.14.3 release](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.3). Developers and reviewers can build the project from this source using [BUILDING.md](BUILDING.md).
+The latest published download remains the [0.14.3 release](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.3). Developers and reviewers can build this branch using [BUILDING.md](BUILDING.md); see [CHANGELOG.md](CHANGELOG.md) for the unreleased changes. The website is unchanged.
 
 ## Features
 
@@ -11,6 +11,7 @@ Download the [0.14.3 release](https://github.com/suikodenrand/suikodenrando/rele
 - Shuffled names, portraits and party appearances, plus supported English dialogue-name replacements.
 - Native Unite eligibility based on the actual shuffled fighters in both games.
 - Joining-weapon options: follow Tir in S1 or Riou in S2 with seeded -3 to +3 variance, match the original role, or start at weapon level 1. Saved campaigns retain their policy and earned sharpening.
+- Joining inventory and equipment for both games: use the original role's starting inventory, including consumables, with comparable wearable substitutes for incompatible equipment. Available in Shuffle, chosen companions and random fixed rosters; keeping the replacement's starting inventory remains an option.
 - A Windows launcher for settings, seeds, presets, configuration backups and optional features.
 - Optional experimental S1 chest shuffle and S1 Active Time Battle preview. ATB uses native command menus, targeting and SPD gauges.
 - One text-only F6 panel, hidden at launch by default.
@@ -44,7 +45,11 @@ For an existing modded installation, first back up `Save` and `BepInEx/config` t
 
 ## Defaults and optional features
 
-Fresh installs use character Shuffle, normal openings, English dialogue replacement and shuffled Unites. Protagonist shuffle and chest shuffle are off. F6 starts Hidden and cycles Full, Compact and Hidden text views for the current session.
+Fresh 0.14.4 builds use character Shuffle, the original role's starting inventory, normal openings, English dialogue replacement and shuffled Unites. Protagonist shuffle and chest shuffle are off. F6 starts Hidden and cycles Full, Compact and Hidden text views for the current session.
+
+In Characters, **Joining inventory & equipment** defaults to **Original role's starting inventory** (`Shuffle/JoiningEquipment=MatchRole`). At first join, replacements receive the original role's inventory and equipped items; incompatible armor and accessories use comparable equipment they can wear. The replacement's own weapon identity and rune setup remain intact. **Replacement's starting inventory** (`Donor`) keeps the previous behavior. The choice applies to new campaigns in all three modes, independently of the joining-weapon-level option. Later rejoining and reloading retain acquired items and equipment changes.
+
+Campaigns saved before this feature keep the legacy replacement inventory behavior. Upgrading or changing the launcher does not retrofit those saves or reset their inventory. Keep saves and their campaign sidecars together.
 
 First joining weapons follow Tir or Riou with seeded -3 to +3 variance, including a possible exact match. These are new-campaign policies. Changing launcher settings does not rewrite the seed, mapping or weapon policy already bound to a saved campaign.
 
@@ -58,6 +63,6 @@ The project's own code and documentation are under the [MIT License](LICENSE). D
 
 ## Testing status and support
 
-This is a preview release. Representative shuffled parties, save/load transitions, dialogue, Unite attacks and F6 behavior have been tested in-game; every campaign, recipe and scripted encounter has not been played through. S1 chest shuffle and ATB remain experimental. Riou-based joining weapons have managed regression coverage; native first-join playtesting remains pending.
+This is a preview. Representative shuffled parties, save/load transitions, dialogue, Unite attacks and F6 behavior from earlier builds have been tested in-game; every campaign, recipe and scripted encounter has not been played through. S1 chest shuffle and ATB remain experimental. Joining inventory/equipment balancing is new in this branch and needs native first-join, equipment-compatibility and save/rejoin playtesting in both games. Managed checks do not replace those playtests; see [BUILDING.md](BUILDING.md).
 
 Report the game, version, seed/mode, scene and steps that reproduce a problem. Include relevant `BepInEx/LogOutput.log` lines and screenshots after reviewing them for personal paths or other private data. Keep saves and their configuration sidecars paired when backing up or sharing a campaign.

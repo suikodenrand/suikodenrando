@@ -1,4 +1,4 @@
-STARS OF DESTINY 0.14.3 - MOD-ONLY MANUAL WINDOWS PACKAGE
+STARS OF DESTINY 0.14.4 - MOD-ONLY MANUAL WINDOWS PACKAGE
 Suikoden I & II HD Remaster | Steam | Windows x64
 
 REQUIRED FIRST: BEPINEX, DOWNLOADED SEPARATELY
@@ -33,8 +33,8 @@ FRESH INSTALL
    this can take several minutes. Wait for the title screen. Progress and
    errors are in BepInEx/LogOutput.log.
 8. Start New Game for a new randomized campaign. Existing bound saves retain
-   their saved seed, mapping and weapon policy. The F6 panel starts hidden;
-   press F6 to cycle Full, Compact and Hidden text views for this session.
+   their saved seed, mapping, weapon and inventory policies. The F6 panel
+   starts hidden; press F6 to cycle Full, Compact and Hidden for this session.
 
 This ZIP includes the combined randomizer, launcher and Suikoden Fix, but no
 BepInEx core, loader runtime, Doorstop files, setup EXE or install script.
@@ -46,6 +46,24 @@ Unites are on. Protagonist shuffle, chest shuffle and ATB are off. F6 starts
 Hidden with text only. First joining weapons follow Tir in S1 or Riou in S2
 with seeded -3 to +3 variance, including an exact match. Existing campaigns
 retain their own mapping and weapon policy.
+
+JOINING INVENTORY AND EQUIPMENT (NEW IN 0.14.4)
+Fresh default for both games: Shuffle/JoiningEquipment=MatchRole. In the
+launcher, choose Original role's starting inventory under Characters.
+At the replacement's first party join, it receives the original story role's
+full starting inventory, including consumables such as Medicine and equipped
+items. Incompatible armor and accessories use comparable equipment the
+replacement can wear. The replacement keeps its own weapon identity and
+rune setup. Joining weapon-level choices remain separate.
+This works in Shuffle, chosen companions and random fixed-roster modes.
+Replacement's starting inventory (Donor) preserves the previous behavior.
+The policy and first-join history are saved with the campaign. Acquired
+items, consumption and equipment changes survive later joins and reloads.
+Existing campaigns without this feature's saved metadata keep Donor behavior;
+upgrading does not retrofit their inventory. Changing the launcher affects
+new campaigns rather than rewriting saved inventory. Keep Save and all
+BepInEx/config campaign sidecars together. Native first-join, compatibility
+and save/rejoin playtesting of this new feature is pending.
 
 OPTIONAL S1 ATB
 The optional plugin is bundled dormant at

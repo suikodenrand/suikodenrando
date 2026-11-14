@@ -498,14 +498,14 @@ try {
             throw 'The package manifest is missing or invalid. Extract the complete ZIP again.'
         }
         $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-        if ($manifest.schema -ne 'stars-full-package-v1' -or $manifest.packageVersion -ne '0.14.3' -or
+        if ($manifest.schema -ne 'stars-full-package-v1' -or $manifest.packageVersion -ne '0.14.4' -or
             $manifest.gameAssemblySha256 -notmatch '^[0-9a-fA-F]{64}$' -or -not $manifest.files) {
             throw 'The package manifest is missing or invalid. Extract the complete ZIP again.'
         }
         $expectedGameHash = [string]$manifest.gameAssemblySha256
         Assert-GameBuild $assembly $expectedGameHash
         $plan = @(Get-InstallPlan $manifest $folder)
-        Write-Host 'Required components: BepInEx, combined randomizer 0.14.3, launcher, and Suikoden Fix.'
+        Write-Host 'Required components: BepInEx, combined randomizer 0.14.4, launcher, and Suikoden Fix.'
         if ($IncludeAtb) { Write-Host 'Optional S1 ATB selected. Its fresh configuration is disabled.' }
         else { Write-Host 'Optional S1 ATB not selected. Any existing ATB files are preserved.' }
         Write-Host 'Existing settings are preserved. Fresh settings start with chest shuffle and ATB disabled.'
@@ -542,7 +542,7 @@ try {
         Assert-NoDuplicatePlugins $folder
         $transaction = Install-Plan $plan $folder $expectedGameHash
         if ($RestoreTransaction) { Write-Host 'Previous installation files restored.' }
-        else { Write-Host 'Stars of Destiny Full Preview 0.14.3 installed.' }
+        else { Write-Host 'Stars of Destiny Full Preview 0.14.4 installed.' }
         Write-Host "Undo this transaction using StarsOfDestiny Setup\Restore.cmd -TransactionPath `"$transaction`""
     }
     if (-not [IO.File]::Exists((Join-Path $folder 'BepInEx\interop\GSD1.dll')) -or

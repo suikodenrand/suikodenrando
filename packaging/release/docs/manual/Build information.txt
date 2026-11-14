@@ -1,9 +1,9 @@
-Stars of Destiny 0.14.3 - Mod-only Manual Windows Preview
+Stars of Destiny 0.14.4 - Mod-only Manual Windows Preview
 Windows x64 / Steam Suikoden I & II HD Remaster
 
 BUNDLED
-Combined randomizer 0.14.3
-Launcher 1.0.3 with private Windows Desktop .NET 10.0.14 runtime
+Combined randomizer 0.14.4
+Launcher 1.0.4 with private Windows Desktop .NET 10.0.14 runtime
 Optional Suikoden I ATB Preview 0.10.1, dormant outside active plugins
 Suikoden Fix upstream release 1.5.2b
 Fresh mod configuration files and manual instructions
@@ -34,6 +34,13 @@ Both use the protagonist's current weapon level with seeded -3 to +3
 variance at first join, including an exact match. MatchRole and Level1
 remain available. Existing campaigns retain their policy and sharpening;
 native Riou-policy first-join playtesting is pending.
+
+Joining inventory/equipment defaults to MatchRole in all three modes in
+both games: the original role's full starting inventory, with comparable
+wearable substitutes for incompatible gear. Donor retains replacement gear.
+Saved campaigns keep their policy and acquired inventory; legacy campaigns
+are not retrofitted. Weapon levels are configured independently. Native
+first-join, compatibility and save/rejoin playtesting is pending.
 
 The optional ATB DLL is dormant at
 BepInEx/SuikodenRandomizer.S1BattlePreview.dll. The launcher can activate the

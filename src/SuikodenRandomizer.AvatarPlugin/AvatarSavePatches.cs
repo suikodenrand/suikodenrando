@@ -25,6 +25,7 @@ internal static class AvatarSavePreparationPatch
             runtime.CheckCampaignBindingWritable();
             runtime.CheckTreasureBindingWritable();
             runtime.CheckJoiningWeaponBindingWritable();
+            runtime.CheckJoiningEquipmentBindingWritable();
             __state = new AvatarSaveCall { Previous = AvatarSaveCall.Current, Runtime = runtime,
                 ExecutionEpoch = runtime.ExecutionEpoch };
             AvatarSaveCall.Current = __state;
@@ -63,6 +64,7 @@ internal static class AvatarSaveCapturePatch
             string identity = runtime.WriteCampaignBinding(save_data);
             runtime.WriteTreasureBinding(save_data);
             runtime.WriteJoiningWeaponBinding(save_data);
+            runtime.WriteJoiningEquipmentBinding(save_data);
             call.BindingFailed = false;
             runtime.Trace("SAVE BOUND: canonical native snapshot=" + identity + "; profile=" + runtime.CampaignFingerprint);
         }

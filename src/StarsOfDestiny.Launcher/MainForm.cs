@@ -210,13 +210,15 @@ internal sealed partial class MainForm : Form
 
     private Control BuildCharacters()
     {
-        var page = Grid(2, 3);
+        var page = Grid(2, 4);
+        page.MinimumSize = new Size(0, 630);
         page.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 48));
         page.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 52));
         page.RowStyles.Add(new RowStyle(SizeType.Absolute, 60));
         page.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         page.RowStyles.Add(new RowStyle(SizeType.Absolute, 135));
-        var note = Note("Seed, character mode, companions, start point, and joining weapon level apply to new games. Loaded campaigns restore their saved settings.");
+        page.RowStyles.Add(new RowStyle(SizeType.Absolute, 110));
+        var note = Note("Seed, character mode, companions, start point, joining weapon level and equipment apply to new games. Loaded campaigns restore their saved settings.");
         page.Controls.Add(note, 0, 0);
         page.SetColumnSpan(note, 2);
         var modeGroup = Group("Character randomization");
@@ -303,6 +305,31 @@ internal sealed partial class MainForm : Form
             : "Riou ±3 uses his current weapon level with a seeded offset from −3 to +3 when a character first joins. The policy is saved per campaign."));
         weapons.Controls.Add(weaponFields);
         page.Controls.Add(weapons, 1, 2);
+        var equipment = Group("Joining inventory & equipment");
+        var equipmentFields = Stack();
+        var equipmentChoices = new[]
+        {
+            new KeyValuePair<string, string>("MatchRole", "Original role's starting inventory (default)"),
+            new KeyValuePair<string, string>("Donor", "Replacement's starting inventory")
+        };
+        var equipmentChoice = new AppComboBox { Dock = DockStyle.Top, DisplayMember = "Value" };
+        if (!SupportsHost(GameInstallation.JoiningEquipmentMinimumVersion))
+        {
+            equipmentChoice.Enabled = false;
+            equipment.Text += " (requires plug-in " + GameInstallation.JoiningEquipmentMinimumVersion + ")";
+        }
+        equipmentChoice.Items.AddRange(equipmentChoices.Cast<object>().ToArray());
+        equipmentChoice.SelectedItem = equipmentChoices.FirstOrDefault(choice => choice.Key == Get(GameId + ".joiningEquipment"));
+        equipmentChoice.SelectedIndexChanged += (_, _) =>
+        {
+            if (equipmentChoice.SelectedItem is KeyValuePair<string, string> choice)
+                Set(GameId + ".joiningEquipment", choice.Key);
+        };
+        equipmentFields.Controls.Add(equipmentChoice);
+        equipmentFields.Controls.Add(Note("At first join, receive the original role's inventory and equipped gear, with comparable wearable replacements where needed. Saved campaigns keep their policy; weapon level is controlled separately."));
+        equipment.Controls.Add(equipmentFields);
+        page.Controls.Add(equipment, 0, 3);
+        page.SetColumnSpan(equipment, 2);
         return page;
     }
 

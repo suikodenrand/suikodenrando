@@ -1,8 +1,8 @@
-Stars of Destiny 0.14.3 - Full Windows Preview
+Stars of Destiny 0.14.4 - Full Windows Preview
 Windows x64 / Steam Suikoden I & II HD Remaster
 
-Combined randomizer 0.14.3
-Launcher 1.0.3 with private Windows Desktop .NET 10.0.14 runtime
+Combined randomizer 0.14.4
+Launcher 1.0.4 with private Windows Desktop .NET 10.0.14 runtime
 Optional Suikoden I ATB Preview 0.10.1, unchecked and installed disabled
 Suikoden Fix upstream release 1.5.2b
 BepInEx 6.0.0-be.697 IL2CPP Windows x64 with private .NET 6.0.7 loader runtime
@@ -23,6 +23,13 @@ Both use the protagonist's current weapon level with a seeded -3 to +3
 offset at first join, including a possible exact match. Existing campaigns
 keep their policy and earned sharpening; native Riou-policy playtesting is
 pending. MatchRole and Level1 remain available for both games.
+Joining inventory/equipment defaults to MatchRole in all three modes in
+both games: the original role's full starting inventory, with comparable
+wearable substitutes for incompatible gear. Donor retains replacement gear.
+Saved campaigns keep their policy and acquired inventory; legacy campaigns
+are not retrofitted. Weapon levels are configured independently. Native
+first-join, compatibility and save/rejoin playtesting is pending.
+
 Existing saves, settings and campaign bindings are preserved on upgrade.
 
 See payload-manifest.json for exact file versions/hashes. The companion

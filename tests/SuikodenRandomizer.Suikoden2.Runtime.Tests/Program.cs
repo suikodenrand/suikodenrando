@@ -23,10 +23,14 @@ internal static partial class Program
             ckd_info=new Il2CppSystem.Collections.Generic.List<Il2CppSystem.Collections.Generic.List<byte>>(),
             _serialized_ckd_info=new Il2CppSystem.Collections.Generic.List<IMPORT_GAME_DATA.NestDataClass<byte>>(),
             suki_value=new Il2CppStructArray<sbyte>(count) },
-            party_data=new PARTY_DATA {party_cha_no=Bytes(8,0)}, c_teg_dat=new C_TEG_DAT {name=new Il2CppStructArray<int>(count)},
+            party_data=new PARTY_DATA {party_cha_no=Bytes(8,0),party_item=new Il2CppReferenceArray<PARTY_ITEM>(64)}, ovit_data=new OVIT_DATA { bogu_data=new Il2CppReferenceArray<BOGU_DATA>(256) }, c_teg_dat=new C_TEG_DAT {name=new Il2CppStructArray<int>(count)},
             arms_data=new Il2CppReferenceArray<ARMS_DATA>(count),chara_flag=Enumerable.Range(0,count).Select(i=>(byte)(i%7)).ToArray(),story_flag=new byte[] {3,17,91,128} };
+        for(int index=0;index<64;index++) game.party_data.party_item[index]=new PARTY_ITEM();
+        for(int index=0;index<256;index++) game.ovit_data.bogu_data[index]=new BOGU_DATA {
+            name=index,info=Bytes(2,0),bonus=new Il2CppStructArray<sbyte>(7),atrb=Bytes(4,0),set_status=Bytes(3,0),blk_status=Bytes(3,0),def_val=(sbyte)(index%100),botch=(ushort)(index*10) };
+        foreach(var armor in game.ovit_data.bogu_data) { armor.info[0]=127; armor.info[1]=15; }
         for(int i=0;i<count;i++) {
-            game.chara_data.c_kotei_dat[i]=new C_KOTEI_DAT {seicyo_type=Bytes(8,i),monsyo_seigen=Bytes(8,i+1),mon_zoku_aisyo=Bytes(8,i+2),mon_kosu_type=Bytes(8,i+3),soubi_henkou=(byte)i,soubi_kanou=(byte)(i+1),okori_panic=(byte)(i+2)};
+            game.chara_data.c_kotei_dat[i]=new C_KOTEI_DAT {seicyo_type=Bytes(8,i),monsyo_seigen=Bytes(8,i+1),mon_zoku_aisyo=Bytes(8,i+2),mon_kosu_type=Bytes(8,i+3),soubi_henkou=(byte)i,soubi_kanou=37,okori_panic=(byte)(i+2)};
             var items=new Il2CppReferenceArray<PARTY_ITEM>(3);for(int n=0;n<3;n++)items[n]=new PARTY_ITEM {item_no=(byte)(i+n),use_cnt=(byte)(n+1)};
             game.chara_data.c_varia_dat[i]=new C_VARIA_DAT {level=(byte)(1+i%70),exp=(ushort)(i*101),now_hp=(ushort)(100+i),max_hp=(ushort)(200+i),mp=Bytes(4,i),para=Bytes(7,i+1),buki_lv=(byte)(1+i%16),buki_mon=(byte)(i%8),mon_eqp=Bytes(3,i+2),bogu_eqp=Bytes(3,i+3),item_eqp=items,todome=(ushort)(i+4)};
             var row=new Il2CppSystem.Collections.Generic.List<byte>();row.Add((byte)i);row.Add((byte)(new[] {49,50,72,74}.Contains(i)?0x60:i==26?6:0));row.Add((byte)(i+2));
@@ -59,6 +63,7 @@ internal static partial class Program
     private static void ResetCampCollaborators()
     {
         Gsd2Plugin.JoiningWeaponLevel="MatchRole";
+        Gsd2Plugin.JoiningEquipment="Donor";
         Gsd2CampStart.BeforeApply=null;Gsd2CampStart.Applications=0;
         Gsd2CampNativeGuard.PlayerReady=true;Gsd2CampNativeGuard.RejectFresh=false;Gsd2CampNativeGuard.RejectMap=false;Gsd2CampNativeGuard.RejectPlayer=false;
         Gsd2CampNativeGuard.FreshChecks=0;Gsd2CampNativeGuard.MapChecks=0;Gsd2CampNativeGuard.PlayerChecks=0;
@@ -480,9 +485,9 @@ internal static partial class Program
                 var record=Gsd2FighterRecord.Capture(Fixture().chara_data.c_varia_dat[2]);record.Level=0;Reject<InvalidOperationException>(()=>record.CreateNative());
             })
         };
-        tests=tests.Concat(RiouWeaponChecks()).ToArray();
+        tests=tests.Concat(RiouWeaponChecks()).Concat(EquipmentChecks()).Concat(EquipmentNativeChecks()).ToArray();
         int failed=0;
-        foreach(var test in tests) { try { ResetCampCollaborators();test.Run();Console.WriteLine("PASS "+test.Name); } catch(Exception exception) { failed++;Console.WriteLine("FAIL "+test.Name+": "+exception.Message); } finally { C_VARIA_DAT.BeforeWeaponWrite=null;OldSrcBase.RejectGameAccess=false;Gsd2Runtime.SetExecutionOwnership(()=>true,()=>0); } }
+        foreach(var test in tests) { try { ResetCampCollaborators();test.Run();Console.WriteLine("PASS "+test.Name); } catch(Exception exception) { failed++;Console.WriteLine("FAIL "+test.Name+": "+exception.Message); } finally { C_VARIA_DAT.BeforeWeaponWrite=null;PARTY_ITEM.BeforeUseWrite=null;Il2CppStructArray<byte>.BeforeWrite=null;OldSrcBase.RejectGameAccess=false;Gsd2Runtime.SetExecutionOwnership(()=>true,()=>0); } }
         Console.WriteLine($"{tests.Length-failed}/{tests.Length} actual-linked Suikoden II runtime checks passed.");
         if(failed!=0)throw new Exception(failed+" linked runtime regressions failed.");
     }

@@ -1,4 +1,6 @@
-# Building Stars of Destiny 0.14.3
+# Building Stars of Destiny 0.14.4
+
+This branch prepares an unpublished 0.14.4 test build and launcher 1.0.4. The published [v0.14.3 tag](https://github.com/suikodenrand/suikodenrando/tree/v0.14.3) retains that release's exact source and build recipe. Building this branch does not publish a release or change the website.
 
 Build on Windows x64 from a clean checkout. This repository contains the project source; it does not supply the game, generated game interop assemblies or a personal save. Building does not require changing files in the game installation.
 
@@ -38,13 +40,13 @@ From the repository root, set your local game path in PowerShell:
 ```powershell
 $game = 'D:\SteamLibrary\steamapps\common\Suikoden I and II HD Remaster'
 dotnet --version
-dotnet build src/SuikodenRandomizer.Unified/SuikodenRandomizer.Unified.csproj -c Release "-p:GamePath=$game" -p:Version=0.14.3
+dotnet build src/SuikodenRandomizer.Unified/SuikodenRandomizer.Unified.csproj -c Release "-p:GamePath=$game" -p:Version=0.14.4
 dotnet build src/SuikodenRandomizer.S1BattlePreview/SuikodenRandomizer.S1BattlePreview.csproj -c Release "-p:GamePath=$game"
 $atbSha256 = (Get-FileHash src/SuikodenRandomizer.S1BattlePreview/bin/Release/net6.0/SuikodenRandomizer.S1BattlePreview.dll -Algorithm SHA256).Hash.ToLowerInvariant()
-dotnet publish src/StarsOfDestiny.Launcher/StarsOfDestiny.Launcher.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:RuntimeFrameworkVersion=10.0.14 "-p:ReviewedAtbSha256=$atbSha256" -o artifacts/0.14.3/launcher
+dotnet publish src/StarsOfDestiny.Launcher/StarsOfDestiny.Launcher.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:RuntimeFrameworkVersion=10.0.14 "-p:ReviewedAtbSha256=$atbSha256" -o artifacts/0.14.4/launcher
 ```
 
-Apply the global `Version=0.14.3` property to the **unified runtime build only**, matching the production build's version metadata for all four runtime payload DLLs. Build the separate ATB component without that override so it retains **0.10.1**. Publish the launcher separately with its project product version **1.0.3**. Do not carry the unified build's version override into those separate commands.
+Apply the global `Version=0.14.4` property to the **unified runtime build only**, matching the production build's version metadata for all four runtime payload DLLs. Build the separate ATB component without that override so it retains **0.10.1**. Publish the launcher separately with its project product version **1.0.4**. Do not carry the unified build's version override into those separate commands.
 
 The combined runtime payload consists of these four files from `src/SuikodenRandomizer.Unified/bin/Release`:
 
@@ -65,7 +67,7 @@ The launcher deliberately checks the reviewed ATB binary's SHA-256 before copyin
 
 When producing a custom reviewed ATB build, review/test that binary and pass its hash as `ReviewedAtbSha256` when publishing the matching launcher, as shown above. The build records a validated 64-digit hash in assembly metadata; the launcher continues to require an exact reviewed-binary match. `Build-Release.ps1` computes and passes this property automatically. Without the property, the launcher retains the original reviewed 0.10.1 hash as its default.
 
-Preserve the validation guard; do not turn it into unconditional acceptance of arbitrary DLLs. Keep the reviewed binary and the matching launcher together in a custom package. The official 0.14.3 assets retain the reviewed ATB hash recorded by their manifests.
+Preserve the validation guard; do not turn it into unconditional acceptance of arbitrary DLLs. Keep the reviewed binary and the matching launcher together in a custom package. The published 0.14.3 assets retain the reviewed ATB hash recorded by their manifests.
 
 ```powershell
 Get-FileHash src/SuikodenRandomizer.S1BattlePreview/bin/Release/net6.0/SuikodenRandomizer.S1BattlePreview.dll -Algorithm SHA256
@@ -85,7 +87,7 @@ dotnet run --project tests/StarsOfDestiny.Launcher.Ui.Tests/StarsOfDestiny.Launc
 The UI checks require a Windows desktop environment. The compiled-host metadata checks take the built unified DLL and an output report path:
 
 ```powershell
-dotnet run --project tests/SuikodenRandomizer.Unified.Metadata.Tests/SuikodenRandomizer.Unified.Metadata.Tests.csproj -c Release -- src/SuikodenRandomizer.Unified/bin/Release/SuikodenRandomizer.dll artifacts/0.14.3/metadata-checks.json
+dotnet run --project tests/SuikodenRandomizer.Unified.Metadata.Tests/SuikodenRandomizer.Unified.Metadata.Tests.csproj -c Release -- src/SuikodenRandomizer.Unified/bin/Release/SuikodenRandomizer.dll artifacts/0.14.4/metadata-checks.json
 ```
 
 After rebuilding ATB, the launcher pairing test verifies the build-property hash guard against that actual DLL:
@@ -96,34 +98,54 @@ dotnet run --project tests/StarsOfDestiny.Launcher.AtbBuild.Tests/StarsOfDestiny
 
 Create the report's parent directory if it is absent. Some specialist test projects have their own README or arguments; consult them before running. Managed tests and metadata checks do not prove that every native battle, story script or campaign is correct. Record in-game checks separately and state what remains untested.
 
+### Joining inventory/equipment test plan
+
+`Shuffle/JoiningEquipment=MatchRole` is the fresh default in both game CFGs. It uses the original role's full starting inventory at the replacement's first party join, including consumables and equipped gear. Incompatible armor/accessories use comparable wearable equipment. `Donor` preserves replacement starting-inventory behavior. The policy applies to Shuffle, FixedChosen and FixedRandom and is separate from `JoiningWeaponLevel`. A saved campaign keeps its inventory policy and first-join history; campaigns predating this metadata retain Donor behavior without a retrofit.
+
+Run both runtime fixture projects and both launcher projects listed above. The launcher cases check independent per-game choices across all three modes, presets/advanced-editor round trips, config backups, missing legacy keys and the 0.14.4 host requirement. Check package metadata/defaults without producing packages:
+
+```powershell
+python -m unittest discover -s packaging/release/tests -v
+```
+
+Before approving the new feature for release, record these native checks separately in each game:
+
+1. Start a disposable new campaign with MatchRole. Compare the original role's starting inventory with its replacement's first join, including consumable counts and equipped state.
+2. Exercise a replacement that cannot wear the original armor or accessory. Confirm a comparable legal substitute can remain equipped and is accepted by the native equipment menu; confirm the replacement's own weapon and runes remain intact.
+3. Change equipment, consume an item, save and reload, then leave/rejoin where the story permits. Confirm no item duplication, restored consumables or equipment reset. Check that changing launcher policy does not rewrite this saved campaign.
+4. Repeat representative joins in Shuffle, FixedChosen and FixedRandom, then test Donor. Load a backed-up pre-0.14.4 campaign and verify its inventory stays unchanged under the legacy policy.
+5. Exercise the normal opening and quick start. Keep saves and all matching campaign sidecars paired; do not remove bindings to force a policy change.
+
+These checks require a live game and are pending for this test build. Managed tests and catalog/native static analysis cannot establish that every recruitment script is correct.
+
 ## Build release packages
 
 `packaging/Build-Release.ps1` orchestrates the source build and packaging without installing into the live game. Its default mode builds binaries. Use `Manual` for the mod-only ZIP or `All` for both that ZIP and the full setup:
 
 ```powershell
 .\packaging\Build-Release.ps1 -GamePath $game -PackageMode Binaries
-.\packaging\Build-Release.ps1 -GamePath $game -PackageMode Manual -DownloadDependencies -OutputDirectory artifacts/0.14.3-manual
-.\packaging\Build-Release.ps1 -GamePath $game -PackageMode All -DownloadDependencies -MakeNsis 'C:\Tools\NSIS\makensis.exe' -OutputDirectory artifacts/0.14.3-full
+.\packaging\Build-Release.ps1 -GamePath $game -PackageMode Manual -DownloadDependencies -OutputDirectory artifacts/0.14.4-manual
+.\packaging\Build-Release.ps1 -GamePath $game -PackageMode All -DownloadDependencies -MakeNsis 'C:\Tools\NSIS\makensis.exe' -OutputDirectory artifacts/0.14.4-full
 ```
 
-The default output root is `artifacts/0.14.3`, with `runtime`, `atb`, `launcher`, `packages` and `dependencies` subfolders. Use `-Dotnet` to select an SDK executable, `-Python` to select Python, `-OutputDirectory` to change the output root, or `-DependenciesDirectory` to use another dependency cache. Use a fresh package output directory for each packaging run; the packager refuses to overwrite an existing staged package or target a game installation.
+The default output root is `artifacts/0.14.4`, with `runtime`, `atb`, `launcher`, `packages` and `dependencies` subfolders. Use `-Dotnet` to select an SDK executable, `-Python` to select Python, `-OutputDirectory` to change the output root, or `-DependenciesDirectory` to use another dependency cache. Use a fresh package output directory for each packaging run; the packager refuses to overwrite an existing staged package or target a game installation.
 
-`-DownloadDependencies` explicitly permits fetching the pinned upstream inputs. Without it, the required dependency files must already be in the cache with matching hashes. The manual package needs the pinned Suikoden Fix archive. The full setup also needs the pinned BepInEx archive and three corresponding source archives; it distributes their verified extracted source folders, not nested ZIP files. Packaging pins are recorded in `packaging/release/dependencies.json`. Do not substitute a current bleeding-edge loader and label it the tested 0.14.3 bundle.
+`-DownloadDependencies` explicitly permits fetching the pinned upstream inputs. Without it, the required dependency files must already be in the cache with matching hashes. The manual package needs the pinned Suikoden Fix archive. The full setup also needs the pinned BepInEx archive and three corresponding source archives; it distributes their verified extracted source folders, not nested ZIP files. Packaging pins are recorded in `packaging/release/dependencies.json`. Do not substitute a current bleeding-edge loader and label it the tested 0.14.4 bundle.
 
 `-StageOnly` can validate and assemble the full setup's payload without compiling its NSIS EXE. It does not constitute qualification of a finished installer.
 
 For already built binaries, the Python packager can also be invoked directly. This example downloads missing pinned inputs into an ignored cache and creates a manual ZIP in a fresh output directory:
 
 ```powershell
-python packaging/release/build.py --mode manual --runtime-dir src/SuikodenRandomizer.Unified/bin/Release --atb-dll src/SuikodenRandomizer.S1BattlePreview/bin/Release/net6.0/SuikodenRandomizer.S1BattlePreview.dll --launcher-dir artifacts/0.14.3/launcher --dependencies .cache/release-dependencies --output artifacts/manual-package-0.14.3 --download-dependencies --reviewed-atb-sha256 $atbSha256
+python packaging/release/build.py --mode manual --runtime-dir src/SuikodenRandomizer.Unified/bin/Release --atb-dll src/SuikodenRandomizer.S1BattlePreview/bin/Release/net6.0/SuikodenRandomizer.S1BattlePreview.dll --launcher-dir artifacts/0.14.4/launcher --dependencies .cache/release-dependencies --output artifacts/manual-package-0.14.4 --download-dependencies --reviewed-atb-sha256 $atbSha256
 ```
 
 Use `--mode all --makensis <path-to-makensis.exe>` for the full setup as well. `--stage-only` skips NSIS compilation. Pass the same reviewed ATB hash used when publishing the matching launcher.
 
 The expected release assets are:
 
-- `Stars-of-Destiny-0.14.3-Setup.exe` — full setup, including the pinned upstream BepInEx loader and its notices/sources.
-- `Stars-of-Destiny-0.14.3-Mod-Only-Windows.zip` — game-folder layout containing the mod, launcher, configs and dormant optional ATB, with BepInEx installed separately.
+- `Stars-of-Destiny-0.14.4-Setup.exe` — full setup, including the pinned upstream BepInEx loader and its notices/sources.
+- `Stars-of-Destiny-0.14.4-Mod-Only-Windows.zip` — game-folder layout containing the mod, launcher, configs and dormant optional ATB, with BepInEx installed separately.
 - `SHA256SUMS.txt` — checksums generated for the actual resulting artifacts.
 
 The manual ZIP must exclude the upstream BepInEx core, loader `dotnet` folder, `winhttp.dll`, Doorstop files and loader source bundles. A `BepInEx` folder containing this project's plugins and settings does not itself constitute the loader. Preserve Suikoden Fix and launcher runtime notices in both packages. A full setup redistributing BepInEx also needs the original loader/dependency notices and corresponding source material.

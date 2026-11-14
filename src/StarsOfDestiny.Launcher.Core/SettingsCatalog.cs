@@ -106,6 +106,8 @@ public static class SettingsCatalog
             yield return new(game.Prefix + ".companions", game.File, "Shuffle", "Companions", "", SettingKind.Companions);
             yield return new(game.Prefix + ".joiningWeaponLevel", game.File, "Shuffle", "JoiningWeaponLevel", game.Prefix == "s1" ? "TirVariance" : "RiouVariance", SettingKind.Choice,
                 game.Prefix == "s1" ? new[] { "TirVariance", "MatchRole", "Level1" } : new[] { "RiouVariance", "MatchRole", "Level1" });
+            yield return new(game.Prefix + ".joiningEquipment", game.File, "Shuffle", "JoiningEquipment", "MatchRole", SettingKind.Choice,
+                new[] { "MatchRole", "Donor" });
             yield return new(game.Prefix + ".unites", game.File, "Battle", "ShuffledUnitesPreview", "false", SettingKind.Boolean);
             yield return new(game.Prefix + ".includeHero", game.File, "Shuffle", game.Prefix == "s1" ? "IncludeTir" : "IncludeProtagonist", "false", SettingKind.Boolean);
             yield return new(game.Prefix + ".start", game.File, "Start", "Point", "Opening", SettingKind.Choice,

@@ -219,6 +219,126 @@ try
         Check(workspace.Get("shared.view") == "Hidden" && !workspace.GetBoolean("atb.Enabled"), "Preview defaults exposed the overlay or enabled ATB.");
     });
 
+    Case("Recruitment equipment defaults do not materialize missing settings or migrate legacy choices", () =>
+    {
+        string game = NewGame();
+        string original = "# legacy equipment choice\n[Shuffle]\nJoiningEquipment = Donor\nUnknown = retain\n";
+        File.WriteAllText(Config(game, SettingsCatalog.S1File), original);
+        var workspace = SettingsWorkspace.Load(game, () => false);
+        Check(workspace.Get("s1.joiningEquipment") == "Donor" && workspace.Get("s2.joiningEquipment") == "MatchRole",
+            "Explicit legacy equipment or the new-campaign default was lost.");
+        Check(!workspace.IsDirty, "Reading equipment defaults staged a config write.");
+        workspace.Set("s1.seed", "keep-donor-equipment");
+        workspace.Save();
+        Check(workspace.Get("s1.joiningEquipment") == "Donor" && !File.Exists(Config(game, SettingsCatalog.S2File)),
+            "An unrelated edit migrated an equipment choice or wrote the other game's defaults.");
+        Check(File.ReadAllText(Config(game, SettingsCatalog.S1File)).StartsWith(original, StringComparison.Ordinal),
+            "The explicit legacy policy or unknown configuration was altered.");
+        Reject(() => workspace.Set("s1.joiningEquipment", "Level1"));
+        Reject(() => workspace.Set("s2.joiningEquipment", "UseOverpoweredGear"));
+    });
+
+    Case("Both recruitment equipment choices roundtrip independently in all three modes", () =>
+    {
+        string game = NewGame();
+        var workspace = SettingsWorkspace.Load(game, () => false);
+        workspace.Set("s1.companions", "11,12,13,14,15");
+        workspace.Set("s2.companions", string.Join(",", SuikodenRandomizer.Core.Suikoden2.Gsd2CharacterCatalog.FixedCompanionIds.Take(5)));
+        foreach (string mode in new[] { "Shuffle", "FixedChosen", "FixedRandom" })
+        {
+            workspace.Set("s1.mode", mode);
+            workspace.Set("s2.mode", mode);
+            foreach (string policy in new[] { "matchrole", "Donor" })
+            {
+                workspace.Set("s1.joiningEquipment", policy);
+                workspace.Set("s2.joiningEquipment", policy == "Donor" ? "MatchRole" : "Donor");
+                workspace.Save();
+                workspace.Reload();
+                Check(workspace.Get("s1.mode") == mode && workspace.Get("s2.mode") == mode, "An equipment edit changed the character mode.");
+                Check(workspace.Get("s1.joiningEquipment") == (policy == "Donor" ? "Donor" : "MatchRole")
+                    && workspace.Get("s2.joiningEquipment") == (policy == "Donor" ? "MatchRole" : "Donor"),
+                    "Equipment choices did not persist independently across modes and reloads.");
+                Check(workspace.Get("s1.joiningWeaponLevel") == "TirVariance" && workspace.Get("s2.joiningWeaponLevel") == "RiouVariance",
+                    "Recruitment equipment changed the separate joining-weapon defaults.");
+            }
+        }
+    });
+
+    Case("Advanced and imported original-role equipment requests reject older hosts before backups or writes", () =>
+    {
+        string game = NewGame();
+        string host = Path.Combine(game, "BepInEx", "plugins", "SuikodenRandomizer.dll");
+        File.Copy(typeof(SettingsWorkspace).Assembly.Location, host, true);
+        Check(Version.Parse(GameInstallation.Inspect(game).HostVersion!) < GameInstallation.JoiningEquipmentMinimumVersion,
+            "Unsupported host fixture must be older than recruitment equipment support.");
+        File.WriteAllText(Config(game, SettingsCatalog.S1File), "[Shuffle]\nSeed = original\n");
+        File.WriteAllText(Config(game, SettingsCatalog.S2File), "[Shuffle]\nSeed = original-s2\nJoiningWeaponLevel = MatchRole\n");
+        var workspace = SettingsWorkspace.Load(game, () => false);
+        workspace.Set("s1.seed", "legacy-unrelated-edit");
+        workspace.Save();
+        Check(!File.ReadAllText(Config(game, SettingsCatalog.S1File)).Contains("JoiningEquipment", StringComparison.Ordinal),
+            "An older host's unrelated edit materialized the unsupported equipment option.");
+        string[] before = SettingsCatalog.FileNames.Select(name => File.Exists(Config(game, name)) ? File.ReadAllText(Config(game, name)) : "<missing>").ToArray();
+        int backups = Directory.GetDirectories(Path.Combine(game, "BepInEx", "config", "StarsOfDestiny.Launcher", "backups")).Length;
+        foreach (string id in new[] { "s1.joiningEquipment", "s2.joiningEquipment" })
+        {
+            var setting = SettingsCatalog.Find(id);
+            workspace.Documents[setting.FileName].Set(setting.Section, setting.Key, "MatchRole");
+            Reject(() => workspace.Save());
+            Check(SettingsCatalog.FileNames.Select(name => File.Exists(Config(game, name)) ? File.ReadAllText(Config(game, name)) : "<missing>").SequenceEqual(before),
+                "Unsupported Advanced/preset equipment partially committed configuration.");
+            Check(Directory.GetDirectories(Path.Combine(game, "BepInEx", "config", "StarsOfDestiny.Launcher", "backups")).Length == backups,
+                "Unsupported equipment created a backup before compatibility rejection.");
+            workspace.Reload();
+        }
+        workspace.Set("s1.joiningEquipment", "Donor");
+        workspace.Set("s2.joiningEquipment", "Donor");
+        workspace.Save();
+        Check(workspace.Get("s1.joiningEquipment") == "Donor" && workspace.Get("s2.joiningEquipment") == "Donor",
+            "The legacy-compatible equipment option was blocked.");
+    });
+
+    Case("Equipment presets retain both choices and unknown config while applying through the normal transaction", () =>
+    {
+        string source = NewGame();
+        var workspace = SettingsWorkspace.Load(source, () => false);
+        workspace.Set("s1.joiningEquipment", "Donor");
+        workspace.Set("s2.joiningEquipment", "MatchRole");
+        workspace.Documents[SettingsCatalog.S1File].Set("Custom", "Unrelated", "preserved");
+        string preset = System.Text.Json.JsonSerializer.Serialize(new { schema = "stars-of-destiny-settings-v1",
+            configFiles = workspace.Documents.ToDictionary(pair => pair.Key, pair => pair.Value.Render()) });
+        using var json = System.Text.Json.JsonDocument.Parse(preset);
+        string target = NewGame();
+        var imported = SettingsWorkspace.Load(target, () => false);
+        foreach (var file in json.RootElement.GetProperty("configFiles").EnumerateObject())
+        {
+            var ini = IniDocument.Parse(file.Value.GetString()!);
+            foreach (var definition in SettingsCatalog.All.Where(setting => setting.FileName == file.Name))
+                imported.Documents[file.Name].Set(definition.Section, definition.Key, ini.Get(definition.Section, definition.Key, definition.DefaultValue));
+        }
+        imported.Save();
+        Check(imported.Get("s1.joiningEquipment") == "Donor" && imported.Get("s2.joiningEquipment") == "MatchRole",
+            "Preset serialization or generic document application discarded recruitment gear choices.");
+        Check(json.RootElement.GetProperty("configFiles").GetProperty(SettingsCatalog.S1File).GetString()!.Contains("Unrelated = preserved", StringComparison.Ordinal),
+            "Preset serialization discarded unknown config fields.");
+    });
+
+    Case("Host changes during staging reject original-role equipment before committing", () =>
+    {
+        string game = NewGame();
+        int runningChecks = 0;
+        var workspace = SettingsWorkspace.Load(game, () =>
+        {
+            if (++runningChecks == 2)
+                File.Copy(typeof(SettingsWorkspace).Assembly.Location, Path.Combine(game, "BepInEx", "plugins", "SuikodenRandomizer.dll"), true);
+            return false;
+        });
+        workspace.Set("s1.joiningEquipment", "MatchRole");
+        Reject(() => workspace.Save());
+        Check(!File.Exists(Config(game, SettingsCatalog.S1File)), "Equipment committed after the host became unsupported.");
+        Check(!Directory.EnumerateFiles(Path.Combine(game, "BepInEx", "config"), "*.tmp").Any(), "Rejected equipment left a pending config.");
+    });
+
     Case("S2 RiouVariance and legacy weapon choices roundtrip independently without migrating existing choices", () =>
     {
         string game = NewGame();

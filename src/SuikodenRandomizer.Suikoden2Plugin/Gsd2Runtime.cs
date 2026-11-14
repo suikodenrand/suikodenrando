@@ -12,7 +12,7 @@ using SuikodenRandomizer.Core.Suikoden2;
 
 namespace SuikodenRandomizer.Suikoden2Plugin;
 
-internal sealed class Gsd2Runtime
+internal sealed partial class Gsd2Runtime
 {
     internal static Gsd2Runtime? Current { get; set; }
     internal static Func<bool> ExecutionAllowed { get; private set; } = () => true;
@@ -119,6 +119,8 @@ internal sealed class Gsd2Runtime
         ActiveStartPoint = Gsd2Plugin.StartPoint;
         ActiveJoiningWeaponLevel = ReadJoiningWeaponPolicy(Gsd2Plugin.JoiningWeaponLevel, false);
         _joiningWeaponInitializedDonors.Clear();
+        ResetJoiningEquipment();
+        ActiveJoiningEquipment = ReadJoiningEquipmentPolicy(Gsd2Plugin.JoiningEquipment, false);
         _campStart.Arm(ActiveStartPoint == Gsd2CampStart.Point);
         _campSpawnPending = false; _campInitialSnapshotBound = false; _campMap = IntPtr.Zero;
         _fixed = Profile.Mode == "Shuffle" ? null : Gsd2FixedRosterAssignments.Empty(Profile);
@@ -134,6 +136,7 @@ internal sealed class Gsd2Runtime
         RestorePublishedTables();
         Profile = null!; _newGamePending = false; _fixed = null; _fighters.Clear(); _canonicalRoles.Clear(); IsNewCampaign = false;
         ActiveJoiningWeaponLevel = "Donor"; _joiningWeaponInitializedDonors.Clear();
+        ResetJoiningEquipment();
         _baseline = null; _originalNames = null; _originalArms = null; _observedData = IntPtr.Zero;
         _partySignature = "";
         Gsd2Graphics.Reset();
@@ -180,6 +183,7 @@ internal sealed class Gsd2Runtime
         }
         // Capture native initialization/import results before applying any part of a permutation.
         var starts = Gsd2NativeData.Characters(game.chara_data);
+        CaptureOriginalRoleEquipment(starts);
         var next = Gsd2NativeData.Characters(starts);
         var weaponInitializations = new List<(int Donor, string Log)>();
         if (Profile.Mode == "Shuffle")
@@ -206,6 +210,7 @@ internal sealed class Gsd2Runtime
         Publish(next); _newGamePending = false;
         CommitJoiningWeaponInitializations(weaponInitializations);
         if (_fixed is not null) ReconcileFixedParty(true);
+        else ObserveJoinedEquipment();
     }
     internal void ObserveCampMap(GSD2.MACHICON map)
     {
@@ -246,6 +251,7 @@ internal sealed class Gsd2Runtime
         {
             if (_fixed is not null && _projected is not null) ReconcileFixedParty(false);
             else ObserveJoinedShuffleWeapons();
+            ObserveJoinedEquipment();
         }
         catch (Exception exception) { Fail("Suikoden II party projection failed: " + exception.Message); }
         finally { _busy = false; }
@@ -424,6 +430,7 @@ internal sealed class Gsd2Runtime
         var next = Gsd2NativeData.Characters(game.chara_data);
         int? riouReference = ActiveJoiningWeaponLevel == "RiouVariance" ? RiouWeaponReference(next) : null;
         var weaponInitializations = new List<(int Donor, string Log)>();
+        var pendingEquipmentBefore = _pendingJoiningEquipment.ToDictionary(pair => pair.Key, pair => pair.Value.Copy());
         // Native events can update an inactive role before adding it to the party.
         foreach (int role in roles)
             if (!prior.Assignments.ContainsKey(role))
@@ -438,12 +445,16 @@ internal sealed class Gsd2Runtime
                     ? _canonicalRoles[assignment.Key] : _fighters[assignment.Value]).CreateNative();
                 InitializeJoiningWeapon(next.c_varia_dat[assignment.Key], assignment.Key, assignment.Value,
                     _canonicalRoles[assignment.Key].WeaponLevel, weaponInitializations, riouReference);
+                RememberFirstEquipment(assignment.Key, assignment.Value,
+                    Gsd2EquipmentSnapshot.Capture(_canonicalRoles[assignment.Key].CreateNative()),
+                    Gsd2EquipmentSnapshot.Capture(next.c_varia_dat[assignment.Key]));
             }
         }
         ValidateFixedRecords();
         _fixed = nextAssignments;
         try { Publish(next); CommitJoiningWeaponInitializations(weaponInitializations); _partySignature = signature; Gsd2Graphics.Reset(); }
-        catch { _fixed = prior; throw; }
+        catch { _fixed = prior; _pendingJoiningEquipment = pendingEquipmentBefore; throw; }
+        ObserveJoinedEquipment();
     }
     internal void PrepareLoad(string json)
     {
@@ -455,6 +466,7 @@ internal sealed class Gsd2Runtime
         IsNewCampaign = false; _newGamePending = false; _loading = true; _partySignature = "";
         Profile = null!; _fixed = null; _fighters.Clear(); _canonicalRoles.Clear();
         ActiveJoiningWeaponLevel = "Donor"; _joiningWeaponInitializedDonors.Clear();
+        ResetJoiningEquipment();
         string identity = Hash(json); string path = BindingPath(identity);
         if (!File.Exists(path)) { Trace("Unbound Suikoden II save: original behavior retained."); return; }
         var info = new FileInfo(path);
@@ -499,6 +511,7 @@ internal sealed class Gsd2Runtime
         if (ActiveJoiningWeaponLevel != "Donor" && !(Profile.Mode == "Shuffle" && ActiveJoiningWeaponLevel == "RiouVariance")
             && Assignments.Any(pair => !KeepCanonical(pair.Key, pair.Value) && !_joiningWeaponInitializedDonors.Contains(pair.Value)))
             throw new InvalidDataException("Saved Suikoden II joining weapon initialization records are incomplete.");
+        RestoreJoiningEquipment(binding);
         Trace("Restored Suikoden II campaign " + Profile.Fingerprint + "; current config ignored.");
     }
     internal void CompleteLoad(bool success)
@@ -513,6 +526,8 @@ internal sealed class Gsd2Runtime
         Publish(Gsd2NativeData.Characters(GSD2.OldSrcBase.game_work.chara_data));
         if (_fixed is null && PendingJoinedShuffleRoles().Length != 0)
             throw new InvalidDataException("Saved Suikoden II resident joining weapon records are incomplete.");
+        if (PendingJoinedEquipmentRoles().Any(role => !_pendingJoiningEquipment.ContainsKey(EquipmentDonor(role))))
+            throw new InvalidDataException("Saved Suikoden II resident recruitment equipment records are incomplete.");
         if (_fixed is not null) ReconcileFixedParty(true);
     }
     private GSD2.CHARA_DATA? _beforeSave;
@@ -530,6 +545,7 @@ internal sealed class Gsd2Runtime
         Gsd2RejectedSaveMirrorGuard.Ensure();
         if (_fixed is not null) ReconcileFixedParty(false);
         else ObserveJoinedShuffleWeapons();
+        ObserveJoinedEquipment();
         CaptureFighters();
         var game = GSD2.OldSrcBase.game_work;
         var canonical = Gsd2NativeData.Characters(_baseline);
@@ -561,6 +577,9 @@ internal sealed class Gsd2Runtime
             Seed = Profile.Seed, Mode = Profile.Mode, IncludeProtagonist = Profile.IncludesProtagonist,
             Companions = Profile.CompanionIds.ToArray(), ProfileFingerprint = Profile.Fingerprint, StartPoint = ActiveStartPoint,
             JoiningWeaponLevel = ActiveJoiningWeaponLevel, JoiningWeaponInitializedDonors = _joiningWeaponInitializedDonors.OrderBy(id => id).ToArray(),
+            JoiningEquipment = ActiveJoiningEquipment, JoiningEquipmentInitializedDonors = _joiningEquipmentInitializedDonors.OrderBy(id => id).ToArray(),
+            OriginalRoleEquipment = _originalRoleEquipment.ToDictionary(pair => pair.Key, pair => pair.Value.Copy()),
+            PendingJoiningEquipment = _pendingJoiningEquipment.ToDictionary(pair => pair.Key, pair => pair.Value.Copy()),
             Assignments = _fixed?.Assignments.ToDictionary(pair => pair.Key, pair => pair.Value) ?? new Dictionary<int, int>(), Fighters = _fighters,
             CanonicalRoles = _canonicalRoles
         };
@@ -628,6 +647,7 @@ internal sealed class Gsd2Runtime
             if (value is not null) _retiredNativeState.Add(value);
         Profile = null!; FaultReason = null; IsNewCampaign = false;
         ActiveJoiningWeaponLevel = "Donor"; _joiningWeaponInitializedDonors.Clear();
+        ResetJoiningEquipment();
         _baseline = null; _projected = null; _originalNames = null; _originalArms = null;
         _beforeSave = null; _namesBeforeSave = null; _armsBeforeSave = null;
         _observedData = IntPtr.Zero; _publishedGame = IntPtr.Zero; _publishedNames = IntPtr.Zero; _fixed = null; _fighters.Clear(); _canonicalRoles.Clear();
@@ -658,6 +678,10 @@ internal sealed class Gsd2CampaignBinding
     public string StartPoint { get; set; } = "Opening";
     public string? JoiningWeaponLevel { get; set; }
     public int[] JoiningWeaponInitializedDonors { get; set; } = Array.Empty<int>();
+    public string? JoiningEquipment { get; set; }
+    public int[] JoiningEquipmentInitializedDonors { get; set; } = Array.Empty<int>();
+    public Dictionary<int, Gsd2EquipmentSnapshot> OriginalRoleEquipment { get; set; } = new();
+    public Dictionary<int, Gsd2PendingEquipment> PendingJoiningEquipment { get; set; } = new();
     public Dictionary<int, int> Assignments { get; set; } = new Dictionary<int, int>();
     public Dictionary<int, Gsd2FighterRecord> Fighters { get; set; } = new Dictionary<int, Gsd2FighterRecord>();
     public Dictionary<int, Gsd2FighterRecord> CanonicalRoles { get; set; } = new Dictionary<int, Gsd2FighterRecord>();

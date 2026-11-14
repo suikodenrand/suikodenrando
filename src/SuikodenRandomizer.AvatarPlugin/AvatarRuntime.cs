@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEngine.SceneManagement;
 
@@ -121,12 +122,14 @@ internal sealed partial class AvatarRuntime
             ResetFixedRoster();
             ResetTreasureCampaign();
             ResetJoiningWeapons();
+            ResetJoiningEquipment();
             State = AvatarShuffleCampaignState.CreateUnbound();
-            if (TryBeginFixedRoster()) { BeginTreasureCampaign(); BeginJoiningWeapons(); FaultReason = null; _wasTitle = true; _automaticCheckScheduled = false; ResetPerformanceCounters(); return; }
+            if (TryBeginFixedRoster()) { BeginTreasureCampaign(); BeginJoiningWeapons(); BeginJoiningEquipment(); FaultReason = null; _wasTitle = true; _automaticCheckScheduled = false; ResetPerformanceCounters(); return; }
             State = AvatarShuffleCampaignState.CreateNew(AvatarShuffleProfile.Create(AvatarPlugin.ConfiguredSeed,
                 AvatarPlugin.ConfiguredIncludeTir));
             BeginTreasureCampaign();
             BeginJoiningWeapons();
+            BeginJoiningEquipment();
             FaultReason = null; _game = IntPtr.Zero; _wasTitle = true;
             _automaticCheckScheduled = false;
             ResetPerformanceCounters();
@@ -147,6 +150,7 @@ internal sealed partial class AvatarRuntime
             AcceptExecutionBoundary(); ResetFixedRoster(); FaultReason = null;
             ResetTreasureCampaign();
             ResetJoiningWeapons();
+            ResetJoiningEquipment();
             State = AvatarShuffleCampaignState.CreateUnbound(); _game = IntPtr.Zero;
             _automaticCheckScheduled = false;
             ResetPerformanceCounters();
@@ -155,7 +159,7 @@ internal sealed partial class AvatarRuntime
             AvatarPresentation.Reset();
             string identity = AvatarSaveIdentity.Compute(save);
             var regular = AvatarBindingStore.Read(identity);
-            if (regular is null && TryLoadFixedRoster(save)) { RestoreTreasureCampaign(save); RestoreJoiningWeapons(save); return; }
+            if (regular is null && TryLoadFixedRoster(save)) { RestoreTreasureCampaign(save); RestoreJoiningWeapons(save); RestoreJoiningEquipment(save); return; }
             State = regular ?? AvatarShuffleCampaignState.CreateUnbound();
             if (!IsAdmitted)
                 Trace("Unbound save: no 0.8 shuffle mapping found. No pilot/older campaign conversion; saving read-only.");
@@ -163,6 +167,7 @@ internal sealed partial class AvatarRuntime
                 + "; mapping=" + Profile.Fingerprint + "; configured seed ignored for this save.");
             RestoreTreasureCampaign(save);
             RestoreJoiningWeapons(save);
+            RestoreJoiningEquipment(save);
         }
         catch (Exception exception) { Fail("Shuffle save binding rejected: " + exception.Message); }
     }
@@ -183,7 +188,7 @@ internal sealed partial class AvatarRuntime
             _automaticCheckScheduled = true;
             _nextAutomaticCheck = now + AutomaticCheckInterval;
             bool ready = IsFixedRoster ? EnsureFixedRoster(reason, required) : EnsureProxiesCore(reason, required);
-            return ready && ObserveJoinedShuffleWeapons(required);
+            return ready && ObserveJoinedShuffleWeapons(required) && ObserveJoinedShuffleEquipment(required);
         }
         catch (Exception exception) { Fail("Shuffle preparation failed: " + exception.Message); return false; }
     }
@@ -271,6 +276,13 @@ internal sealed partial class AvatarRuntime
             for (int n = 0; n < residents.Count; n++) originalResidents[n] = residents[n];
             string layout = CanonicalLayoutFingerprint();
             bool initialize = !State.IsInitialized;
+            // Capture the fully initialized native New Game master bases before
+            // the eager donor permutation overwrites their inventories. Raw
+            // PLAYER_DATA assets contain zero-valued placeholders in this build.
+            // Active-party publication later consumes each detached role kit once.
+            var canonicalJoiningInventories = initialize && JoiningEquipmentPolicy == JoiningEquipmentPolicy.MatchRole
+                ? Profile.RoleIds.Where(id => !Profile.KeepsCanonicalLoadout(id)).ToDictionary(id => id, id => JoiningEquipmentNative.Capture(bases[id]))
+                : null;
             var weaponLogs = new List<string>();
             bool Apply()
             {
@@ -328,6 +340,7 @@ internal sealed partial class AvatarRuntime
             }
             bool committed = initialize ? State.ApplyNewGame(Apply) : State.ReplayTemplates(Profile, Apply);
             if (!committed) throw new InvalidOperationException("Complete shuffle transaction did not commit.");
+            if (canonicalJoiningInventories is not null) _canonicalJoiningInventories = canonicalJoiningInventories;
             foreach (string weaponLog in weaponLogs) Trace(weaponLog);
             _originals = originals; _proxies = prepared; _manager = manager; _game = game.Pointer;
             AvatarPresentation.Reset();
@@ -567,7 +580,7 @@ internal sealed partial class AvatarRuntime
             _wasTitle = title;
             if (!title && IsAdmitted && (IsFixedRoster || !IsActive || _game != GSD1.OldSrcBase.game_work?.Pointer))
                 EnsureProxy("native initialization observation", false);
-            if (!title && IsActive) ObserveJoinedShuffleWeapons(false);
+            if (!title && IsActive && ObserveJoinedShuffleWeapons(false)) ObserveJoinedShuffleEquipment(false);
         }
         catch (Exception exception) { Fail("Shuffle lifecycle observation failed: " + exception.Message); }
     }

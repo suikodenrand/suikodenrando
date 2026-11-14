@@ -1,4 +1,4 @@
-STARS OF DESTINY 0.14.3 - MOD-ONLY PACKAGE TROUBLESHOOTING
+STARS OF DESTINY 0.14.4 - MOD-ONLY PACKAGE TROUBLESHOOTING
 
 WHERE DO THE FILES GO?
 In Steam, right-click the game > Manage > Browse local files. Extract into
@@ -54,10 +54,10 @@ Recopy the complete launcher from this ZIP if files are missing. A separate
 source/checksum rather than disabling antivirus protection.
 
 NO F6 PANEL
-Hidden is the fresh default in 0.14.3. Focus the game and press F6 to cycle
+Hidden is the fresh default. Focus the game and press F6 to cycle
 Full, Compact and Hidden. Visible modes use text without a black box. A
 startup view can be chosen in the launcher with the game closed.
-If F6 never responds, check BepInEx/LogOutput.log for Stars of Destiny 0.14.3
+If F6 never responds, check BepInEx/LogOutput.log for Stars of Destiny 0.14.4
 and errors. Verify the loader and plugins are in the correct game folder
 and the randomizer is enabled in the launcher. Missing BepInEx/core or
 winhttp.dll means the external prerequisite has not been fully installed;
@@ -71,6 +71,18 @@ S1 offers TirVariance, MatchRole and Level1; S2 offers RiouVariance,
 MatchRole and Level1. Upgrades keep their old configs when the manual steps
 are followed; choose Riou's weapon level +/-3 for new S2 campaigns if wanted.
 Protected story handling stays native, and natural S2 weapons remain level 0.
+
+JOINING INVENTORY DID NOT CHANGE / EQUIPMENT LOOKS DIFFERENT
+Joining inventory & equipment in Characters applies to NEW campaigns and
+first joins. Original role's starting inventory (MatchRole) uses the original
+role's full starting items, with comparable wearable substitutes for
+incompatible armor/accessories. Replacement's starting inventory (Donor)
+keeps legacy behavior. Weapon-level settings are independent.
+Saved campaigns keep their policy, acquired items and first-join history.
+Campaigns predating this feature keep Donor; they are not retrofitted. Do not
+delete sidecars to force a new policy, or repeatedly recruit to reset items.
+Report unexpected gear with game, seed/mode, original role, replacement and
+log lines. This feature requires the combined 0.14.4 plugin and launcher 1.0.4.
 
 ATB IS NOT ACTIVE OR SHUFFLED UNITES ARE MISSING
 The bundled ATB DLL is dormant directly under BepInEx, outside plugins.

@@ -25,7 +25,7 @@ function Get-Sha256([string]$Path) {
 $repo = Split-Path -Parent $PSScriptRoot
 $callerLocation = $ExecutionContext.SessionState.Path
 $game = $callerLocation.GetUnresolvedProviderPathFromPSPath($GamePath)
-if (-not $OutputDirectory) { $OutputDirectory = Join-Path $repo 'artifacts/0.14.3' }
+if (-not $OutputDirectory) { $OutputDirectory = Join-Path $repo 'artifacts/0.14.4' }
 $output = $callerLocation.GetUnresolvedProviderPathFromPSPath($OutputDirectory)
 if ($output -eq $game -or $output.StartsWith($game.TrimEnd('\','/') + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
     throw 'Build output must be outside the game installation.'
@@ -57,7 +57,7 @@ try {
     if ((& $Dotnet --version).Trim() -ne '10.0.403') { throw 'Use the .NET SDK version pinned in global.json: 10.0.403.' }
     $common = @('-c', 'Release', '--disable-build-servers', '-m:1', '-p:BuildInParallel=false', '-p:RestoreDisableParallel=true', '-p:NuGetAudit=false')
     Invoke-Dotnet (@('build', 'src/SuikodenRandomizer.Unified/SuikodenRandomizer.Unified.csproj',
-        '-p:Version=0.14.3', "-p:GamePath=$game") + $common)
+        '-p:Version=0.14.4', "-p:GamePath=$game") + $common)
     foreach ($name in @('SuikodenRandomizer.dll', 'SuikodenRandomizer.Core.dll', 'SuikodenRandomizer.Suikoden2.Core.dll', 'SuikodenRandomizer.Shared.dll')) {
         Copy-Item -LiteralPath (Join-Path $repo "src/SuikodenRandomizer.Unified/bin/Release/$name") -Destination (Join-Path $runtime $name)
     }
@@ -86,8 +86,8 @@ try {
         & $Python @arguments
         if ($LASTEXITCODE -ne 0) { throw "Release packaging failed with exit code $LASTEXITCODE." }
     }
-    $report = [ordered]@{version='0.14.3'; packageMode=$PackageMode; runtime=$runtime; atb=$atbDll;
+    $report = [ordered]@{version='0.14.4'; packageMode=$PackageMode; runtime=$runtime; atb=$atbDll;
         launcher=$launcher; reviewedAtbSha256=$reviewedAtbHash; gameModified=$false; published=$false}
     [IO.File]::WriteAllText((Join-Path $output 'release-build.json'), ($report | ConvertTo-Json -Depth 5), [Text.UTF8Encoding]::new($false))
-    Write-Output "Built Stars of Destiny 0.14.3 in $output"
+    Write-Output "Built Stars of Destiny 0.14.4 in $output"
 } finally { Pop-Location }

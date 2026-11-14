@@ -63,6 +63,7 @@ namespace SuikodenRandomizer.AvatarPlugin
   internal static string ConfiguredMode { get; set; } = "Shuffle";
   internal static string ConfiguredCompanions { get; set; } = string.Empty;
   internal static string ConfiguredJoiningWeaponLevel { get; set; } = "MatchRole";
+  internal static string ConfiguredJoiningEquipment { get; set; } = "Donor";
   internal static bool ConfiguredIncludeTir { get; set; }
   internal static bool ConfiguredTreasureShuffle { get; set; }
   internal static bool ConfiguredTreasureEnabled { get; set; } = true;
@@ -164,7 +165,15 @@ namespace SuikodenRandomizer.AvatarPlugin
    ValidateBase(v);
    return new GSD1.PLAYER_BASE {chara_no=v.chara_no,level=v.level,hp=v.hp,max_hp=v.max_hp,exp=v.exp,status=v.status,
     noryoku=v.noryoku.ToList(),monsyo_data=CloneRune(v.monsyo_data),buki_data=new GSD1.PLAYER_BUKI{buki_id=v.buki_data.buki_id,level=v.buki_data.level},
-    seicho_type=CloneBytes(v.seicho_type),IsComplete=v.IsComplete,Equipment=v.Equipment,Rune=v.Rune,Items=(int[])v.Items.Clone()};
+    seicho_type=CloneBytes(v.seicho_type),IsComplete=v.IsComplete,Equipment=v.Equipment,Rune=v.Rune,Items=(int[])v.Items.Clone(),
+    item_kazu=v.item_kazu,item=CloneInventory(v.item)};
+  }
+  private static GSD1.Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<GSD1.PLAYER_ITEM> CloneInventory(
+   GSD1.Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<GSD1.PLAYER_ITEM> items)
+  {
+   var result=new GSD1.Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<GSD1.PLAYER_ITEM>(items.Count);
+   for(int index=0;index<items.Count;index++)result[index]=new GSD1.PLAYER_ITEM{item_id=items[index].item_id,soubi=items[index].soubi,data=items[index].data};
+   return result;
   }
   private static GSD1.PLAYER_MONSYO? CloneRune(GSD1.PLAYER_MONSYO? rune) => rune is null ? null
    : new GSD1.PLAYER_MONSYO {monsyo_id=rune.monsyo_id,monsyo_level=rune.monsyo_level,monsyo_exp=rune.monsyo_exp};
@@ -175,6 +184,7 @@ namespace SuikodenRandomizer.AvatarPlugin
    to.level=from.level;to.hp=from.hp;to.max_hp=from.max_hp;to.exp=from.exp;to.status=from.status;
    to.seicho_type=CloneBytes(from.seicho_type);to.IsComplete=from.IsComplete;to.Equipment=from.Equipment;
    to.Rune=from.Rune;to.Items=(int[])from.Items.Clone();
+   to.item=CloneInventory(from.item);to.item_kazu=from.item_kazu;
    to.noryoku=from.noryoku.ToList();to.monsyo_data=CloneRune(from.monsyo_data);
    to.buki_data=new GSD1.PLAYER_BUKI{buki_id=from.buki_data.buki_id,level=from.buki_data.level};
   }
@@ -183,12 +193,14 @@ namespace SuikodenRandomizer.AvatarPlugin
    ValidateBase(value);
    return string.Join("|",value.chara_no,value.level,value.hp,value.max_hp,value.exp,value.status,value.Equipment,value.Rune,value.buki_data.buki_id,value.buki_data.level,
     value.monsyo_data?.monsyo_id,value.monsyo_data?.monsyo_level,value.monsyo_data?.monsyo_exp,string.Join(",",value.noryoku),
-    string.Join(",",value.Items),string.Join(",",value.seicho_type));
+    string.Join(",",value.Items),string.Join(",",value.seicho_type),value.item_kazu,
+    string.Join(";",value.item.Select(item=>item.item_id+":"+item.soubi+":"+item.data)));
   }
   internal static GSD1.PLAYER_DATA CreateProxy(GSD1.PLAYER_DATA original,GSD1.PLAYER_DATA donor,GSD1.PLAYER_BASE roleBase,
    bool keepCanonicalLoadout=false) =>
    new GSD1.PLAYER_DATA {chara_id=original.chara_id,chara_name=original.chara_id==CombatCatalog.TirId?original.chara_name:donor.chara_name,player_base=roleBase,
-    field_data=donor.field_data,battle_data=donor.battle_data,seicho_type=CloneBytes(keepCanonicalLoadout?original.seicho_type:donor.seicho_type)};
+    field_data=donor.field_data,battle_data=donor.battle_data,seicho_type=CloneBytes(keepCanonicalLoadout?original.seicho_type:donor.seicho_type),
+    soubi_type=donor.soubi_type,sex=donor.sex};
  }
 }
 namespace SuikodenRandomizer.Plugin

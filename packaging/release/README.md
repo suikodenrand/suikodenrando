@@ -1,5 +1,9 @@
 # Release packaging
 
+This branch targets the unpublished 0.14.4 test build with launcher 1.0.4.
+The existing v0.14.3 release and its source tag remain unchanged. Packaging
+does not authorize installing or publishing these outputs.
+
 `build.py` assembles packages from already-built project binaries. It never
 installs into or launches the game. Start with the repository's
 [BUILDING.md](../../BUILDING.md) and `packaging/Build-Release.ps1`.
@@ -10,13 +14,13 @@ NSIS 3.11 is additionally required to compile the full setup.
 
 ```powershell
 python packaging/release/build.py --mode all `
-  --runtime-dir artifacts/0.14.3/runtime `
-  --atb-dll artifacts/0.14.3/atb/SuikodenRandomizer.S1BattlePreview.dll `
-  --launcher-dir artifacts/0.14.3/launcher `
+  --runtime-dir artifacts/0.14.4/runtime `
+  --atb-dll artifacts/0.14.4/atb/SuikodenRandomizer.S1BattlePreview.dll `
+  --launcher-dir artifacts/0.14.4/launcher `
   --reviewed-atb-sha256 <reviewed-ATB-SHA256-used-to-publish-that-launcher> `
   --dependencies artifacts/dependencies `
   --download-dependencies `
-  --output artifacts/0.14.3/packages `
+  --output artifacts/0.14.4/packages `
   --makensis C:/Tools/NSIS/makensis.exe
 ```
 
@@ -64,10 +68,17 @@ and its notices belong to the upstream BepInEx distribution, not the launcher.
 
 ## Outputs and verification
 
-- `Stars-of-Destiny-0.14.3-Mod-Only-Windows.zip` is an ordinary Deflate ZIP
+Fresh per-game configs use `Shuffle/JoiningEquipment=MatchRole`; both package
+manifests record that default. This is the original role's full starting
+inventory, with comparable wearable gear where needed. Legacy saved campaigns
+retain Donor behavior without an inventory retrofit. Weapon-level policies
+remain separate, and optional ATB stays disabled. Run the static metadata
+checks with `python -m unittest discover -s packaging/release/tests -v`.
+
+- `Stars-of-Destiny-0.14.4-Mod-Only-Windows.zip` is an ordinary Deflate ZIP
   with game-folder-relative paths. It has no setup executable or product
   install/restore scripts.
-- `Stars-of-Destiny-0.14.3-Setup.exe` includes BepInEx and uses the unchanged
+- `Stars-of-Destiny-0.14.4-Setup.exe` includes BepInEx and uses the unchanged
   transactional install/restore implementation. ATB remains an optional
   setup component and is installed disabled when selected.
 - SHA-256 sidecars and `build-verification.json` record the local outputs.

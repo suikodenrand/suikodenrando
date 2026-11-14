@@ -338,6 +338,7 @@ internal static partial class Program
    RunTreasureLifecycleChecks();
    RunJoiningWeaponChecks();
    RunTirVarianceWeaponChecks();
+   RunJoiningEquipmentChecks();
    Console.WriteLine(_passed+"/"+_passed+" production-runtime managed adapter checks passed.");
    Console.WriteLine("Scope: actual linked AvatarRuntime with managed native test doubles; not full-plugin compilation or native gameplay.");
   }
@@ -358,8 +359,12 @@ internal static partial class Program
    AvatarPlugin.ConfiguredSeed="agilen-080";AvatarPlugin.ConfiguredMode="Shuffle";AvatarPlugin.ConfiguredCompanions=string.Empty;
    AvatarPlugin.ConfiguredIncludeTir=false;
    AvatarPlugin.ConfiguredJoiningWeaponLevel="MatchRole";
+   AvatarPlugin.ConfiguredJoiningEquipment="Donor";
+   GSD1.G_item_c_data.item_data_table=null;
    string joiningBindings=Path.Combine(AvatarRuntime.Folder,"joining-weapon-save-bindings");
    if(Directory.Exists(joiningBindings))Directory.Delete(joiningBindings,true);
+   string equipmentBindings=Path.Combine(AvatarRuntime.Folder,"joining-equipment-save-bindings");
+   if(Directory.Exists(equipmentBindings))Directory.Delete(equipmentBindings,true);
    AvatarPlugin.ConfiguredTreasureShuffle=false;AvatarPlugin.ConfiguredTreasureEnabled=true;TreasureBindingStore.Bindings.Clear();
    for(int id=0;id<110;id++){
     var b=new GSD1.PLAYER_BASE{chara_no=id,level=(byte)(1+id%50),max_hp=(ushort)(100+id),hp=(ushort)(100+id),exp=(ushort)(id*3),Equipment=1000+id,Rune=2000+id,Items=new[]{3000+id},seicho_type=Enumerable.Repeat((byte)id,7).ToArray()};

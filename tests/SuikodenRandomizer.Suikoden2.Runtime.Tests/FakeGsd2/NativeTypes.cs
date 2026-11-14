@@ -8,13 +8,14 @@ namespace Il2CppInterop.Runtime.InteropTypes.Arrays
     public class Il2CppStructArray<T> : NativeObject, IEnumerable<T> where T : struct
     {
         private readonly T[] _data;
+        public static Action<Il2CppStructArray<T>, int, T> BeforeWrite;
         public Il2CppStructArray(int count) { _data = new T[count]; }
         public int Count => _data.Length;
-        public T this[int index] { get => _data[index]; set => _data[index] = value; }
+        public T this[int index] { get => _data[index]; set { BeforeWrite?.Invoke(this,index,value); _data[index] = value; } }
         public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)_data).GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
-    public class Il2CppReferenceArray<T> : IEnumerable<T> where T : class
+    public class Il2CppReferenceArray<T> : NativeObject, IEnumerable<T> where T : class
     {
         private readonly T[] _data;
         public Il2CppReferenceArray(int count) { _data = new T[count]; }
@@ -32,7 +33,28 @@ public abstract class NativeObject
     public IntPtr Pointer { get; } = new IntPtr(Interlocked.Increment(ref _next));
 }
 public sealed class MACHICON : NativeObject { }
-public sealed class PARTY_ITEM : NativeObject { public byte item_no { get; set; } public byte use_cnt { get; set; } }
+public sealed class PARTY_ITEM : NativeObject
+{
+    public byte item_no { get; set; }
+    private byte _uses;
+    public static Action<PARTY_ITEM, byte> BeforeUseWrite;
+    public byte use_cnt { get => _uses; set { BeforeUseWrite?.Invoke(this, value); _uses = value; } }
+}
+public sealed class BOGU_DATA : NativeObject
+{
+    public int name { get; set; }
+    public Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray<byte> info { get; set; } = null!;
+    public sbyte def_val { get; set; }
+    public ushort botch { get; set; }
+    public Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray<sbyte> bonus { get; set; } = null!;
+    public Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray<byte> atrb { get; set; } = null!;
+    public Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray<byte> set_status { get; set; } = null!;
+    public Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray<byte> blk_status { get; set; } = null!;
+}
+public sealed class OVIT_DATA : NativeObject
+{
+    public Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<BOGU_DATA> bogu_data { get; set; } = null!;
+}
 public sealed class C_KOTEI_DAT : NativeObject
 {
     public Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray<byte> seicyo_type { get; set; } = null!;
@@ -72,11 +94,12 @@ public sealed class ARMS_DATA : NativeObject
     public Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray<byte> info { get; set; } = null!;
     public byte mon_no { get; set; }
 }
-public sealed class PARTY_DATA { public Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray<byte> party_cha_no { get; set; } = null!; }
+public sealed class PARTY_DATA { public Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray<byte> party_cha_no { get; set; } = null!; public Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<PARTY_ITEM> party_item { get; set; } = null!; }
 public sealed class C_TEG_DAT { public Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray<int> name { get; set; } = null!; }
 public sealed class GAME_WORK : NativeObject
 {
     public CHARA_DATA chara_data { get; set; } = null!;
+    public OVIT_DATA ovit_data { get; set; } = null!;
     public PARTY_DATA party_data { get; set; } = null!;
     public C_TEG_DAT c_teg_dat { get; set; } = null!;
     public Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<ARMS_DATA> arms_data { get; set; } = null!;

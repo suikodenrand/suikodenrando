@@ -30,8 +30,48 @@ public sealed class PLAYER_BUKI : NativeObject
         set { if (FailLevelWriteOnce) { FailLevelWriteOnce = false; throw new InvalidOperationException("Injected weapon setter failure."); } _level = value; }
     }
 }
+namespace Il2CppInterop.Runtime.InteropTypes.Arrays
+{
+ public sealed class Il2CppReferenceArray<T> : List<T>
+ {
+  public Il2CppReferenceArray(int length) { for (int index = 0; index < length; index++) Add(default!); }
+ }
+}
+public sealed class PLAYER_ITEM
+{
+ public ushort item_id { get; set; }
+ public byte soubi { get; set; }
+ public byte data { get; set; }
+}
+public class ITEM_DATA
+{
+ public int nedan { get; set; }
+ public ushort type { get; set; }
+ public T? TryCast<T>() where T : class => this as T;
+}
+public sealed class BOUGU_DATA : ITEM_DATA
+{
+ public byte soubi_type { get; set; }
+ public byte func_no { get; set; }
+ public List<byte> equip_data { get; set; } = new(new byte[8]);
+}
+public static class G_item_c_data { public static List<ITEM_DATA?>? item_data_table { get; set; } }
 public sealed class PLAYER_BASE : NativeObject
 {
+    private Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<PLAYER_ITEM> _item = EmptyInventory();
+    public bool FailInventoryWriteOnce { get; set; }
+    public Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<PLAYER_ITEM> item
+    {
+     get => _item;
+     set { if (FailInventoryWriteOnce) { FailInventoryWriteOnce = false; throw new InvalidOperationException("Injected inventory setter failure."); } _item = value; }
+    }
+    public byte item_kazu { get; set; }
+    private static Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<PLAYER_ITEM> EmptyInventory()
+    {
+     var items = new Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<PLAYER_ITEM>(9);
+     for (int index = 0; index < items.Count; index++) items[index] = new PLAYER_ITEM();
+     return items;
+    }
     public int chara_no { get; set; }
     public byte level { get; set; } = 1;
     public ushort hp { get; set; }
@@ -76,6 +116,8 @@ public sealed class CountingPlayerCache : Dictionary<int, PLAYER_DATA?>
 }
 public sealed class PLAYER_DATA : NativeObject
 {
+    public byte soubi_type { get; set; } = 255;
+    public byte sex { get; set; }
     public byte chara_id { get; set; }
     public uint chara_name { get; set; }
     public PLAYER_BASE? player_base { get; set; }

@@ -106,6 +106,15 @@ internal static class Gsd2NativeNewGamePatch
     }
 }
 
+// Native G2_pamem_in only publishes party occupancy. Run the first-join
+// transaction before the recruiting event continues with later item grants.
+[HarmonyPatch(typeof(GSD2.G2_SYS), "G2_pamem_in", new[] { typeof(int), typeof(int), typeof(int) })]
+internal static class Gsd2RecruitmentEquipmentBoundaryPatch
+{
+    [HarmonyPostfix]
+    private static void Postfix() => Gsd2Runtime.Current?.Tick();
+}
+
 [HarmonyPatch(typeof(GSD2.UISaveLoad2), "ConfirmDecide")]
 internal static class Gsd2ManualSaveCaptureScope
 {

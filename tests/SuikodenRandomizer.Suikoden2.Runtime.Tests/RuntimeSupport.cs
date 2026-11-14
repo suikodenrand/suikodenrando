@@ -21,6 +21,7 @@ namespace SuikodenRandomizer.Suikoden2Plugin
         internal static string Companions { get; set; } = "2,3,4,5,6";
         internal static string StartPoint { get; set; } = "Opening";
         internal static string JoiningWeaponLevel { get; set; } = "RiouVariance";
+        internal static string JoiningEquipment { get; set; } = "Donor";
     }
     internal static class Gsd2Graphics
     {

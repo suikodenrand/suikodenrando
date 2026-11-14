@@ -1,4 +1,4 @@
-STARS OF DESTINY 0.14.3 - TROUBLESHOOTING
+STARS OF DESTINY 0.14.4 - TROUBLESHOOTING
 
 SETUP CANNOT FIND THE GAME
 In Steam, right-click the game > Manage > Browse local files. Select that
@@ -45,11 +45,11 @@ unity.bepinex.dev if a reference download fails. Do not install extra loaders
 or delete campaign settings to address a reference download error.
 
 NO F6 PANEL
-This is the fresh default in 0.14.3. Focus the game and press F6 to display
+This is the fresh default. Focus the game and press F6 to display
 the text panel. Further presses cycle Full, Compact and Hidden. Visible text
 has no black background. F6 changes are for this session. To choose a startup
 view, change Interface/ViewMode in the launcher with the game closed.
-If F6 never responds, check BepInEx/LogOutput.log for Stars of Destiny 0.14.3
+If F6 never responds, check BepInEx/LogOutput.log for Stars of Destiny 0.14.4
 and errors. Verify winhttp.dll, doorstop_config.ini and BepInEx are beside
 the game executable and that the randomizer is enabled in the launcher.
 
@@ -67,10 +67,22 @@ joining assignment. Saved campaigns retain their policy and earned upgrades.
 Old saves without policy metadata retain prior behavior. Do not delete
 campaign bindings to force an update. S1 offers TirVariance, MatchRole and
 Level1; S2 offers RiouVariance (Riou's current weapon level +/-3), MatchRole
-and Level1. RiouVariance is the fresh default in 0.14.3; an upgrade preserves
+and Level1. RiouVariance remains the fresh default; an upgrade preserves
 an existing config, so choose it in the S2 launcher settings for new campaigns
 if MatchRole or Level1 was already saved there. Natural S2 weapons remain
 level 0. Existing campaign policies and earned sharpening stay unchanged.
+
+JOINING INVENTORY DID NOT CHANGE / EQUIPMENT LOOKS DIFFERENT
+Joining inventory & equipment in Characters applies to NEW campaigns and
+first joins. Original role's starting inventory (MatchRole) uses the original
+role's full starting items, with comparable wearable substitutes for
+incompatible armor/accessories. Replacement's starting inventory (Donor)
+keeps legacy behavior. Weapon-level settings are independent.
+Saved campaigns keep their policy, acquired items and first-join history.
+Campaigns predating this feature keep Donor; they are not retrofitted. Do not
+delete sidecars to force a new policy, or repeatedly recruit to reset items.
+Report unexpected gear with game, seed/mode, original role, replacement and
+log lines. This feature requires the combined 0.14.4 plugin and launcher 1.0.4.
 
 UNITES ARE MISSING OR ATB IS NOT ACTIVE
 Use normal turn-based battles for shuffled Unites. In S1, disable ATB and

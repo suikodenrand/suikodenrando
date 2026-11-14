@@ -198,7 +198,8 @@ internal static class FixedRosterPartyChangePatch
     private static void Postfix()
     {
         var runtime = AvatarRuntime.Current;
-        if (runtime?.IsAdmitted == true && (runtime.IsFixedRoster || runtime.JoiningWeaponPolicy == JoiningWeaponPolicy.TirVariance))
+        if (runtime?.IsAdmitted == true && (runtime.IsFixedRoster || runtime.JoiningWeaponPolicy == JoiningWeaponPolicy.TirVariance
+            || runtime.JoiningEquipmentPolicy == JoiningEquipmentPolicy.MatchRole))
             runtime.EnsureProxy("active party change", false, force: true);
     }
 }

@@ -182,6 +182,8 @@ internal sealed partial class AvatarRuntime
         if (!_fixedStarted && !_fixedResume) needed.UnionWith(profile.CompanionIds);
         var bases = ReadyBaseIndex(needed);
         if (bases.Count != needed.Count) return WaitFor("waiting for fixed roster live bases", required);
+        if (JoiningEquipmentPolicy == JoiningEquipmentPolicy.MatchRole && !JoiningEquipmentNative.Ready)
+            return WaitFor("waiting for native joining equipment definitions", required);
         int? tirWeaponReference = JoiningWeaponPolicy == JoiningWeaponPolicy.TirVariance ? bases[CombatCatalog.TirId].buki_data.level : null;
         if (tirWeaponReference is < 1 or > 16) return WaitFor("waiting for the current canonical Tir weapon level", required);
         foreach (var entry in slots)
@@ -204,7 +206,9 @@ internal sealed partial class AvatarRuntime
         var storyBases = new Dictionary<int, FixedRosterBaseSnapshot>(_fixedStoryBases);
         var nativeResidents = new Dictionary<int, GSD1.PLAYER_DATA>(_fixedNativeResidents);
         var initializedWeapons = new HashSet<int>(_joiningWeaponFighters);
+        var initializedEquipment = new HashSet<int>(_joiningEquipmentFighters);
         var weaponLogs = new List<string>();
+        var equipmentLogs = new List<string>();
         var writes = new Dictionary<int, GSD1.PLAYER_BASE>();
         var projections = new Dictionary<int, GSD1.PLAYER_DATA>();
         var departing = previous.Assignments.Where(pair => pair.Key != CombatCatalog.TirId
@@ -242,6 +246,14 @@ internal sealed partial class AvatarRuntime
                 {
                     storyBases.Add(role, FixedRosterBaseSnapshot.Capture(bases[role]));
                     var incoming = fighters[pair.Value].ToNative();
+                    if (JoiningEquipmentPolicy == JoiningEquipmentPolicy.MatchRole && initializedEquipment.Add(pair.Value))
+                    {
+                        // This story role is still native and unprojected here;
+                        // use its current first-join kit before writing the fighter.
+                        equipmentLogs.Add(JoiningEquipmentNative.Apply(incoming, JoiningEquipmentNative.Capture(bases[role]),
+                            originals[pair.Value], role, pair.Value));
+                        fighters[pair.Value] = CaptureFighter(incoming, pair.Value);
+                    }
                     if (initializedWeapons.Add(pair.Value))
                     {
                         string? weaponLog = NormalizeJoiningWeapon(incoming, bases[role], role, pair.Value, tirWeaponReference);
@@ -317,6 +329,7 @@ internal sealed partial class AvatarRuntime
             _fixedNativeResidents = nativeResidents;
             _fixedFighters = fighters;
             _joiningWeaponFighters = initializedWeapons;
+            _joiningEquipmentFighters = initializedEquipment;
             _fixedStoryBases = storyBases;
             _fixedAssignments = next;
             _proxies = projections;
@@ -326,6 +339,7 @@ internal sealed partial class AvatarRuntime
             _fixedStarted = true;
             _fixedResume = false;
             foreach (string weaponLog in weaponLogs) Trace(weaponLog);
+            foreach (string equipmentLog in equipmentLogs) Trace(equipmentLog);
             AvatarPresentation.Reset();
             Trace("FIXED ROSTER " + reason + ": " + string.Join(", ", next.Assignments.Select(pair => pair.Key + "->" + pair.Value)));
             return true;

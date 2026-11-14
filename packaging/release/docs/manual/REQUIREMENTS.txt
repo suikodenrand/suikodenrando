@@ -1,4 +1,4 @@
-STARS OF DESTINY 0.14.3 - REQUIRED EXTERNAL DOWNLOAD
+STARS OF DESTINY 0.14.4 - REQUIRED EXTERNAL DOWNLOAD
 
 BepInEx is REQUIRED and is NOT included in this mod ZIP.
 
@@ -18,7 +18,7 @@ Then extract the Stars of Destiny mod-only ZIP into that same folder.
 Both packages' contents belong beside Suikoden I and II HD Remaster.exe.
 
 Do not use BepInEx 5, a Unity Mono build or x86. Newer bleeding-edge builds
-have not been qualified with this 0.14.3 package; use the tested build above.
+have not been qualified with this 0.14.4 package; use the tested build above.
 An existing working installation of this matching build can be retained.
 Read StarsOfDestiny Manual/MANUAL UPGRADE.txt before changing an existing
 modded installation or campaign.
@@ -32,4 +32,4 @@ The first modded game launch still needs internet for Unity reference files.
 Suggested website/Nexus requirement entry:
 BepInEx 6 Unity IL2CPP Windows x64 - tested build 697 (5362580). Required;
 download and install separately from the official BepInEx link above before
-copying Stars of Destiny 0.14.3 into the game folder.
+copying Stars of Destiny 0.14.4 into the game folder.

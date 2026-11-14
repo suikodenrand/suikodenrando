@@ -1,11 +1,11 @@
-STARS OF DESTINY 0.14.3 - FULL WINDOWS PREVIEW
+STARS OF DESTINY 0.14.4 - FULL WINDOWS PREVIEW
 Suikoden I & II HD Remaster | Steam | Windows x64
 
 INSTALL
 1. Close the game and the Stars of Destiny launcher. Keep a paired backup
    of the game's Save and BepInEx/config folders outside the game directory
    if you already have a campaign. Starting New Game may replace autosave.
-2. Run the Stars of Destiny 0.14.3 setup EXE. Select the folder containing
+2. Run the Stars of Destiny 0.14.4 setup EXE. Select the folder containing
    Suikoden I and II HD Remaster.exe and GameAssembly.dll.
 3. The combined randomizer, launcher, BepInEx and Suikoden Fix are included.
    Leave "Experimental S1 ATB (installed disabled)" unchecked for standard
@@ -25,13 +25,13 @@ INSTALL
    to show its text. F6 cycles Full, Compact and Hidden for that session.
 
 WHAT IS INCLUDED
-- Combined Suikoden I / II randomizer 0.14.3, with separate game settings.
+- Combined Suikoden I / II randomizer 0.14.4, with separate game settings.
 - Seeded character Shuffle, five chosen companions, or a seeded random
   fixed roster; optional protagonist shuffle and each game's quick start.
 - Supported English dialogue-name replacement in both games.
 - Native shuffled-character Unite previews for both games.
 - Suikoden I seeded chest shuffle, off until you enable it.
-- Windows launcher 1.0.3, preset import/export and configuration backups.
+- Windows launcher 1.0.4, preset import/export and configuration backups.
 - BepInEx 6 IL2CPP x64 build 697 and its private loader runtime.
 - Suikoden Fix 1.5.2b and its launcher settings.
 - Optional separate Suikoden I ATB Preview 0.10.1, installed disabled.
@@ -54,10 +54,28 @@ Not selecting ATB also preserves any existing ATB files.
 
 SETTINGS AND SAVES
 Close the game before applying settings. S1 and S2 seeds, rosters and starts
-are separate. Seed, roster, quick-start and joining-weapon choices apply to
-new campaigns. A saved campaign retains its own mapping and weapon policy.
+are separate. Seed, roster, quick-start, joining-weapon and inventory choices
+apply to new campaigns. Saved campaigns retain their mapping and policies.
 Do not delete its configuration sidecars to force new settings onto it.
 Keep Save and BepInEx/config together when backing up or sharing a campaign.
+
+JOINING INVENTORY AND EQUIPMENT (NEW IN 0.14.4)
+Fresh default for both games: Shuffle/JoiningEquipment=MatchRole. In the
+launcher, choose Original role's starting inventory under Characters.
+At the replacement's first party join, it receives the original story role's
+full starting inventory, including consumables such as Medicine and equipped
+items. Incompatible armor and accessories use comparable equipment the
+replacement can wear. The replacement keeps its own weapon identity and
+rune setup. Joining weapon-level choices remain separate.
+This works in Shuffle, chosen companions and random fixed-roster modes.
+Replacement's starting inventory (Donor) preserves the previous behavior.
+The policy and first-join history are saved with the campaign. Acquired
+items, consumption and equipment changes survive later joins and reloads.
+Existing campaigns without this feature's saved metadata keep Donor behavior;
+upgrading does not retrofit their inventory. Changing the launcher affects
+new campaigns rather than rewriting saved inventory. Keep Save and all
+BepInEx/config campaign sidecars together. Native first-join, compatibility
+and save/rejoin playtesting of this new feature is pending.
 
 OPTIONAL S1 CHESTS
 In Treasure, enable both the global chest allowance and the option for new

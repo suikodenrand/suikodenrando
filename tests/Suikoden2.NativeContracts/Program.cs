@@ -1,5 +1,7 @@
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Reflection.Emit;
 using System.Text;
 using System.Linq;
 
@@ -45,6 +47,9 @@ var sharedContracts = new (string Type, string Name, string Returns, string Args
 };
 var campStaticContracts = new (string Type, string Name, string Returns, string Args)[] {
     ("MACHICON", "MachiInit", "MACHICON", "SByte")
+};
+var recruitmentStaticContracts = new (string Type, string Name, string Returns, string Args)[] {
+    ("G2_SYS", "G2_pamem_in", "Int32", "Int32,Int32,Int32")
 };
 var campInstanceContracts = new (string Type, string Name, string Returns, string Args)[] {
     ("MACHICON", "MachiMain", "Int32", ""),
@@ -121,6 +126,7 @@ var dialogueSharedContracts = new (string Type, string Name, string Returns, str
 };
 Verify(metadata, contracts);
 Verify(metadata, campStaticContracts, isStatic: true);
+Verify(metadata, recruitmentStaticContracts, isStatic: true);
 Verify(metadata, campInstanceContracts, isStatic: false);
 Verify(metadata, npcInstanceContracts, isStatic: false);
 Verify(metadata, npcStaticContracts, isStatic: true);
@@ -217,6 +223,12 @@ if (!nativeOnly)
     RequireHook(prefix + "Gsd2CampPlayerObservationPatch", "MACHICON", "MachiMain", "Prefix", "HarmonyLib.HarmonyPrefix");
     RequireHook(prefix + "Gsd2InitialSnapshotPositionPatch", "LitJson.JsonMapper", "ToJson", "Prefix", "HarmonyLib.HarmonyPrefix", "Il2CppSystem.Object");
     Verify(plugin, new (string, string, string, string)[] {
+        (prefix + "Gsd2RecruitmentEquipmentBoundaryPatch", "Postfix", "Void", "")
+    }, isStatic: true);
+    RequireHook(prefix + "Gsd2RecruitmentEquipmentBoundaryPatch", "G2_SYS", "G2_pamem_in", "Postfix", "HarmonyLib.HarmonyPostfix",
+        exactTarget: true, exactArgumentTypes: new[] { "System.Int32", "System.Int32", "System.Int32" });
+    RequireRuntimeTick(prefix + "Gsd2RecruitmentEquipmentBoundaryPatch", "Postfix", prefix + "Gsd2Runtime");
+    Verify(plugin, new (string, string, string, string)[] {
         (prefix + "Gsd2NpcSpriteContextPatch", "Prefix", "Void", "EVENTCON," + prefix + "Gsd2NpcSprites+Scope&"),
         (prefix + "Gsd2NpcSpriteContextPatch", "Finalizer", "System.Exception", "System.Exception," + prefix + "Gsd2NpcSprites+Scope"),
         (prefix + "Gsd2NpcSpriteFactoryPatch", "Prefix", "Void", "OPD_DATA&,Int32,Int32,Boolean," + prefix + "Gsd2NpcSprites+FactoryScope&"),
@@ -270,7 +282,7 @@ if (hasDialogueS2 && !nativeOnly)
         ("SuikodenRandomizer.Suikoden2Plugin.Gsd2Runtime", "get_DialoguePublishedNames", "IntPtr", "")
     }, isStatic: false);
 }
-Console.WriteLine($"PASS: {contracts.Length + sharedContracts.Length + campStaticContracts.Length + campInstanceContracts.Length + jsonContracts.Length + npcInstanceContracts.Length + npcStaticContracts.Length + opdContracts.Length + unityNameContracts.Length + adapterShared.Length + NpcAdapterContracts.UnityInstance.Length + NpcAdapterContracts.UnityStatic.Length + NpcAdapterContracts.UnityGeneric.Length + dialogueStaticContracts.Length + dialogueInstanceContracts.Length + dialogueSharedContracts.Length} exact native signatures, camp/NPC/dialogue static/instance API kinds, 3 OPD Unity-name inheritance links, canonical name-table projection{(nativeOnly ? "; managed hook checks intentionally skipped for previous plugin" : ", 16 camp/NPC/adapter managed signatures and 8 Harmony hook declarations")}{(hasDialogueS2 && !nativeOnly ? ", 14 S2 dialogue managed signatures and 8 exact scope/suppression hook declarations" : "")}; game code was not executed.");
+Console.WriteLine($"PASS: {contracts.Length + sharedContracts.Length + campStaticContracts.Length + recruitmentStaticContracts.Length + campInstanceContracts.Length + jsonContracts.Length + npcInstanceContracts.Length + npcStaticContracts.Length + opdContracts.Length + unityNameContracts.Length + adapterShared.Length + NpcAdapterContracts.UnityInstance.Length + NpcAdapterContracts.UnityStatic.Length + NpcAdapterContracts.UnityGeneric.Length + dialogueStaticContracts.Length + dialogueInstanceContracts.Length + dialogueSharedContracts.Length} exact native signatures, camp/NPC/dialogue/recruitment static/instance API kinds, 3 OPD Unity-name inheritance links, canonical name-table projection{(nativeOnly ? "; managed hook checks intentionally skipped for previous plugin" : ", 17 camp/NPC/adapter/recruitment managed signatures and 9 Harmony hook declarations, exact three-Int32 recruitment target and runtime Tick call")}{(hasDialogueS2 && !nativeOnly ? ", 14 S2 dialogue managed signatures and 8 exact scope/suppression hook declarations" : "")}; game code was not executed.");
 
 void VerifyBase(MetadataReader reader, string typeName, string expectedBase)
 {
@@ -297,7 +309,7 @@ string AttributeType(MetadataReader reader, CustomAttribute attribute)
     };
 }
 void RequireHook(string typeName, string targetType, string targetMethod, string callback, string callbackAttribute, string? argumentType = null,
-    bool exactTarget = false)
+    bool exactTarget = false, string[]? exactArgumentTypes = null)
 {
     var types = plugin.TypeDefinitions.Where(h => provider.GetTypeFromDefinition(plugin, h, 0) == typeName).ToArray();
     if (types.Length != 1) throw new InvalidDataException("Missing or ambiguous camp hook type: " + typeName);
@@ -306,12 +318,27 @@ void RequireHook(string typeName, string targetType, string targetMethod, string
         .Where(a => AttributeType(plugin, a) == "HarmonyLib.HarmonyPatch").ToArray();
     if (patches.Length != 1) throw new InvalidDataException("Camp hook requires one explicit HarmonyPatch declaration: " + typeName);
     string blob = Encoding.UTF8.GetString(plugin.GetBlobBytes(patches[0].Value));
-    if (exactTarget)
+    if (exactTarget || exactArgumentTypes is not null)
     {
         var reader = plugin.GetBlobReader(patches[0].Value);
         if (reader.ReadUInt16() != 1 || reader.ReadSerializedString()?.Split(',')[0] != targetType
             || reader.ReadSerializedString() != targetMethod)
             throw new InvalidDataException("Exact dialogue scope target changed: " + typeName);
+        if (exactArgumentTypes is not null)
+        {
+            var constructor = patches[0].Constructor;
+            var signature = constructor.Kind == HandleKind.MemberReference
+                ? plugin.GetMemberReference((MemberReferenceHandle)constructor).DecodeMethodSignature(provider, (object?)null)
+                : plugin.GetMethodDefinition((MethodDefinitionHandle)constructor).DecodeSignature(provider, (object?)null);
+            if (!signature.ParameterTypes.SequenceEqual(new[] { "System.Type", "String", "System.Type[]" })
+                || reader.ReadInt32() != exactArgumentTypes.Length)
+                throw new InvalidDataException("Exact recruitment target argument array changed: " + typeName);
+            foreach (string expected in exactArgumentTypes)
+                if (reader.ReadSerializedString()?.Split(',')[0] != expected)
+                    throw new InvalidDataException("Exact recruitment target argument type changed: " + typeName);
+            if (reader.ReadUInt16() != 0 || reader.RemainingBytes != 0)
+                throw new InvalidDataException("Unexpected extra recruitment target declaration: " + typeName);
+        }
     }
     if (!blob.Contains(targetType, StringComparison.Ordinal) || !blob.Contains(targetMethod, StringComparison.Ordinal)
         || (argumentType is not null && !blob.Contains(argumentType, StringComparison.Ordinal)))
@@ -321,6 +348,51 @@ void RequireHook(string typeName, string targetType, string targetMethod, string
     if (callbacks.Length != 1 || callbacks[0].GetCustomAttributes().Select(plugin.GetCustomAttribute)
         .Count(a => AttributeType(plugin, a) == callbackAttribute) != 1)
         throw new InvalidDataException("Camp hook callback attribute changed: " + typeName + "." + callback);
+}
+
+void RequireRuntimeTick(string typeName, string callback, string runtimeType)
+{
+    var type = plugin.TypeDefinitions.Single(h => provider.GetTypeFromDefinition(plugin, h, 0) == typeName);
+    var method = plugin.GetTypeDefinition(type).GetMethods().Select(plugin.GetMethodDefinition)
+        .Single(m => plugin.GetString(m.Name) == callback);
+    if (method.RelativeVirtualAddress == 0) throw new InvalidDataException("Recruitment callback has no CIL body.");
+    var codes = typeof(OpCodes).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+        .Where(f => f.FieldType == typeof(OpCode)).Select(f => (OpCode)f.GetValue(null)!)
+        .ToDictionary(op => unchecked((ushort)op.Value));
+    var reader = pluginPe.GetMethodBody(method.RelativeVirtualAddress).GetILReader();
+    int ticks = 0;
+    while (reader.RemainingBytes > 0)
+    {
+        ushort code = reader.ReadByte();
+        if (code == 0xfe) code = (ushort)(0xfe00 | reader.ReadByte());
+        var op = codes[code];
+        switch (op.OperandType)
+        {
+            case OperandType.InlineNone: break;
+            case OperandType.ShortInlineBrTarget: case OperandType.ShortInlineI: case OperandType.ShortInlineVar: reader.Offset += 1; break;
+            case OperandType.InlineVar: reader.Offset += 2; break;
+            case OperandType.InlineI8: case OperandType.InlineR: reader.Offset += 8; break;
+            case OperandType.InlineSwitch: int count = reader.ReadInt32(); reader.Offset += checked(count * 4); break;
+            case OperandType.InlineMethod:
+                var handle = MetadataTokens.EntityHandle(reader.ReadInt32());
+                if (op != OpCodes.Call && op != OpCodes.Callvirt) break;
+                if (handle.Kind == HandleKind.MethodDefinition)
+                {
+                    var called = plugin.GetMethodDefinition((MethodDefinitionHandle)handle);
+                    if (plugin.GetString(called.Name) == "Tick"
+                        && provider.GetTypeFromDefinition(plugin, called.GetDeclaringType(), 0) == runtimeType) ticks++;
+                }
+                else if (handle.Kind == HandleKind.MemberReference)
+                {
+                    var called = plugin.GetMemberReference((MemberReferenceHandle)handle);
+                    if (called.Parent.Kind == HandleKind.TypeReference && plugin.GetString(called.Name) == "Tick"
+                        && provider.GetTypeFromReference(plugin, (TypeReferenceHandle)called.Parent, 0) == runtimeType) ticks++;
+                }
+                break;
+            default: reader.Offset += 4; break;
+        }
+    }
+    if (ticks != 1) throw new InvalidDataException("Recruitment Harmony postfix must call the active runtime Tick once.");
 }
 
 sealed class NativeTypeNames : ISignatureTypeProvider<string, object?>

@@ -8,5 +8,8 @@
     <Compile Include="../../src/SuikodenRandomizer.Suikoden2Plugin/Gsd2Runtime.cs" Link="Production/Gsd2Runtime.cs" />
     <Compile Include="../../src/SuikodenRandomizer.Suikoden2Plugin/Gsd2NativeData.cs" Link="Production/Gsd2NativeData.cs" />
     <Compile Include="../../src/SuikodenRandomizer.Suikoden2Plugin/Gsd2FighterRecord.cs" Link="Production/Gsd2FighterRecord.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.Suikoden2Plugin/Gsd2EquipmentSnapshot.cs" Link="Production/Gsd2EquipmentSnapshot.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.Suikoden2Plugin/Gsd2EquipmentBalance.cs" Link="Production/Gsd2EquipmentBalance.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.Suikoden2Plugin/Gsd2Runtime.JoiningEquipment.cs" Link="Production/Gsd2Runtime.JoiningEquipment.cs" />
   </ItemGroup>
 </Project>

@@ -29,6 +29,7 @@ internal static class Program
         try
         {
             var type = Assembly.Load("StarsOfDestiny.Launcher").GetType("StarsOfDestiny.Launcher.MainForm", true)!;
+            string versionedTitle = "Stars of Destiny Launcher " + type.Assembly.GetName().Version!.ToString(3);
             form = (Form)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic,
                 binder: null, args: new object?[] { game }, culture: null)!;
             Call(form, "LoadInstallation", game);
@@ -39,16 +40,19 @@ internal static class Program
             _ = form.Handle;
             _ = tabs.Handle;
             Check(seed.Text == "first-seed" && tabs.TabPages.Count == 7, "Actual form did not load its settings and pages.");
-            Check(form.Text == "Stars of Destiny Launcher 1.0.3", "The title does not display the assembly version.");
+            Check(form.Text == versionedTitle, "The title does not display the assembly version.");
             Check(!workspace.IsDirty, "Building controls changed the original configuration.");
             Passed("Actual form loads the temporary installation without staging settings");
 
             var weaponChoice = WeaponChoice(tabs);
             Check(!weaponChoice.Enabled && weaponChoice.Parent!.Parent!.Text.Contains("requires plug-in 0.8.14", StringComparison.Ordinal),
                 "A missing host did not disable joining weapon selection with the required version.");
+            Check(!EquipmentChoice(tabs).Enabled && EquipmentChoice(tabs).Parent!.Parent!.Text.Contains("requires plug-in 0.14.4", StringComparison.Ordinal),
+                "A missing host did not disable original-role inventory selection with the required version.");
             gameChoice.SelectedIndex = 1;
             Check(!WeaponChoice(tabs).Enabled && WeaponChoice(tabs).Parent!.Parent!.Text.Contains("requires plug-in 0.14.3", StringComparison.Ordinal),
                 "A missing host did not disable S2 joining weapon selection with the RiouVariance minimum.");
+            Check(!EquipmentChoice(tabs).Enabled, "Missing S2 host incorrectly exposed original-role inventory support.");
             gameChoice.SelectedIndex = 0;
             string plugins = Path.Combine(game, "BepInEx", "plugins");
             Directory.CreateDirectory(plugins);
@@ -58,11 +62,14 @@ internal static class Program
             Check(Version.Parse(GameInstallation.Inspect(game).HostVersion!) < new Version(0, 11, 2), "Older-host fixture must remain below the feature version.");
             Call(form, "LoadInstallation", game);
             Check(!WeaponChoice(tabs).Enabled, "An older host did not disable joining weapon selection.");
+            Check(!EquipmentChoice(tabs).Enabled, "An older host did not disable original-role inventory selection.");
             File.Copy(type.Assembly.Location, host, true);
             Call(form, "LoadInstallation", game);
             workspace = Field<SettingsWorkspace>(form, "_workspace");
             weaponChoice = WeaponChoice(tabs);
             Check(weaponChoice.Enabled && weaponChoice.Parent!.Parent!.Text == "Joining weapon level", "A supported host did not enable the weapon selection normally.");
+            Check(EquipmentChoice(tabs).Enabled && EquipmentChoice(tabs).Parent!.Parent!.Text == "Joining inventory & equipment",
+                "A supported host did not enable first-join inventory selection.");
             Check(!workspace.IsDirty, "Host compatibility checks staged configuration changes.");
             Passed("Joining weapon controls require the appropriate host version for each game without changing settings");
 
@@ -71,6 +78,14 @@ internal static class Program
             weaponChoice.SelectedIndex = 2;
             Check(workspace.Get("s1.joiningWeaponLevel") == "Level1", "S1 joining weapon choice was not staged.");
             Passed("Joining weapon selection shows friendly choices and stages Level 1 for S1");
+            var equipmentChoice = EquipmentChoice(tabs);
+            Check(equipmentChoice.Items.Count == 2 && SelectedWeaponPolicy(equipmentChoice) == "MatchRole",
+                "S1 first-join inventory does not default to original role equipment.");
+            Check(((KeyValuePair<string, string>)equipmentChoice.SelectedItem!).Value == "Original role's starting inventory (default)",
+                "The equipment choice does not explain that carried inventory is included.");
+            equipmentChoice.SelectedIndex = 1;
+            Check(workspace.Get("s1.joiningEquipment") == "Donor", "S1 inventory choice was not staged.");
+            Passed("Original-role and replacement starting inventory choices stage independently from weapon level");
 
             var battlePage = tabs.TabPages.Cast<TabPage>().Single(page => page.Text == "Battle & ATB");
             var uniteSwitch = Descendants<CheckBox>(battlePage).Single(control => control.Text == "Enable shuffled-character Unite attacks");
@@ -105,7 +120,7 @@ internal static class Program
             Check(workspace.Get("s1.seed") == "" && workspace.Validate().Count > 0, "An empty intermediate seed was not staged for later validation.");
             seed.Text = "edited-first-seed";
             Check(workspace.Get("s1.seed") == "edited-first-seed" && workspace.Validate().Count == 0, "Valid seed edit did not recover.");
-            Check(form.Text == "Stars of Destiny Launcher 1.0.3 *", "Dirty status reverted the title to a stale version.");
+            Check(form.Text == versionedTitle + " *", "Dirty status reverted the title to a stale version.");
             Passed("Seed editing tolerates an empty intermediate value and recovers before Apply");
 
             var characters = tabs.TabPages.Cast<TabPage>().Single(page => page.Text == "Characters");
@@ -121,6 +136,8 @@ internal static class Program
                 Check(stagedCount == index + 1, "Partial roster edits were rejected or incorrectly serialized.");
             }
             Check(workspace.Get("s1.mode") == "FixedChosen" && workspace.Validate().Count == 0, "Five valid companion selections were not accepted.");
+            Check(EquipmentChoice(tabs).Enabled && SelectedWeaponPolicy(EquipmentChoice(tabs)) == "Donor",
+                "Fixed roster mode disabled or reset the first-join inventory choice.");
             string rosterValue = workspace.Get("s1.companions");
             Passed("Five fixed companions can be selected through intermediate incomplete states");
 
@@ -130,6 +147,8 @@ internal static class Program
             Check(SelectedWeaponPolicy(WeaponChoice(tabs)) == "RiouVariance", "S2 did not default to Riou's weapon policy.");
             Check(((KeyValuePair<string, string>)WeaponChoice(tabs).SelectedItem!).Value == "Riou's current weapon level ±3 (default)",
                 "The S2 default does not explain the Riou weapon reference and variance.");
+            Check(EquipmentChoice(tabs).Enabled && SelectedWeaponPolicy(EquipmentChoice(tabs)) == "MatchRole",
+                "S2 inventory default inherited S1's staged replacement choice.");
             battlePage = tabs.TabPages.Cast<TabPage>().Single(page => page.Text == "Battle & ATB");
             uniteSwitch = Descendants<CheckBox>(battlePage).Single(control => control.Text == "Enable shuffled-character Unite attacks");
             Check(uniteSwitch.Enabled && !uniteSwitch.Checked, "S2 Unite control inherited S1's value or was disabled with S1 ATB.");
@@ -140,6 +159,7 @@ internal static class Program
             Check(seed.Text == "edited-first-seed" && workspace.Get("s1.companions") == rosterValue,
                 "Changing games lost S1 seed or roster edits.");
             Check(SelectedWeaponPolicy(WeaponChoice(tabs)) == "Level1", "Changing games lost S1's joining weapon selection.");
+            Check(SelectedWeaponPolicy(EquipmentChoice(tabs)) == "Donor", "Changing games lost S1's joining inventory selection.");
             gameChoice.SelectedIndex = 1;
             Check(seed.Text == "edited-second-seed", "Changing back to S2 lost its seed edit.");
             Passed("Switching games preserves each game's staged seed and roster");
@@ -153,10 +173,16 @@ internal static class Program
             var weaponRow = advanced.Rows.Cast<DataGridViewRow>().Single(candidate => candidate.Tag is ValueTuple<string, string, string> field
                 && field.Item1 == SettingsCatalog.S2File && field.Item2 == "Shuffle" && field.Item3 == "JoiningWeaponLevel");
             EditCell(advanced, weaponRow, "Level1");
+            var equipmentRow = advanced.Rows.Cast<DataGridViewRow>().Single(candidate => candidate.Tag is ValueTuple<string, string, string> field
+                && field.Item1 == SettingsCatalog.S2File && field.Item2 == "Shuffle" && field.Item3 == "JoiningEquipment");
+            EditCell(advanced, equipmentRow, "Donor");
             Check(workspace.Get("s2.seed") == "second-from-advanced", "Advanced edit was not staged in the document.");
             tabs.SelectedTab = tabs.TabPages.Cast<TabPage>().Single(page => page.Text == "Characters");
             Check(seed.Text == "second-from-advanced", "Leaving Advanced did not refresh the seed control.");
             Check(SelectedWeaponPolicy(WeaponChoice(tabs)) == "Level1", "Advanced did not refresh the joining weapon control.");
+            Check(SelectedWeaponPolicy(EquipmentChoice(tabs)) == "Donor", "Advanced did not refresh the first-join inventory control.");
+            EquipmentChoice(tabs).SelectedIndex = 0;
+            Check(workspace.Get("s2.joiningEquipment") == "MatchRole", "S2 original-role inventory was not staged after an Advanced edit.");
             gameChoice.SelectedIndex = 0;
             Check(seed.Text == "edited-first-seed", "Advanced S2 edit changed the S1 seed.");
             Passed("Advanced values and dedicated controls synchronize in both directions");
@@ -168,7 +194,7 @@ internal static class Program
             EditCell(advanced, custom, "edited unknown key");
             Call(form, "ApplySettings", false);
             Check(!workspace.IsDirty, "Applying valid UI settings did not finish successfully.");
-            Check(form.Text == "Stars of Destiny Launcher 1.0.3", "Successful Apply did not restore the versioned clean title.");
+            Check(form.Text == versionedTitle, "Successful Apply did not restore the versioned clean title.");
             string savedS1 = File.ReadAllText(Path.Combine(config, SettingsCatalog.S1File));
             string savedS2 = File.ReadAllText(Path.Combine(config, SettingsCatalog.S2File));
             Check(savedS1.Contains("# S1 comment must survive\r\n", StringComparison.Ordinal)
@@ -178,6 +204,8 @@ internal static class Program
             Check(savedS2.Contains("Seed = second-from-advanced", StringComparison.Ordinal), "Saved S2 config lost the Advanced edit.");
             Check(savedS1.Contains("JoiningWeaponLevel = Level1", StringComparison.Ordinal)
                 && savedS2.Contains("JoiningWeaponLevel = Level1", StringComparison.Ordinal), "Joining weapon policies were not saved for both games.");
+            Check(savedS1.Contains("JoiningEquipment = Donor", StringComparison.Ordinal)
+                && savedS2.Contains("JoiningEquipment = MatchRole", StringComparison.Ordinal), "First-join inventory policies were not saved independently.");
             string backupRoot = Path.Combine(config, "StarsOfDestiny.Launcher", "backups");
             string backup = Directory.GetDirectories(backupRoot).Single();
             Check(File.ReadAllText(Path.Combine(backup, SettingsCatalog.S1File)) == originalS1, "UI Apply did not create the exact pre-edit backup.");
@@ -229,6 +257,10 @@ internal static class Program
     private static ComboBox WeaponChoice(TabControl tabs) => Descendants<ComboBox>(
         Descendants<GroupBox>(tabs.TabPages.Cast<TabPage>().Single(page => page.Text == "Characters"))
             .Single(group => group.Text.StartsWith("Joining weapon level", StringComparison.Ordinal))).Single();
+
+    private static ComboBox EquipmentChoice(TabControl tabs) => Descendants<ComboBox>(
+        Descendants<GroupBox>(tabs.TabPages.Cast<TabPage>().Single(page => page.Text == "Characters"))
+            .Single(group => group.Text.StartsWith("Joining inventory & equipment", StringComparison.Ordinal))).Single();
 
     private static string SelectedWeaponPolicy(ComboBox choice) => choice.SelectedItem is KeyValuePair<string, string> selected
         ? selected.Key : throw new InvalidOperationException("The joining weapon policy has no selected value.");

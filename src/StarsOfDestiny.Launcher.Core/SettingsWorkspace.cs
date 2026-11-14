@@ -79,6 +79,7 @@ public sealed class SettingsWorkspace
         if (changed.Length == 0) return new SettingsSaveResult(null, Array.Empty<string>());
         bool changesS2 = changed.Contains(SettingsCatalog.S2File, StringComparer.OrdinalIgnoreCase);
         if (changesS2) GameInstallation.RequireRiouJoiningWeaponSupport(GameFolder, Get("s2.joiningWeaponLevel"));
+        RequireJoiningEquipmentSupport(changed);
         foreach (string name in changed) RequireUnchanged(name);
         Directory.CreateDirectory(ConfigDirectory);
         string transaction = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fffffff", System.Globalization.CultureInfo.InvariantCulture)
@@ -103,6 +104,7 @@ public sealed class SettingsWorkspace
             }
             if (IsGameRunning) throw new InvalidOperationException("Suikoden started while settings were being prepared. Close it and try again.");
             if (changesS2) GameInstallation.RequireRiouJoiningWeaponSupport(GameFolder, Get("s2.joiningWeaponLevel"));
+            RequireJoiningEquipmentSupport(changed);
             foreach (var file in pending)
             {
                 RequireUnchanged(file.Name);
@@ -139,6 +141,18 @@ public sealed class SettingsWorkspace
         finally
         {
             foreach (var file in pending) if (File.Exists(file.Temporary)) File.Delete(file.Temporary);
+        }
+    }
+
+    private void RequireJoiningEquipmentSupport(string[] changed)
+    {
+        foreach (string name in new[] { SettingsCatalog.S1File, SettingsCatalog.S2File })
+        {
+            if (!changed.Contains(name, StringComparer.OrdinalIgnoreCase)) continue;
+            // Legacy files without this option remain untouched when editing
+            // another setting. Only an explicit feature request is gated.
+            string explicitPolicy = Documents[name].Get("Shuffle", "JoiningEquipment", "");
+            GameInstallation.RequireJoiningEquipmentSupport(GameFolder, explicitPolicy);
         }
     }
 

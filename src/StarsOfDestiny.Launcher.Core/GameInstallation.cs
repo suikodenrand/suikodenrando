@@ -20,6 +20,7 @@ public static class GameInstallation
 {
     public const string GameExeName = "Suikoden I and II HD Remaster.exe";
     public static Version RiouJoiningWeaponMinimumVersion { get; } = new(0, 14, 3);
+    public static Version JoiningEquipmentMinimumVersion { get; } = new(0, 14, 4);
     private const string GameFolderName = "Suikoden I and II HD Remaster";
     private const string AtbFileName = "SuikodenRandomizer.S1BattlePreview.dll";
     private const string ReviewedAtbHash = "C3BB58521254035F2599F6C3EDA1EEF2F4D68517A7B7A3C60C561085019A2E9F";
@@ -105,6 +106,14 @@ public static class GameInstallation
         if (!Version.TryParse(Inspect(gameFolder).HostVersion, out var version) || version < RiouJoiningWeaponMinimumVersion)
             throw new InvalidOperationException("Riou ±3 joining weapon levels require Stars of Destiny plug-in "
                 + RiouJoiningWeaponMinimumVersion + " or later. Install the updated mod, or choose Match original character or Level 1.");
+    }
+
+    public static void RequireJoiningEquipmentSupport(string gameFolder, string policy)
+    {
+        if (!string.Equals(policy, "MatchRole", StringComparison.OrdinalIgnoreCase)) return;
+        if (!Version.TryParse(Inspect(gameFolder).HostVersion, out var version) || version < JoiningEquipmentMinimumVersion)
+            throw new InvalidOperationException("Original-role starting inventory requires Stars of Destiny plug-in "
+                + JoiningEquipmentMinimumVersion + " or later. Install the updated mod, or choose Replacement's starting inventory.");
     }
 
     public static string ActivateAtb(string gameFolder)

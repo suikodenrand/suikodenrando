@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Portable 0.14.3 release assembler. It never installs into a game folder."""
+"""Portable 0.14.4 release assembler. It never installs into a game folder."""
 from __future__ import annotations
 
 import argparse
@@ -17,7 +17,12 @@ from zipfile import ZipFile, ZIP_DEFLATED
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
-VERSION = '0.14.3'
+VERSION = '0.14.4'
+LAUNCHER_VERSION = '1.0.4'
+FRESH_DEFAULTS = dict(characterShuffle=True, dialogue=True, shuffledUnites=True, s1Atb=False,
+    s1AtbInstalled=False, s1Treasure=False, f6View='Hidden',
+    s1JoiningWeaponLevel='TirVariance', s2JoiningWeaponLevel='RiouVariance',
+    s1JoiningEquipment='MatchRole', s2JoiningEquipment='MatchRole')
 GAME_HASH = 'e093f175eaf3734d293ca0a236c652dd7fcc72ea5fa10d7b21103edf12f11c3a'
 LOADER = 'BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.697.zip'
 FIX = 'Suikoden_Fix-v1.5.2b.zip'
@@ -226,11 +231,9 @@ def setup(args):
     stage.copy('Game Files/StarsOfDestiny Setup/Licenses/Stars-of-Destiny-MIT-LICENSE.txt', REPO / 'LICENSE')
     payload = [entry for entry in stage.files if entry['path'].startswith('Game Files/')]
     manifest = dict(schema='stars-full-package-v1', packageVersion=VERSION, kind='full-preview',
-        launcherVersion='1.0.3', atbVersion='0.10.1', bepInExVersion='6.0.0-be.697',
+        launcherVersion=LAUNCHER_VERSION, atbVersion='0.10.1', bepInExVersion='6.0.0-be.697',
         suikodenFixRelease='1.5.2b', gameAssemblySha256=GAME_HASH,
-        freshDefaults=dict(characterShuffle=True, dialogue=True, shuffledUnites=True, s1Atb=False,
-            s1AtbInstalled=False, s1Treasure=False, f6View='Hidden',
-            s1JoiningWeaponLevel='TirVariance', s2JoiningWeaponLevel='RiouVariance'),
+        freshDefaults=FRESH_DEFAULTS,
         sourcePackaging='extracted-folders', supportPackaging='single-installed-copy',
         unusedInstallCmdRemoved=True, published=False, files=payload)
     stage.add('payload-manifest.json', (json.dumps(manifest, indent=2) + '\n').encode())
@@ -248,6 +251,7 @@ def manual(args):
     for p in regular_files(HERE / 'docs/manual'):
         stage.copy(p.name if p.name in {'START HERE.txt', 'REQUIREMENTS.txt'} else support + p.name, p)
     manifest = dict(schema='stars-of-destiny-mod-only-manual-v1', packageVersion=VERSION,
+        launcherVersion=LAUNCHER_VERSION, freshDefaults=FRESH_DEFAULTS,
         bepInExFilesIncluded=False, externalRequirements=dict(bepInEx='6.0.0-be.697+5362580 Unity IL2CPP Windows x64'),
         optionalAtbDormant=True, supportedGameAssemblySha256=GAME_HASH, gameBuildCheckEnforced=False,
         files=list(stage.files))

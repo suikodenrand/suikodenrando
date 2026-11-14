@@ -19,14 +19,14 @@ ManifestDPIAware true
 !endif
 
 !define GAME_EXE "Suikoden I and II HD Remaster.exe"
-Name "Stars of Destiny 0.14.3 Preview"
+Name "Stars of Destiny 0.14.4 Preview"
 OutFile "${OUTPUT_EXE}"
 InstallDir "$PROGRAMFILES32\Steam\steamapps\common\Suikoden I and II HD Remaster"
-VIProductVersion "0.14.3.0"
+VIProductVersion "0.14.4.0"
 VIAddVersionKey /LANG=1033 "ProductName" "Stars of Destiny"
-VIAddVersionKey /LANG=1033 "FileDescription" "Stars of Destiny 0.14.3 Full Preview Setup"
-VIAddVersionKey /LANG=1033 "ProductVersion" "0.14.3"
-VIAddVersionKey /LANG=1033 "FileVersion" "0.14.3.0"
+VIAddVersionKey /LANG=1033 "FileDescription" "Stars of Destiny 0.14.4 Full Preview Setup"
+VIAddVersionKey /LANG=1033 "ProductVersion" "0.14.4"
+VIAddVersionKey /LANG=1033 "FileVersion" "0.14.4.0"
 VIAddVersionKey /LANG=1033 "LegalCopyright" "Stars of Destiny project contributors"
 VIAddVersionKey /LANG=1033 "CompanyName" "Stars of Destiny"
 
@@ -45,7 +45,7 @@ Var Parameters
 !define MUI_PAGE_CUSTOMFUNCTION_LEAVE ValidateDirectory
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
-!define MUI_FINISHPAGE_TEXT "Stars of Destiny 0.14.3 Preview is installed.$\r$\n$\r$\nUse the launcher to choose settings. Fresh chest shuffling and ATB are off, and the text-only F6 panel starts hidden.$\r$\n$\r$\nFirst launch may need several minutes and an internet connection. Installation receipts and recovery copies are in the game's SRR-Backups folder."
+!define MUI_FINISHPAGE_TEXT "Stars of Destiny 0.14.4 Preview is installed.$\r$\n$\r$\nUse the launcher to choose settings. Fresh chest shuffling and ATB are off, and the text-only F6 panel starts hidden.$\r$\n$\r$\nFirst launch may need several minutes and an internet connection. Installation receipts and recovery copies are in the game's SRR-Backups folder."
 !define MUI_FINISHPAGE_RUN "$INSTDIR\StarsOfDestiny Launcher\StarsOfDestiny.Launcher.exe"
 !define MUI_FINISHPAGE_RUN_TEXT "Open Stars of Destiny Launcher"
 !define MUI_FINISHPAGE_RUN_NOTCHECKED
@@ -177,6 +177,6 @@ Section "-Install full preview"
 SectionEnd
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-  !insertmacro MUI_DESCRIPTION_TEXT ${SEC_REQUIRED} "Combined 0.14.3 randomizer, self-contained Windows launcher, BepInEx 6 loader and Suikoden Fix. Saves and existing settings are preserved."
+  !insertmacro MUI_DESCRIPTION_TEXT ${SEC_REQUIRED} "Combined 0.14.4 randomizer, self-contained Windows launcher, BepInEx 6 loader and Suikoden Fix. Saves and existing settings are preserved."
   !insertmacro MUI_DESCRIPTION_TEXT ${SEC_ATB} "Separate experimental S1 battle plugin. Installed disabled; enable in the launcher after disabling shuffled S1 Unites. Does not add ATB to Suikoden II."
 !insertmacro MUI_FUNCTION_DESCRIPTION_END

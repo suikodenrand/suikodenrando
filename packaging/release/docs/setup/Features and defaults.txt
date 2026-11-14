@@ -1,8 +1,8 @@
-STARS OF DESTINY 0.14.3 - FEATURES AND DEFAULTS
+STARS OF DESTINY 0.14.4 - FEATURES AND DEFAULTS
 
 COMPONENTS
-Combined randomizer       0.14.3
-Windows launcher          1.0.3, self-contained Windows x64
+Combined randomizer       0.14.4
+Windows launcher          1.0.4, self-contained Windows x64
 Suikoden I ATB Preview    0.10.1, optional and installed disabled
 Suikoden Fix              upstream release 1.5.2b (plugin reports 1.5.2)
 BepInEx                   6.0.0-be.697, Unity IL2CPP Windows x64
@@ -49,9 +49,27 @@ to the campaign; changing the launcher does not downgrade old saves. Old
 campaigns without policy metadata retain their previous behavior. Protected
 story combat setups keep native handling; S2 natural weapons remain level 0.
 These options do not alter character level, armor, growth or runes.
-RiouVariance is new in 0.14.3. Managed tests cover the new policy; native
+RiouVariance was introduced in 0.14.3. Managed tests cover the new policy; native
 first-join playtesting of this option is pending. Existing campaign policies
 are never silently replaced by the new default.
+
+JOINING INVENTORY AND EQUIPMENT (NEW IN 0.14.4)
+Fresh default for both games: Shuffle/JoiningEquipment=MatchRole. In the
+launcher, choose Original role's starting inventory under Characters.
+At the replacement's first party join, it receives the original story role's
+full starting inventory, including consumables such as Medicine and equipped
+items. Incompatible armor and accessories use comparable equipment the
+replacement can wear. The replacement keeps its own weapon identity and
+rune setup. Joining weapon-level choices remain separate.
+This works in Shuffle, chosen companions and random fixed-roster modes.
+Replacement's starting inventory (Donor) preserves the previous behavior.
+The policy and first-join history are saved with the campaign. Acquired
+items, consumption and equipment changes survive later joins and reloads.
+Existing campaigns without this feature's saved metadata keep Donor behavior;
+upgrading does not retrofit their inventory. Changing the launcher affects
+new campaigns rather than rewriting saved inventory. Keep Save and all
+BepInEx/config campaign sidecars together. Native first-join, compatibility
+and save/rejoin playtesting of this new feature is pending.
 
 QUICK STARTS
 Fresh default for both games: Opening.
@@ -90,7 +108,7 @@ F6 is hidden at launch by default; visible modes use text with no black box.
 F6 cycles Full, Compact and Hidden for the current session. A configured
 startup view is respected. Fault messages can still appear as text.
 The Windows launcher manages per-game seeds, modes, companions, starts and
-weapon policy; settings tabs; JSON presets; config backups; saved chest
+weapon and joining-inventory policies; settings tabs; JSON presets; config backups; saved chest
 policies; optional ATB; and launching the game. Many display, audio and QoL
 controls configure the included upstream Suikoden Fix plugin.
 
