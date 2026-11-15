@@ -1,4 +1,4 @@
-Stars of Destiny 0.14.4 - Mod-only Manual Windows Preview
+Stars of Destiny 0.14.4 - Mod-only Manual Windows Release
 Windows x64 / Steam Suikoden I & II HD Remaster
 
 BUNDLED
@@ -39,8 +39,10 @@ Joining inventory/equipment defaults to MatchRole in all three modes in
 both games: the original role's full starting inventory, with comparable
 wearable substitutes for incompatible gear. Donor retains replacement gear.
 Saved campaigns keep their policy and acquired inventory; legacy campaigns
-are not retrofitted. Weapon levels are configured independently. Native
-first-join, compatibility and save/rejoin playtesting is pending.
+are not retrofitted. Weapon levels are configured independently. Native S1
+Meg-for-Viktor first join and a subsequent save were checked; native reload
+was not observed. Broader S1/S2 compatibility and rejoin playtesting remains
+limited; managed tests cover saved-policy persistence.
 
 The optional ATB DLL is dormant at
 BepInEx/SuikodenRandomizer.S1BattlePreview.dll. The launcher can activate the
@@ -56,4 +58,4 @@ Redistributed-component notices are in StarsOfDestiny Manual/Licenses and
 alongside the launcher's .NET 10 runtime. The unbundled BepInEx package has
 its own publisher-provided notices and source information. See this mod's
 manifest and verification report for hashes, checks and limits.
-The website remains unchanged. Nexus acceptance has not been established.
+Nexus acceptance has not been established; package release and platform security review are separate.

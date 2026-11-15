@@ -1,4 +1,4 @@
-STARS OF DESTINY 0.14.4 - FULL WINDOWS PREVIEW
+STARS OF DESTINY 0.14.4 - FULL WINDOWS RELEASE
 Suikoden I & II HD Remaster | Steam | Windows x64
 
 INSTALL
@@ -12,7 +12,7 @@ INSTALL
    turn-based battles. Select it only if you want to try the separate ATB
    preview. Installing it does not enable it.
 4. Complete setup. Open the launcher from the current user's Start Menu:
-   Stars of Destiny Preview. You can also run
+   Stars of Destiny. You can also run
    <game>/StarsOfDestiny Launcher/StarsOfDestiny.Launcher.exe.
 5. Choose Suikoden I or II, a seed, and your options. With the game closed,
    use Apply settings or Save & launch game. The launcher has its own .NET
@@ -74,8 +74,10 @@ items, consumption and equipment changes survive later joins and reloads.
 Existing campaigns without this feature's saved metadata keep Donor behavior;
 upgrading does not retrofit their inventory. Changing the launcher affects
 new campaigns rather than rewriting saved inventory. Keep Save and all
-BepInEx/config campaign sidecars together. Native first-join, compatibility
-and save/rejoin playtesting of this new feature is pending.
+BepInEx/config campaign sidecars together. An S1 native test checked Meg
+replacing Viktor at first join and a subsequent native save. Reload was not
+observed in that test. Broader S1/S2 join, compatibility and rejoin coverage
+remains limited; managed tests cover saved-policy persistence.
 
 OPTIONAL S1 CHESTS
 In Treasure, enable both the global chest allowance and the option for new
@@ -102,12 +104,12 @@ License notices and complete extracted upstream sources are bundled inside
 the installer and installed in <game>/StarsOfDestiny Setup/Licenses, with
 sources under Source. The outer download omits duplicate support files.
 
-PREVIEW STATUS
-This package is for testing. Representative Unite attacks, shuffled parties,
+TEST COVERAGE AND LIMITS
+This is the 0.14.4 release package. Representative Unite attacks, shuffled parties,
 save/load transitions and the F6 presentation have been tested in-game; every
 campaign, Unite recipe and scripted encounter has not been played through.
-S1 chest shuffle and optional ATB remain experimental. The website has not
-been published or changed by this package. See the companion Verification.json
-in the download ZIP for the package checks and their limits.
+S1 chest shuffle and optional ATB remain experimental. See the release notes
+for native-test coverage and the package manifest for exact file hashes.
+The build-verification report records packaging checks and their limits.
 Riou-based joining weapons have managed regression coverage; native first-join
 playtesting of this new option is still pending.

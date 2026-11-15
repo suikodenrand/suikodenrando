@@ -68,8 +68,10 @@ items, consumption and equipment changes survive later joins and reloads.
 Existing campaigns without this feature's saved metadata keep Donor behavior;
 upgrading does not retrofit their inventory. Changing the launcher affects
 new campaigns rather than rewriting saved inventory. Keep Save and all
-BepInEx/config campaign sidecars together. Native first-join, compatibility
-and save/rejoin playtesting of this new feature is pending.
+BepInEx/config campaign sidecars together. An S1 native test checked Meg
+replacing Viktor at first join and a subsequent native save. Reload was not
+observed in that test. Broader S1/S2 join, compatibility and rejoin coverage
+remains limited; managed tests cover saved-policy persistence.
 
 QUICK STARTS
 Fresh default for both games: Opening.
@@ -140,4 +142,4 @@ NOT INCLUDED
 BepInEx/core, the external loader runtime and Doorstop files, personal saves,
 generated interop/cache files, custom music, the separate
 Audio Redirector, Nuzlocke, S2 ATB/chest randomization, extra rune slots and a
-shared-inventory or storage rewrite. The website remains unpublished.
+shared-inventory or storage rewrite. See the project website and GitHub release for current downloads.

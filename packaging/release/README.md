@@ -1,8 +1,9 @@
 # Release packaging
 
-This branch targets the unpublished 0.14.4 test build with launcher 1.0.4.
-The existing v0.14.3 release and its source tag remain unchanged. Packaging
-does not authorize installing or publishing these outputs.
+This recipe targets the 0.14.4 release with launcher 1.0.4. The existing
+v0.14.3 source tag and release remain unchanged. Build from the reviewed
+release commit and publish the resulting setup/manual assets with their
+actual checksums. Packaging itself never installs or publishes its outputs.
 
 `build.py` assembles packages from already-built project binaries. It never
 installs into or launches the game. Start with the repository's
@@ -67,6 +68,10 @@ the project's publish target supplies them. The loader's `.NET 6` runtime
 and its notices belong to the upstream BepInEx distribution, not the launcher.
 
 ## Outputs and verification
+
+Native S1 testing checked Meg replacing Viktor at first join and a subsequent
+save; reload was not observed in that test. Broader S1/S2 join and rejoin
+coverage remains limited. Managed tests cover saved-policy persistence.
 
 Fresh per-game configs use `Shuffle/JoiningEquipment=MatchRole`; both package
 manifests record that default. This is the original role's full starting

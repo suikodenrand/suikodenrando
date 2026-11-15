@@ -19,12 +19,12 @@ ManifestDPIAware true
 !endif
 
 !define GAME_EXE "Suikoden I and II HD Remaster.exe"
-Name "Stars of Destiny 0.14.4 Preview"
+Name "Stars of Destiny 0.14.4"
 OutFile "${OUTPUT_EXE}"
 InstallDir "$PROGRAMFILES32\Steam\steamapps\common\Suikoden I and II HD Remaster"
 VIProductVersion "0.14.4.0"
 VIAddVersionKey /LANG=1033 "ProductName" "Stars of Destiny"
-VIAddVersionKey /LANG=1033 "FileDescription" "Stars of Destiny 0.14.4 Full Preview Setup"
+VIAddVersionKey /LANG=1033 "FileDescription" "Stars of Destiny 0.14.4 Full Setup"
 VIAddVersionKey /LANG=1033 "ProductVersion" "0.14.4"
 VIAddVersionKey /LANG=1033 "FileVersion" "0.14.4.0"
 VIAddVersionKey /LANG=1033 "LegalCopyright" "Stars of Destiny project contributors"
@@ -45,7 +45,7 @@ Var Parameters
 !define MUI_PAGE_CUSTOMFUNCTION_LEAVE ValidateDirectory
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
-!define MUI_FINISHPAGE_TEXT "Stars of Destiny 0.14.4 Preview is installed.$\r$\n$\r$\nUse the launcher to choose settings. Fresh chest shuffling and ATB are off, and the text-only F6 panel starts hidden.$\r$\n$\r$\nFirst launch may need several minutes and an internet connection. Installation receipts and recovery copies are in the game's SRR-Backups folder."
+!define MUI_FINISHPAGE_TEXT "Stars of Destiny 0.14.4 is installed.$\r$\n$\r$\nUse the launcher to choose settings. Fresh chest shuffling and ATB are off, and the text-only F6 panel starts hidden.$\r$\n$\r$\nFirst launch may need several minutes and an internet connection. Installation receipts and recovery copies are in the game's SRR-Backups folder."
 !define MUI_FINISHPAGE_RUN "$INSTDIR\StarsOfDestiny Launcher\StarsOfDestiny.Launcher.exe"
 !define MUI_FINISHPAGE_RUN_TEXT "Open Stars of Destiny Launcher"
 !define MUI_FINISHPAGE_RUN_NOTCHECKED
@@ -126,7 +126,7 @@ Function SetComponentDefaults
   ${EndIf}
 FunctionEnd
 
-Section "-Install full preview"
+Section "-Install full package"
   IfSilent flags_ready
   SectionGetFlags ${SEC_ATB} $0
   IntOp $0 $0 & ${SF_SELECTED}
@@ -169,9 +169,9 @@ Section "-Install full preview"
   ; avoid writing current-user shell folders during automation.
   IfSilent no_shortcuts
   SetShellVarContext current
-  CreateDirectory "$SMPROGRAMS\Stars of Destiny Preview"
-  CreateShortcut "$SMPROGRAMS\Stars of Destiny Preview\Stars of Destiny Launcher.lnk" "$INSTDIR\StarsOfDestiny Launcher\StarsOfDestiny.Launcher.exe"
-  CreateShortcut "$SMPROGRAMS\Stars of Destiny Preview\Setup and recovery.lnk" "$INSTDIR\StarsOfDestiny Setup"
+  CreateDirectory "$SMPROGRAMS\Stars of Destiny"
+  CreateShortcut "$SMPROGRAMS\Stars of Destiny\Stars of Destiny Launcher.lnk" "$INSTDIR\StarsOfDestiny Launcher\StarsOfDestiny.Launcher.exe"
+  CreateShortcut "$SMPROGRAMS\Stars of Destiny\Setup and recovery.lnk" "$INSTDIR\StarsOfDestiny Setup"
   no_shortcuts:
   SetErrorLevel 0
 SectionEnd

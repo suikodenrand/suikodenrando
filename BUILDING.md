@@ -1,6 +1,6 @@
 # Building Stars of Destiny 0.14.4
 
-This branch prepares an unpublished 0.14.4 test build and launcher 1.0.4. The published [v0.14.3 tag](https://github.com/suikodenrand/suikodenrando/tree/v0.14.3) retains that release's exact source and build recipe. Building this branch does not publish a release or change the website.
+This guide builds release **0.14.4** and launcher **1.0.4**. Use the [v0.14.4 tag](https://github.com/suikodenrand/suikodenrando/tree/v0.14.4) for this release's source. The earlier [v0.14.3 tag](https://github.com/suikodenrand/suikodenrando/tree/v0.14.3) retains that version's source and build recipe. Running the build commands produces local artifacts; it does not publish them.
 
 Build on Windows x64 from a clean checkout. This repository contains the project source; it does not supply the game, generated game interop assemblies or a personal save. Building does not require changing files in the game installation.
 
@@ -98,7 +98,7 @@ dotnet run --project tests/StarsOfDestiny.Launcher.AtbBuild.Tests/StarsOfDestiny
 
 Create the report's parent directory if it is absent. Some specialist test projects have their own README or arguments; consult them before running. Managed tests and metadata checks do not prove that every native battle, story script or campaign is correct. Record in-game checks separately and state what remains untested.
 
-### Joining inventory/equipment test plan
+### Joining inventory/equipment validation
 
 `Shuffle/JoiningEquipment=MatchRole` is the fresh default in both game CFGs. It uses the original role's full starting inventory at the replacement's first party join, including consumables and equipped gear. Incompatible armor/accessories use comparable wearable equipment. `Donor` preserves replacement starting-inventory behavior. The policy applies to Shuffle, FixedChosen and FixedRandom and is separate from `JoiningWeaponLevel`. A saved campaign keeps its inventory policy and first-join history; campaigns predating this metadata retain Donor behavior without a retrofit.
 
@@ -108,7 +108,23 @@ Run both runtime fixture projects and both launcher projects listed above. The l
 python -m unittest discover -s packaging/release/tests -v
 ```
 
-Before approving the new feature for release, record these native checks separately in each game:
+The 0.14.4 release has the following managed/static regression coverage:
+
+| Check group | Passed checks |
+| --- | ---: |
+| S1 runtime | 109 |
+| S2 runtime | 69 |
+| Dialogue | 13 |
+| Launcher settings | 25 |
+| Launcher UI | 11 |
+| Compiled-host PE contracts | 38 |
+| Native catalog/contracts | 165 |
+| ATB build pairing | 5 |
+| Package metadata/defaults | 6 |
+
+A recorded native S1 run started a new campaign and recruited Meg in Viktor's role with Fur Robe, Boots and weapon level 1. Inspection of the resulting slot 18 save confirmed the stored loadout, the `MatchRole` policy and one completed initialization for role 35. Reloading that save was **not observed**; this run does not establish a native reload/rejoin pass. The managed persistence checks and static native contracts are separate evidence.
+
+For broader native coverage, record these checks separately in each game:
 
 1. Start a disposable new campaign with MatchRole. Compare the original role's starting inventory with its replacement's first join, including consumable counts and equipped state.
 2. Exercise a replacement that cannot wear the original armor or accessory. Confirm a comparable legal substitute can remain equipped and is accepted by the native equipment menu; confirm the replacement's own weapon and runes remain intact.
@@ -116,7 +132,7 @@ Before approving the new feature for release, record these native checks separat
 4. Repeat representative joins in Shuffle, FixedChosen and FixedRandom, then test Donor. Load a backed-up pre-0.14.4 campaign and verify its inventory stays unchanged under the legacy policy.
 5. Exercise the normal opening and quick start. Keep saves and all matching campaign sidecars paired; do not remove bindings to force a policy change.
 
-These checks require a live game and are pending for this test build. Managed tests and catalog/native static analysis cannot establish that every recruitment script is correct.
+The remaining checklist requires live-game observations. Managed tests and catalog/native static analysis cannot establish that every recruitment script is correct.
 
 ## Build release packages
 

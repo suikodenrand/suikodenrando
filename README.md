@@ -1,8 +1,8 @@
 # Stars of Destiny
 
-A seeded character randomizer for the Windows Steam release of **Suikoden I & II HD Remaster**. Both games share one plugin host and interface, with separate settings and saved campaign mappings. This source branch prepares the unpublished **0.14.4 test build** with launcher **1.0.4**.
+A seeded character randomizer for the Windows Steam release of **Suikoden I & II HD Remaster**. Both games share one plugin host and interface, with separate settings and saved campaign mappings. The current release is **0.14.4**, with launcher **1.0.4**.
 
-The latest published download remains the [0.14.3 release](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.3). Developers and reviewers can build this branch using [BUILDING.md](BUILDING.md); see [CHANGELOG.md](CHANGELOG.md) for the unreleased changes. The website is unchanged.
+Download the [0.14.4 release](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.4). Developers and reviewers can build the source using [BUILDING.md](BUILDING.md); see [CHANGELOG.md](CHANGELOG.md) for release history. The earlier [0.14.3 release](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.3) remains available with its original source and assets.
 
 ## Features
 
@@ -22,8 +22,8 @@ Suikoden II ATB and chest shuffle, Nuzlocke, shared-inventory changes and extra 
 
 | Asset | Installation | BepInEx |
 | --- | --- | --- |
-| `Stars-of-Destiny-0.14.3-Setup.exe` | Guided full installation, optional ATB component and transaction recovery | Included |
-| `Stars-of-Destiny-0.14.3-Mod-Only-Windows.zip` | Manual extraction into the game folder | Required separately |
+| `Stars-of-Destiny-0.14.4-Setup.exe` | Guided full installation, optional ATB component and transaction recovery | Included |
+| `Stars-of-Destiny-0.14.4-Mod-Only-Windows.zip` | Manual extraction into the game folder | Required separately |
 
 Both include the combined randomizer, launcher and Suikoden Fix. The launcher includes its own .NET runtime; players do not need a separate .NET SDK or runtime installation. The release also provides SHA-256 checksums and the project's MIT license. Existing users should read the upgrade instructions before replacing files.
 
@@ -45,7 +45,7 @@ For an existing modded installation, first back up `Save` and `BepInEx/config` t
 
 ## Defaults and optional features
 
-Fresh 0.14.4 builds use character Shuffle, the original role's starting inventory, normal openings, English dialogue replacement and shuffled Unites. Protagonist shuffle and chest shuffle are off. F6 starts Hidden and cycles Full, Compact and Hidden text views for the current session.
+Fresh 0.14.4 installations use character Shuffle, the original role's starting inventory, normal openings, English dialogue replacement and shuffled Unites. Protagonist shuffle and chest shuffle are off. F6 starts Hidden and cycles Full, Compact and Hidden text views for the current session.
 
 In Characters, **Joining inventory & equipment** defaults to **Original role's starting inventory** (`Shuffle/JoiningEquipment=MatchRole`). At first join, replacements receive the original role's inventory and equipped items; incompatible armor and accessories use comparable equipment they can wear. The replacement's own weapon identity and rune setup remain intact. **Replacement's starting inventory** (`Donor`) keeps the previous behavior. The choice applies to new campaigns in all three modes, independently of the joining-weapon-level option. Later rejoining and reloading retain acquired items and equipment changes.
 
@@ -63,6 +63,6 @@ The project's own code and documentation are under the [MIT License](LICENSE). D
 
 ## Testing status and support
 
-This is a preview. Representative shuffled parties, save/load transitions, dialogue, Unite attacks and F6 behavior from earlier builds have been tested in-game; every campaign, recipe and scripted encounter has not been played through. S1 chest shuffle and ATB remain experimental. Joining inventory/equipment balancing is new in this branch and needs native first-join, equipment-compatibility and save/rejoin playtesting in both games. Managed checks do not replace those playtests; see [BUILDING.md](BUILDING.md).
+Representative shuffled parties, save/load transitions, dialogue, Unite attacks and F6 behavior from earlier builds have been tested in-game; every campaign, recipe and scripted encounter has not been played through. S1 chest shuffle and ATB remain experimental. For the new joining-inventory policy, a native S1 run verified Meg joining in Viktor's role with Fur Robe, Boots and weapon level 1, and inspection confirmed that loadout in the new save. Reloading that save was not observed. Wider native recruitment, compatibility and save/rejoin checks remain useful in both games; see the recorded coverage and remaining checklist in [BUILDING.md](BUILDING.md).
 
 Report the game, version, seed/mode, scene and steps that reproduce a problem. Include relevant `BepInEx/LogOutput.log` lines and screenshots after reviewing them for personal paths or other private data. Keep saves and their configuration sidecars paired when backing up or sharing a campaign.

@@ -79,7 +79,10 @@ class PackageMetadataChecks(unittest.TestCase):
                 self.assertIn('consumables such as Medicine', text)
                 self.assertIn('comparable equipment', text)
                 self.assertIn('keep Donor behavior', text)
-                self.assertIn('Native first-join', text)
+                self.assertIn('An S1 native test checked Meg', text)
+                self.assertIn('subsequent native save', text)
+                self.assertIn('Reload was not\nobserved', text)
+                self.assertIn('managed tests cover saved-policy persistence', text)
 
 
 if __name__ == '__main__':

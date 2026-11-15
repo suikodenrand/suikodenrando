@@ -230,7 +230,7 @@ def setup(args):
         stage.add('Game Files/StarsOfDestiny Setup/Licenses/' + name, data)
     stage.copy('Game Files/StarsOfDestiny Setup/Licenses/Stars-of-Destiny-MIT-LICENSE.txt', REPO / 'LICENSE')
     payload = [entry for entry in stage.files if entry['path'].startswith('Game Files/')]
-    manifest = dict(schema='stars-full-package-v1', packageVersion=VERSION, kind='full-preview',
+    manifest = dict(schema='stars-full-package-v1', packageVersion=VERSION, kind='full-release',
         launcherVersion=LAUNCHER_VERSION, atbVersion='0.10.1', bepInExVersion='6.0.0-be.697',
         suikodenFixRelease='1.5.2b', gameAssemblySha256=GAME_HASH,
         freshDefaults=FRESH_DEFAULTS,

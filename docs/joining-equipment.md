@@ -1,6 +1,6 @@
 # Recruitment inventory and equipment
 
-The 0.14.4 test build adds `Shuffle/JoiningEquipment` to both games. `MatchRole`
+The 0.14.4 release adds `Shuffle/JoiningEquipment` to both games. `MatchRole`
 is the default for a new campaign in Shuffle, Fixed Roster and Random Roster.
 `Donor` retains the replacement fighter's own initial inventory.
 
@@ -67,7 +67,15 @@ S1 uses the native armor equipment mask and item sex restrictions. Its inventory
 stores item ID, equipped/locked flags and per-item data separately. Its category
 masks are head 3, body 60, shield 64 and accessory 128.
 
-These are static findings and managed regression coverage. They do not replace
-in-game tests of recruitment, incompatible gear, full inventory, save/reload and
-later story scripts. See BUILDING.md for the playtest checklist. No proprietary
-game binary, extracted master table or decompiled game body is distributed here.
+## Native validation recorded for release
+
+A new S1 campaign verified Meg joining in Viktor's role with Fur Robe, Boots
+and weapon level 1. Inspection of the resulting slot 18 save confirmed that
+loadout, `MatchRole` and one completed initialization for role 35. Reloading
+that save was not observed; this is not a native reload/rejoin pass.
+
+The static findings and managed regressions do not replace wider in-game tests
+of recruitment, incompatible gear, full inventory, save/reload and later story
+scripts in both games. See [BUILDING.md](../BUILDING.md) for the remaining
+playtest checklist. No proprietary game binary, extracted master table or
+decompiled game body is distributed here.

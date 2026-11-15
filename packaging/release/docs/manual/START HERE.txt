@@ -62,8 +62,10 @@ items, consumption and equipment changes survive later joins and reloads.
 Existing campaigns without this feature's saved metadata keep Donor behavior;
 upgrading does not retrofit their inventory. Changing the launcher affects
 new campaigns rather than rewriting saved inventory. Keep Save and all
-BepInEx/config campaign sidecars together. Native first-join, compatibility
-and save/rejoin playtesting of this new feature is pending.
+BepInEx/config campaign sidecars together. An S1 native test checked Meg
+replacing Viktor at first join and a subsequent native save. Reload was not
+observed in that test. Broader S1/S2 join, compatibility and rejoin coverage
+remains limited; managed tests cover saved-policy persistence.
 
 OPTIONAL S1 ATB
 The optional plugin is bundled dormant at
@@ -81,8 +83,8 @@ Manual undo uses the backup you made and this mod package's file list.
 Redistributed-component notices are in StarsOfDestiny Manual/Licenses and
 beside the launcher runtime. BepInEx is obtained separately from its publisher.
 
-This is a preview. Wider campaign, encounter and Unite playtesting is still
-needed. S1 chest shuffle and ATB remain experimental; Riou-based joining
+This is the 0.14.4 release package. Wider campaign, encounter and Unite
+playtesting is still needed. S1 chest shuffle and ATB remain experimental; Riou-based joining
 weapons have managed regression coverage, with native first-join playtesting
-pending. The website is unchanged. Local scan results do not establish Nexus
-acceptance or replace review of a specific antivirus detection.
+pending. Local scan results do not establish Nexus acceptance or replace
+review of a specific antivirus detection.

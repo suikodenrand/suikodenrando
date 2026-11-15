@@ -1,4 +1,4 @@
-Stars of Destiny 0.14.4 - Full Windows Preview
+Stars of Destiny 0.14.4 - Full Windows Release
 Windows x64 / Steam Suikoden I & II HD Remaster
 
 Combined randomizer 0.14.4
@@ -27,18 +27,20 @@ Joining inventory/equipment defaults to MatchRole in all three modes in
 both games: the original role's full starting inventory, with comparable
 wearable substitutes for incompatible gear. Donor retains replacement gear.
 Saved campaigns keep their policy and acquired inventory; legacy campaigns
-are not retrofitted. Weapon levels are configured independently. Native
-first-join, compatibility and save/rejoin playtesting is pending.
+are not retrofitted. Weapon levels are configured independently. Native S1
+Meg-for-Viktor first join and a subsequent save were checked; native reload
+was not observed. Broader S1/S2 compatibility and rejoin playtesting remains
+limited; managed tests cover saved-policy persistence.
 
 Existing saves, settings and campaign bindings are preserved on upgrade.
 
-See payload-manifest.json for exact file versions/hashes. The companion
-Verification.json in the download ZIP records package checks and native
-playtest limits; it is not installed in the support folder. Third-party
+See payload-manifest.json for exact file versions/hashes. The release notes
+describe native-test coverage. The build-verification report records local
+packaging checks and their limits. Third-party
 notices and complete extracted upstream sources are bundled inside the installer
 and installed in <game>/StarsOfDestiny Setup/Licenses (sources under Source).
 The unused Install.cmd wrapper and duplicate support/source copies are omitted.
 Restore.cmd, Restore.ps1 and their required Install.ps1 helper remain installed
 in <game>/StarsOfDestiny Setup for transaction recovery.
 
-The website remains unchanged and this preview is unpublished.
+This is the 0.14.4 release package. See the project release notes for current coverage and limitations.
