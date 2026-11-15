@@ -13,14 +13,13 @@ internal sealed partial class MainForm
     {
         if (GameId != "s1") return Note("Chest randomization is currently available for Suikoden I. Choose Suikoden I above to configure it.");
         var page = Grid(1, 3);
-        page.RowStyles.Add(new RowStyle(SizeType.Absolute, 210));
+        page.RowStyles.Add(new RowStyle(SizeType.Absolute, 180));
         page.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         page.RowStyles.Add(new RowStyle(SizeType.Absolute, 56));
         var options = Group("Treasure chest shuffle");
         var optionsStack = Stack();
-        optionsStack.Controls.Add(Check("s1.treasureEnabled", "Allow chest shuffle in the game"));
-        optionsStack.Controls.Add(Check("s1.chests", "Use chest shuffle for new campaigns and saves without a chest policy"));
-        optionsStack.Controls.Add(Note("The first switch temporarily pauses a saved shuffle. Turning it on again resumes the same reward mapping."));
+        optionsStack.Controls.Add(Check("s1.chests", "Enable chest shuffle for new campaigns"));
+        optionsStack.Controls.Add(Note("Existing saves keep their own chest policy. Use the controls below to change a saved campaign."));
         optionsStack.Controls.Add(Note("132 ordinary item locations are shuffled. Recruitment items, Blinking Mirror, potch, and the special Dwarves' Vault chest keep their original rewards."));
         options.Controls.Add(optionsStack);
         page.Controls.Add(options, 0, 0);
@@ -30,7 +29,7 @@ internal sealed partial class MainForm
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 45));
         layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 37));
-        layout.Controls.Add(Note("To change a saved enabled/disabled policy, select its snapshot and reset it. The next load adopts your current chest settings. Items and opened chests are kept."), 0, 0);
+        layout.Controls.Add(Note("Choose checked (shuffled) or unchecked (original) above, Apply settings, then select a save and reset its chest settings. The next load adopts that policy. Items and opened chests are kept."), 0, 0);
         var list = new ListView { Dock = DockStyle.Fill, View = View.Details, FullRowSelect = true, MultiSelect = false, HideSelection = false };
         list.Columns.Add("Seed", 260);
         list.Columns.Add("Chest policy", 110);
@@ -62,7 +61,8 @@ internal sealed partial class MainForm
             if (list.SelectedItems.Count == 0 || manager is null) return;
             try
             {
-                if (_workspace!.IsDirty) { _status.Text = "Apply your chest settings first, then reset the selected save."; return; }
+                if (_workspace!.IsDirty || !_workspace.GetBoolean("s1.treasureEnabled"))
+                { _status.Text = "Apply your chest settings first, then reset the selected save."; return; }
                 string backup = manager.Reset((TreasureCampaignInfo)list.SelectedItems[0].Tag!);
                 RefreshCampaigns();
                 _status.Text = "Saved chest policy backed up to " + backup + ". Load that save to adopt the current settings.";

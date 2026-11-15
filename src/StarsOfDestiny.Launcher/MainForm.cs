@@ -374,6 +374,7 @@ internal sealed partial class MainForm : Form
         try
         {
             _advanced?.EndEdit();
+            _workspace.PrepareTreasureSettingsForApply();
             var result = _workspace.SaveChanges();
             _status.Text = result.ChangedFiles.Count == 0 ? "Settings are up to date." : "Settings saved. Backup in " + result.BackupDirectory;
             try { File.WriteAllText(PreferencePath, JsonSerializer.Serialize(new { gameFolder = _workspace.GameFolder })); }

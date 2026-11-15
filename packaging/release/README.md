@@ -1,6 +1,6 @@
 # Release packaging
 
-This recipe targets the 0.14.4 release with launcher 1.0.4. The existing
+This recipe targets runtime 0.14.4 with launcher 1.0.5. The existing
 v0.14.3 source tag and release remain unchanged. Build from the reviewed
 release commit and publish the resulting setup/manual assets with their
 actual checksums. Packaging itself never installs or publishes its outputs.

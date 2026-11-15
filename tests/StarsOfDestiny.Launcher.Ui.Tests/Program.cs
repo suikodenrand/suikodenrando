@@ -19,7 +19,7 @@ internal static class Program
         byte[]? originalPreference = File.Exists(preference) ? File.ReadAllBytes(preference) : null;
         Directory.CreateDirectory(config);
         File.WriteAllText(Path.Combine(game, GameInstallation.GameExeName), "Fake executable used only for settings UI tests.");
-        string originalS1 = "# S1 comment must survive\r\n[Shuffle]\r\nSeed = first-seed\r\nMode = Shuffle\r\nCompanions = \r\nIncludeTir = false\r\n\r\n[Custom]\r\nUnrelated = retained\r\n";
+        string originalS1 = "# S1 comment must survive\r\n[Shuffle]\r\nSeed = first-seed\r\nMode = Shuffle\r\nCompanions = \r\nIncludeTir = false\r\n\r\n[Treasure]\r\nEnabled = false\r\nShuffleChests = false\r\n\r\n[Custom]\r\nUnrelated = retained\r\n";
         File.WriteAllText(Path.Combine(config, SettingsCatalog.S1File), originalS1);
         File.WriteAllText(Path.Combine(config, SettingsCatalog.S2File), "[Shuffle]\r\nSeed = second-seed\r\nMode = Shuffle\r\nCompanions = \r\nIncludeProtagonist = false\r\n");
         File.WriteAllText(Path.Combine(config, SettingsCatalog.SharedFile), "[General]\r\nEnabled = true\r\n[Interface]\r\nViewMode = Full\r\n");
@@ -72,6 +72,25 @@ internal static class Program
                 "A supported host did not enable first-join inventory selection.");
             Check(!workspace.IsDirty, "Host compatibility checks staged configuration changes.");
             Passed("Joining weapon controls require the appropriate host version for each game without changing settings");
+
+            var treasurePage = tabs.TabPages.Cast<TabPage>().Single(page => page.Text == "Treasure");
+            var chestSwitch = Descendants<CheckBox>(treasurePage).Single();
+            Check(chestSwitch.Text == "Enable chest shuffle for new campaigns" && !chestSwitch.Checked,
+                "Treasure must have one clearly named new-campaign checkbox.");
+            Check(!workspace.GetBoolean("s1.treasureEnabled") && !workspace.IsDirty,
+                "Loading the new treasure controls changed a legacy paused configuration.");
+            chestSwitch.Checked = true;
+            Check(workspace.GetBoolean("s1.chests"), "Checking the new-campaign option did not stage chest shuffle.");
+            chestSwitch.Checked = false;
+            Check(!workspace.GetBoolean("s1.chests"), "Unchecking the new-campaign option did not stage original rewards.");
+            Check(Descendants<ListView>(treasurePage).Count() == 1
+                && Descendants<Button>(treasurePage).Any(button => button.Text == "Reset selected save's chest settings"),
+                "The separate saved-policy controls are missing.");
+            Check(!Field<DataGridView>(form, "_advanced").Rows.Cast<DataGridViewRow>().Any(candidate =>
+                candidate.Tag is ValueTuple<string, string, string> field && field.Item1 == SettingsCatalog.S1File
+                && field.Item2 == "Treasure" && field.Item3 == "Enabled"),
+                "Advanced still exposes the removed chest master switch.");
+            Passed("One new-campaign chest checkbox preserves saved-policy controls and hides the legacy master gate");
 
             Check(weaponChoice.Items.Count == 3 && SelectedWeaponPolicy(weaponChoice) == "TirVariance",
                 "S1 joining weapon choices did not include and default to Tir ±3.");
@@ -202,6 +221,9 @@ internal static class Program
                 && savedS1.Contains("Companions = " + rosterValue, StringComparison.Ordinal)
                 && savedS1.Contains("Unrelated = edited unknown key", StringComparison.Ordinal), "Saved S1 config lost staged settings or comments.");
             Check(savedS2.Contains("Seed = second-from-advanced", StringComparison.Ordinal), "Saved S2 config lost the Advanced edit.");
+            Check(IniDocument.Parse(savedS1).Get("Treasure", "Enabled") == "true"
+                && IniDocument.Parse(savedS1).Get("Treasure", "ShuffleChests") == "false",
+                "Apply must clear an old global pause while preserving the unchecked new-campaign default.");
             Check(savedS1.Contains("JoiningWeaponLevel = Level1", StringComparison.Ordinal)
                 && savedS2.Contains("JoiningWeaponLevel = Level1", StringComparison.Ordinal), "Joining weapon policies were not saved for both games.");
             Check(savedS1.Contains("JoiningEquipment = Donor", StringComparison.Ordinal)

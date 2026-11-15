@@ -1,5 +1,11 @@
 # Changelog
 
+## Launcher 1.0.5 (unreleased)
+
+- Simplify S1 treasure settings to one new-campaign checkbox while retaining the separate saved-policy controls and backups.
+- Retire the legacy global chest pause on explicit Apply, preserving each existing save's chest policy. Hide that managed switch in Advanced.
+- Keep loading/no-op behavior free of config writes and preserve missing S1 configs on S2-only edits. See [launcher notes](docs/launcher-1.0.5.md).
+
 ## [0.14.4](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.4) — 2026-11-15
 
 - Balance replacements' first joining inventory and equipment in both Suikoden I and II. The default uses the original story role's starting inventory, including consumables such as Medicine, in Shuffle, chosen-companion and seeded random fixed-roster modes.

@@ -18,7 +18,7 @@ from zipfile import ZipFile, ZIP_DEFLATED
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 VERSION = '0.14.4'
-LAUNCHER_VERSION = '1.0.4'
+LAUNCHER_VERSION = '1.0.5'
 FRESH_DEFAULTS = dict(characterShuffle=True, dialogue=True, shuffledUnites=True, s1Atb=False,
     s1AtbInstalled=False, s1Treasure=False, f6View='Hidden',
     s1JoiningWeaponLevel='TirVariance', s2JoiningWeaponLevel='RiouVariance',

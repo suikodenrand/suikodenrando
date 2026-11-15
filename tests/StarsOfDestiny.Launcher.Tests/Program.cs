@@ -77,6 +77,94 @@ try
             "No-op save created a file.");
     });
 
+    Case("Treasure apply resumes legacy pauses without changing new-campaign choices or saved policies", () =>
+    {
+        foreach (bool shuffle in new[] { false, true })
+        {
+            string game = NewGame();
+            string text = "# legacy treasure settings\r\n[Treasure]\r\nEnabled = false\r\nShuffleChests = "
+                + (shuffle ? "true" : "false") + "\r\nUnknown = retained\r\n";
+            byte[] original = new UTF8Encoding(true).GetPreamble().Concat(Encoding.UTF8.GetBytes(text)).ToArray();
+            File.WriteAllBytes(Config(game, SettingsCatalog.S1File), original);
+            string save = Path.Combine(game, "Save", "slot18.sav");
+            string sidecar = Path.Combine(game, "BepInEx", "config", "avatar-shuffle", "treasure-save-bindings", "snapshot.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(save)!);
+            Directory.CreateDirectory(Path.GetDirectoryName(sidecar)!);
+            byte[] nativeBytes = { 1, 2, 3, 255 };
+            byte[] policyBytes = Encoding.UTF8.GetBytes("{\"enabled\":true,\"policy\":\"retained\"}\n");
+            File.WriteAllBytes(save, nativeBytes);
+            File.WriteAllBytes(sidecar, policyBytes);
+            var workspace = SettingsWorkspace.Load(game, () => false);
+            Check(!workspace.IsDirty && !workspace.GetBoolean("s1.treasureEnabled"), "Loading changed the legacy pause.");
+            workspace.PrepareTreasureSettingsForApply();
+            Check(workspace.GetBoolean("s1.treasureEnabled") && workspace.GetBoolean("s1.chests") == shuffle,
+                "Preparation changed the new-campaign choice or left the global pause active.");
+            var saved = workspace.SaveChanges();
+            Check(saved.ChangedFiles.SequenceEqual(new[] { SettingsCatalog.S1File }) && saved.BackupDirectory is not null,
+                "Treasure migration did not save exactly the S1 config.");
+            Check(File.ReadAllBytes(Path.Combine(saved.BackupDirectory!, SettingsCatalog.S1File)).SequenceEqual(original),
+                "The original paused config was not backed up exactly.");
+            byte[] expected = new UTF8Encoding(true).GetPreamble().Concat(Encoding.UTF8.GetBytes(
+                text.Replace("Enabled = false", "Enabled = true", StringComparison.Ordinal))).ToArray();
+            Check(File.ReadAllBytes(Config(game, SettingsCatalog.S1File)).SequenceEqual(expected),
+                "Migration changed comments, encoding or unrelated configuration.");
+            Check(File.ReadAllBytes(save).SequenceEqual(nativeBytes) && File.ReadAllBytes(sidecar).SequenceEqual(policyBytes),
+                "Applying the launcher default rewrote a save or its stored chest policy.");
+            Check(!workspace.IsDirty, "Successful migration left the workspace dirty.");
+        }
+    });
+
+    Case("Treasure apply preparation does not create a missing S1 config on no-op or S2-only saves", () =>
+    {
+        string game = NewGame();
+        var workspace = SettingsWorkspace.Load(game, () => false);
+        workspace.PrepareTreasureSettingsForApply();
+        Check(!workspace.IsDirty && workspace.SaveChanges().ChangedFiles.Count == 0,
+            "A missing treasure gate staged default configuration.");
+        Check(!File.Exists(Config(game, SettingsCatalog.S1File)), "No-op preparation created S1 settings.");
+        workspace.Set("s2.seed", "s2-only-edit");
+        workspace.PrepareTreasureSettingsForApply();
+        var saved = workspace.SaveChanges();
+        Check(saved.ChangedFiles.SequenceEqual(new[] { SettingsCatalog.S2File })
+            && !File.Exists(Config(game, SettingsCatalog.S1File)), "An S2-only edit created S1 settings.");
+    });
+
+    Case("Treasure apply handles a paused gate staged through presets or the advanced document editor", () =>
+    {
+        string game = NewGame();
+        var workspace = SettingsWorkspace.Load(game, () => false);
+        workspace.Documents[SettingsCatalog.S1File].Set("Treasure", "Enabled", "false");
+        workspace.Documents[SettingsCatalog.S1File].Set("Treasure", "ShuffleChests", "true");
+        workspace.PrepareTreasureSettingsForApply();
+        workspace.SaveChanges();
+        var reloaded = SettingsWorkspace.Load(game, () => false);
+        Check(reloaded.GetBoolean("s1.treasureEnabled") && reloaded.GetBoolean("s1.chests"),
+            "A staged legacy preset silently kept chest replacement paused.");
+    });
+
+    Case("Treasure preparation leaves invalid gate values for validation rejection", () =>
+    {
+        string game = NewGame();
+        string original = "[Treasure]\nEnabled = invalid\nShuffleChests = true\n";
+        File.WriteAllText(Config(game, SettingsCatalog.S1File), original);
+        var workspace = SettingsWorkspace.Load(game, () => false);
+        workspace.PrepareTreasureSettingsForApply();
+        Check(!workspace.IsDirty && workspace.Validate().Any(error => error.StartsWith("s1.treasureEnabled:", StringComparison.Ordinal)),
+            "Preparation masked an invalid setting.");
+        Reject(() => workspace.SaveChanges());
+        Check(File.ReadAllText(Config(game, SettingsCatalog.S1File)) == original, "Invalid configuration was overwritten.");
+    });
+
+    Case("Raw workspace saves retain their existing no-op semantics for legacy treasure pauses", () =>
+    {
+        string game = NewGame();
+        string original = "[Treasure]\nEnabled=false\nShuffleChests=false\n";
+        File.WriteAllText(Config(game, SettingsCatalog.S1File), original);
+        var workspace = SettingsWorkspace.Load(game, () => false);
+        Check(workspace.SaveChanges().ChangedFiles.Count == 0 && File.ReadAllText(Config(game, SettingsCatalog.S1File)) == original,
+            "Raw SaveChanges normalized configuration without explicit apply preparation.");
+    });
+
     Case("Save commits only changed documents and backs up exact original UTF-8 BOM bytes", () =>
     {
         string game = NewGame();

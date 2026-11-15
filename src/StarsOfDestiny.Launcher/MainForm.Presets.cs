@@ -39,7 +39,7 @@ internal sealed partial class MainForm
         var page = Grid(1, 2);
         page.RowStyles.Add(new RowStyle(SizeType.Absolute, 52));
         page.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        page.Controls.Add(Note("All keys in the five supported config files are shown below, including options without a dedicated control. Values are applied only when you save. Config comments are preserved."), 0, 0);
+        page.Controls.Add(Note("Edit config values below; changes are applied only when you save. Comments are preserved. The legacy chest master switch is managed automatically so saved chest policies remain active."), 0, 0);
         _advanced = new DataGridView { Dock = DockStyle.Fill, AllowUserToAddRows = false, AllowUserToDeleteRows = false,
             AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill, RowHeadersVisible = false, SelectionMode = DataGridViewSelectionMode.CellSelect,
             BackgroundColor = System.Drawing.Color.White, BorderStyle = BorderStyle.FixedSingle };
@@ -54,6 +54,9 @@ internal sealed partial class MainForm
                 values.TryAdd((definition.Section, definition.Key), definition.DefaultValue);
             foreach (var entry in values.OrderBy(pair => pair.Key.Section, StringComparer.Ordinal).ThenBy(pair => pair.Key.Key, StringComparer.Ordinal))
             {
+                if (document.Key.Equals(SettingsCatalog.S1File, StringComparison.OrdinalIgnoreCase)
+                    && entry.Key.Section.Equals("Treasure", StringComparison.OrdinalIgnoreCase)
+                    && entry.Key.Key.Equals("Enabled", StringComparison.OrdinalIgnoreCase)) continue;
                 int index = _advanced.Rows.Add(document.Key.Replace("agilen.", "", StringComparison.Ordinal).Replace(".cfg", "", StringComparison.Ordinal),
                     entry.Key.Section, entry.Key.Key, entry.Value);
                 _advanced.Rows[index].Tag = (document.Key, entry.Key.Section, entry.Key.Key);

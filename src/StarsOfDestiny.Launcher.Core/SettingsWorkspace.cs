@@ -67,6 +67,17 @@ public sealed class SettingsWorkspace
         Documents[setting.FileName].Set(setting.Section, setting.Key, SettingsCatalog.Normalize(setting, value));
     }
     public void SetBoolean(string id, bool value) => Set(id, value ? "true" : "false");
+
+    /// <summary>Retires the old global pause switch when explicitly applying launcher settings.</summary>
+    public void PrepareTreasureSettingsForApply()
+    {
+        // A missing key already defaults to enabled. Do not create an S1 file
+        // during a no-op or S2-only apply, or alter new-campaign/saved policies.
+        var document = Documents[SettingsCatalog.S1File];
+        if (bool.TryParse(document.Get("Treasure", "Enabled", ""), out bool enabled) && !enabled)
+            document.Set("Treasure", "Enabled", "true");
+    }
+
     public IReadOnlyList<string> Validate() => SettingsCatalog.Validate(Documents);
     public SettingsSaveResult Save() => SaveChanges();
 
