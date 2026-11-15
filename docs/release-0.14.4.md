@@ -13,6 +13,9 @@ Shuffled recruits can now receive the original story role's starting inventory i
 
 ## Downloads
 
+- **`Stars-of-Destiny-0.14.4-r2-Setup.exe`** — current full package, including launcher **1.0.5**, the pinned BepInEx loader, Suikoden Fix and optional S1 ATB. Runtime remains 0.14.4.
+- **`Stars-of-Destiny-0.14.4-r2-Mod-Only-Windows.zip`** — current manual mod package with launcher **1.0.5**. Install the tested BepInEx separately. Keep configs and save sidecars on upgrade.
+- **`SHA256SUMS-0.14.4-r2.txt`** — hashes for these two revision-r2 packages. Their game plugin, Fix, ATB and default CFG bytes match the original 0.14.4 release; launcher files and instructions are updated. The original downloads below remain available.
 - **`Stars-of-Destiny-Launcher-1.0.5-Windows.zip`** — latest separate optional launcher, compatible with runtime 0.14.4. Simplifies S1 chest settings to one new-campaign checkbox while keeping saved-policy controls. On Apply, clears the older global pause; saved campaign policies remain separate. See [launcher 1.0.5 notes](launcher-1.0.5.md). Its checksum is in `Stars-of-Destiny-Launcher-1.0.5-Windows.zip.sha256`.
 - **`Stars-of-Destiny-0.14.4-Plugins-Only-Nexus.zip`** — manual plugins, defaults, instructions, Suikoden Fix and dormant optional S1 ATB. No EXEs, launcher/runtime, loader or install scripts. Install the tested BepInEx separately; the launcher is optional.
 - **`Stars-of-Destiny-0.14.4-Optional-Launcher-Windows.zip`** — original separate launcher **1.0.4**, retained unchanged. Prefer the 1.0.5 download above for the simplified treasure settings. Both include their complete private .NET runtime and require plugins/BepInEx separately.

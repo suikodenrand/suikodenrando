@@ -82,7 +82,8 @@ Saved campaigns keep their policy, acquired items and first-join history.
 Campaigns predating this feature keep Donor; they are not retrofitted. Do not
 delete sidecars to force a new policy, or repeatedly recruit to reset items.
 Report unexpected gear with game, seed/mode, original role, replacement and
-log lines. This feature requires the combined 0.14.4 plugin and launcher 1.0.4.
+log lines. This feature requires the combined 0.14.4 plugin. Launcher 1.0.5
+manages the option; manual CFG editing also works.
 
 UNITES ARE MISSING OR ATB IS NOT ACTIVE
 Use normal turn-based battles for shuffled Unites. In S1, disable ATB and
@@ -98,13 +99,17 @@ if desired. S2 does not implement ATB. Every scripted encounter and Unite
 recipe has not been tested in-game.
 
 CHESTS STILL HAVE ORIGINAL REWARDS
-S1 chest shuffle is off by default. Enable both Treasure switches for a new
-or unbound chest policy. If a save already has a disabled policy, select its
-snapshot and reset that chest policy through the launcher, then reload.
-The global allowance must remain on even for a saved enabled mapping.
-Protected recruitment items, potch and special rewards remain original.
-Disabling chest shuffle does not remove acquired items or close open chests.
-S2 chest shuffle is not implemented.
+S1 chest shuffle is off by default. Tick Enable chest shuffle for new
+campaigns in Treasure and Apply before starting a new game. Existing saves
+keep their stored policy. To change one, choose checked (shuffled) or
+unchecked (original), Apply, select its snapshot and reset its chest
+settings, then load that save. The reset creates a backup and keeps acquired
+items and opened chest flags. Launcher 1.0.5 automatically clears the older
+global pause on Apply, allowing saved shuffled policies to resume. Unticking
+the new-campaign checkbox does not pause an existing shuffled save.
+Manual Treasure/Enabled=false still pauses replacement, but the next launcher
+Apply clears that pause. Protected recruitment items, potch and special
+rewards remain original. S2 chest shuffle is not implemented.
 
 DIALOGUE IS UNCHANGED OR WRAPS BADLY
 Only admitted English messages are rewritten. Ambiguous names, unsupported

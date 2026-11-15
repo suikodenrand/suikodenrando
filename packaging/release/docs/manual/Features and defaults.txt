@@ -2,7 +2,7 @@ STARS OF DESTINY 0.14.4 - MOD-ONLY PACKAGE FEATURES AND DEFAULTS
 
 COMPONENTS
 Combined randomizer       0.14.4
-Windows launcher          1.0.4, self-contained Windows x64
+Windows launcher          1.0.5, self-contained Windows x64
 Suikoden I ATB Preview    0.10.1, optional; dormant outside active plugins
 Suikoden Fix              upstream release 1.5.2b (plugin reports 1.5.2)
 BepInEx                   REQUIRED SEPARATELY: 6.0.0-be.697, Unity IL2CPP x64
@@ -83,17 +83,26 @@ S1 TREASURE (EXPERIMENTAL)
 132 ordinary item locations use a deterministic campaign-seeded reward map.
 Potch, Blinking Mirror, recruitment-related Sound Orb, Window Orb and
 Illustrated War Scroll, and the special Dwarves' Vault reward stay original.
-Native item granting and open-state handling are retained. A saved chest
-policy can be paused globally without deleting its map. Fresh defaults:
-Treasure/Enabled=false and Treasure/ShuffleChests=false. S2 chest shuffle is
-not implemented.
+Native item granting and open-state handling are retained. Launcher 1.0.5
+has one checkbox: Enable chest shuffle for new campaigns. Existing saves
+retain their stored policy. To change one, choose the checkbox value, Apply,
+select its snapshot and reset its chest settings, then load that save.
+The reset keeps a backup and preserves acquired items and opened chests.
+On Apply, the launcher clears an older Treasure/Enabled=false global pause
+so saved shuffles resume. Unticking the new-campaign checkbox does not pause
+an existing shuffled policy. The original packaged CFG defaults remain
+Treasure/Enabled=false and Treasure/ShuffleChests=false. The first launcher
+Apply sets Enabled=true while ShuffleChests stays false unless selected;
+new-campaign chest randomization therefore remains off by default.
+Manual CFG editing can still pause with Enabled=false; a later launcher
+Apply clears that pause. S2 chest shuffle is not implemented.
 
 S1 ATB (OPTIONAL, EXPERIMENTAL)
 The reviewed plugin is bundled dormant at
 BepInEx/SuikodenRandomizer.S1BattlePreview.dll, outside the active plugins
 tree. With the game closed, disable S1 shuffled Unites, use Activate ATB
-preview in the launcher, then enable ATB and apply. Activation alone does not
-enable ATB. A fresh ATB config starts disabled.
+preview in the launcher, then enable ATB and apply. Activation preserves
+existing settings; a fresh default ATB config remains disabled.
 Heroes and enemies act when SPD meters fill. DEX modifies enemy charging and
 can contribute to randomized opening charge. Individual native menus support
 native targeting, Attack, Defend, Rune, Item, escape options and Auto. Ready

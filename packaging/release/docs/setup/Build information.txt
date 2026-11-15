@@ -1,8 +1,15 @@
 Stars of Destiny 0.14.4 - Full Windows Release
 Windows x64 / Steam Suikoden I & II HD Remaster
 
+Package revision r2: existing 0.14.4 gameplay binaries plus launcher 1.0.5.
+Gameplay source: v0.14.4
+Commit: 9d46ab15e033027e6381c639c65ecb9aad3ca0f2
+Launcher source: launcher-v1.0.5
+Commit: c45431e68926b863d5914c8cb7d11c70f589359d
+Packaging source is recorded separately with this revision's release assets.
+
 Combined randomizer 0.14.4
-Launcher 1.0.4 with private Windows Desktop .NET 10.0.14 runtime
+Launcher 1.0.5 with private Windows Desktop .NET 10.0.14 runtime
 Optional Suikoden I ATB Preview 0.10.1, unchecked and installed disabled
 Suikoden Fix upstream release 1.5.2b
 BepInEx 6.0.0-be.697 IL2CPP Windows x64 with private .NET 6.0.7 loader runtime

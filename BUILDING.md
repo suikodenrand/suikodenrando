@@ -170,6 +170,18 @@ Do not include `GameAssembly.dll`, game-generated interop DLLs, native game asse
 
 ## Verify and publish
 
+### Package revision 0.14.4-r2
+
+The r2 distribution combines the exact original 0.14.4 gameplay DLLs, Fix, optional ATB and CFG defaults with the already-published launcher 1.0.5. It uses the original game source at `v0.14.4` (`9d46ab15e033027e6381c639c65ecb9aad3ca0f2`) and launcher source at `launcher-v1.0.5` (`c45431e68926b863d5914c8cb7d11c70f589359d`). Its package recipe and offline instructions are tagged separately as `package-v0.14.4-r2`. No gameplay DLL recompilation is required for this revision.
+
+Extract the original official manual ZIP into a clean input directory. Use its four `BepInEx/plugins/SuikodenRandomizer` DLLs and dormant ATB DLL, and a complete launcher publish directory whose bytes match the launcher 1.0.5 ZIP. Verify original input hashes before reuse. With the pinned dependency cache and NSIS available:
+
+```powershell
+python packaging/release/build.py --mode all --package-revision r2 --runtime-dir <original-four-DLL-directory> --atb-dll <original-reviewed-ATB-DLL> --launcher-dir <complete-launcher-1.0.5-publish> --reviewed-atb-sha256 03d453f68ef7ce32083746d8ab34b541c66a54e9a603f64d18fd055b27c45a0d --runtime-source-commit 9d46ab15e033027e6381c639c65ecb9aad3ca0f2 --launcher-source-commit c45431e68926b863d5914c8cb7d11c70f589359d --dependencies <pinned-cache> --makensis <NSIS-makensis.exe> --output artifacts/0.14.4-r2/packages
+```
+
+The revision argument changes distribution filenames and metadata, keeping `packageVersion=0.14.4` for the existing installer/runtime contract. Source-commit arguments declare input provenance; they do not establish it without byte comparisons. Check staged gameplay DLLs/CFGs against the original release, launcher files against the public 1.0.5 archive, all internal manifest/checksum records and the compiled installer payload. Optional ATB remains unchecked/disabled by default, and the manual package excludes the BepInEx loader. Publish distinct r2 assets and `SHA256SUMS-0.14.4-r2.txt`; retain the original assets/checksums. The unchanged plugins-only Nexus ZIP remains launcher-free.
+
 ### Split Nexus plugins and optional launcher
 
 `packaging/release/split_nexus.py` repackages the exact published 0.14.4 manual ZIP into separate plugins-only and optional-launcher downloads. It does not rebuild or execute binaries, install into a game or publish anything. Download `Stars-of-Destiny-0.14.4-Mod-Only-Windows.zip` from the existing release; its required SHA-256 is `cdfdd33b8ceb2cc5c2304f4879700e26306b73ceec3fb5b18d87a6fd198f17b5`. The script refuses another input, including custom rebuilt ZIPs.

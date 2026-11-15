@@ -52,6 +52,17 @@ BepInEx is an external prerequisite; see REQUIREMENTS.txt at the game root.
    mapping, weapon or joining-inventory policy. Existing settings may retain their old values;
    choose Riou's weapon level +/-3 for new S2 campaigns if desired.
 
+LAUNCHER 1.0.5 CHEST SETTINGS
+The updated Treasure page has one new-campaign checkbox and retains the
+saved-policy list/reset controls. Existing stored policies stay intact.
+Applying settings clears the legacy Treasure/Enabled=false global pause,
+so previously paused saved shuffles resume. An unchecked new-campaign box
+keeps new campaigns on original rewards; it does not pause an existing
+shuffled campaign. To change one save's policy, choose the checkbox value,
+Apply, select its snapshot and reset, then load that save. The manager keeps
+a backup; acquired items and opened chest flags stay intact. Review these
+settings before applying if your old configuration deliberately paused chests.
+
 JOINING INVENTORY UPGRADE
 JoiningEquipment=MatchRole is the fresh default for new campaigns in all
 three modes and both games. It uses the original role's full starting

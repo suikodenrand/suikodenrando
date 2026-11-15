@@ -2,6 +2,7 @@
 
 ## Launcher 1.0.5 — 2026-11-15
 
+- Include launcher 1.0.5 in package revision **0.14.4-r2**, both full setup and manual mod ZIP. Gameplay DLLs, Fix, optional ATB and defaults retain their original 0.14.4 bytes. Nexus plugins-only distribution stays separate.
 - Simplify S1 treasure settings to one new-campaign checkbox while retaining the separate saved-policy controls and backups.
 - Retire the legacy global chest pause on explicit Apply, preserving each existing save's chest policy. Hide that managed switch in Advanced.
 - Keep loading/no-op behavior free of config writes and preserve missing S1 configs on S2-only edits. See [launcher notes](docs/launcher-1.0.5.md).

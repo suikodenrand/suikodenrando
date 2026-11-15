@@ -5,6 +5,13 @@ v0.14.3 source tag and release remain unchanged. Build from the reviewed
 release commit and publish the resulting setup/manual assets with their
 actual checksums. Packaging itself never installs or publishes its outputs.
 
+Use `--package-revision r2` for the current distribution with launcher 1.0.5.
+It emits distinct `0.14.4-r2` setup/manual filenames while retaining runtime
+version 0.14.4. Reuse and byte-check the original 0.14.4 gameplay DLLs, optional
+ATB and defaults, plus the published launcher 1.0.5; record their source commits
+with `--runtime-source-commit` and `--launcher-source-commit`. See the r2
+procedure in [BUILDING.md](../../BUILDING.md#package-revision-0144-r2).
+
 `build.py` assembles packages from already-built project binaries. It never
 installs into or launches the game. Start with the repository's
 [BUILDING.md](../../BUILDING.md) and `packaging/Build-Release.ps1`.

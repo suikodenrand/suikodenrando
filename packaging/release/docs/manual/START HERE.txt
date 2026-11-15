@@ -1,5 +1,6 @@
 STARS OF DESTINY 0.14.4 - MOD-ONLY MANUAL WINDOWS PACKAGE
 Suikoden I & II HD Remaster | Steam | Windows x64
+Package revision r2 | Launcher 1.0.5
 
 REQUIRED FIRST: BEPINEX, DOWNLOADED SEPARATELY
 This ZIP contains the mod and launcher. BepInEx is required and is NOT bundled.
@@ -67,14 +68,25 @@ replacing Viktor at first join and a subsequent native save. Reload was not
 observed in that test. Broader S1/S2 join, compatibility and rejoin coverage
 remains limited; managed tests cover saved-policy persistence.
 
+OPTIONAL S1 CHESTS
+In Treasure, tick "Enable chest shuffle for new campaigns" and Apply settings
+before starting a new game. Existing saves keep their stored chest policy.
+To change one, choose checked (shuffled) or unchecked (original), Apply,
+select its saved snapshot and use Reset selected save's chest settings.
+The next load adopts that policy. The manager keeps a backup; acquired items
+and opened chest flags stay put. On Apply, launcher 1.0.5 clears the older
+global pause and resumes saved shuffles. Unticking the new-campaign option
+does not pause an existing shuffled policy. S2 chest shuffle is unavailable.
+
 OPTIONAL S1 ATB
 The optional plugin is bundled dormant at
 BepInEx/SuikodenRandomizer.S1BattlePreview.dll, outside the active plugins
 tree. With the game closed, open S1's Battle & ATB tab in the launcher. Turn
 off Enable shuffled-character Unite attacks, use Activate ATB preview, then
 enable ATB, apply and relaunch. The launcher checks and copies the reviewed
-DLL into plugins. Activation alone leaves ATB disabled. Keep only one active
-ATB DLL inside plugins. To return to normal battles, disable ATB before
+DLL into plugins. Fresh default settings remain disabled after activation;
+existing enabled ATB configs stay enabled. Keep only one active ATB DLL
+inside plugins. To return to normal battles, disable ATB before
 re-enabling shuffled Unites. S2 has no ATB implementation.
 
 HELP, NOTICES AND RECOVERY

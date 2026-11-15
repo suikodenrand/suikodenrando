@@ -43,6 +43,39 @@ def sha(path: Path) -> str:
     return digest(path.read_bytes())
 
 
+def package_revision(value: str) -> str:
+    if re.fullmatch(r'r[1-9][0-9]*', value) is None:
+        raise argparse.ArgumentTypeError('Package revision must be r followed by a positive integer, for example r2')
+    return value
+
+
+def source_commit(value: str) -> str:
+    if re.fullmatch(r'[0-9A-Fa-f]{40}', value) is None:
+        raise argparse.ArgumentTypeError('Source commit must be the full 40-character Git commit SHA')
+    return value.lower()
+
+
+def distribution_version(args) -> str:
+    revision = getattr(args, 'package_revision', None)
+    return VERSION + ('-' + package_revision(revision) if revision is not None else '')
+
+
+def artifact_name(args, suffix: str) -> str:
+    return f'Stars-of-Destiny-{distribution_version(args)}-{suffix}'
+
+
+def distribution_metadata(args) -> dict:
+    # These record the build inputs' declared provenance; the caller must verify
+    # that the reused DLL bytes actually correspond to those reviewed commits.
+    sources = {}
+    for component in ('runtime', 'launcher'):
+        commit = getattr(args, component + '_source_commit', None)
+        if commit is not None:
+            sources[component] = source_commit(commit)
+    return dict(packageRevision=getattr(args, 'package_revision', None),
+                distributionVersion=distribution_version(args), binarySourceCommits=sources)
+
+
 def save(path: Path, value) -> None:
     path.write_text(json.dumps(value, indent=2) + '\n', encoding='utf-8')
 
@@ -187,7 +220,7 @@ def compile_setup(args, stage):
         return None
     if args.makensis is None:
         raise ValueError('--makensis is required for --mode all unless --stage-only is used')
-    target = args.output / f'Stars-of-Destiny-{VERSION}-Setup.exe'
+    target = args.output / artifact_name(args, 'Setup.exe')
     base = Path(tempfile.gettempdir()).resolve()
     temporary = Path(tempfile.mkdtemp(prefix='sod-release-', dir=base)).resolve()
     if temporary.parent != base:
@@ -221,7 +254,7 @@ def setup(args):
             raise ValueError('Unexpected loader path: ' + name)
         stage.add('Game Files/' + name, data)
     common(stage, args, setup=True)
-    for name in ('START HERE.txt', 'Features and defaults.txt', 'Troubleshooting.txt'):
+    for name in ('START HERE.txt', 'Features and defaults.txt', 'Troubleshooting.txt', 'Build information.txt'):
         stage.copy('Game Files/StarsOfDestiny Setup/' + name, HERE / 'docs/setup' / name)
     stage.copy('Install.ps1', HERE / 'Install.ps1')
     for name in ('Install.ps1', 'Restore.ps1', 'Restore.cmd'):
@@ -231,6 +264,7 @@ def setup(args):
     stage.copy('Game Files/StarsOfDestiny Setup/Licenses/Stars-of-Destiny-MIT-LICENSE.txt', REPO / 'LICENSE')
     payload = [entry for entry in stage.files if entry['path'].startswith('Game Files/')]
     manifest = dict(schema='stars-full-package-v1', packageVersion=VERSION, kind='full-release',
+        **distribution_metadata(args),
         launcherVersion=LAUNCHER_VERSION, atbVersion='0.10.1', bepInExVersion='6.0.0-be.697',
         suikodenFixRelease='1.5.2b', gameAssemblySha256=GAME_HASH,
         freshDefaults=FRESH_DEFAULTS,
@@ -238,7 +272,8 @@ def setup(args):
         unusedInstallCmdRemoved=True, published=False, files=payload)
     stage.add('payload-manifest.json', (json.dumps(manifest, indent=2) + '\n').encode())
     stage.verify()
-    return dict(payloadFiles=len(payload), stage=str(stage.directory), installer=compile_setup(args, stage))
+    return dict(payloadFiles=len(payload), stage=str(stage.directory),
+                **distribution_metadata(args), installer=compile_setup(args, stage))
 
 
 def manual(args):
@@ -251,12 +286,14 @@ def manual(args):
     for p in regular_files(HERE / 'docs/manual'):
         stage.copy(p.name if p.name in {'START HERE.txt', 'REQUIREMENTS.txt'} else support + p.name, p)
     manifest = dict(schema='stars-of-destiny-mod-only-manual-v1', packageVersion=VERSION,
+        **distribution_metadata(args),
         launcherVersion=LAUNCHER_VERSION, freshDefaults=FRESH_DEFAULTS,
         bepInExFilesIncluded=False, externalRequirements=dict(bepInEx='6.0.0-be.697+5362580 Unity IL2CPP Windows x64'),
         optionalAtbDormant=True, supportedGameAssemblySha256=GAME_HASH, gameBuildCheckEnforced=False,
         files=list(stage.files))
     stage.add(support + 'payload-manifest.json', (json.dumps(manifest, indent=2) + '\n').encode())
     verification = dict(schema='stars-of-destiny-source-build-packaging-v1', packageVersion=VERSION,
+        **distribution_metadata(args),
         status='passed', packageChecks=['Input dependencies matched pinned archive SHA-256 values.',
             'The launcher publish includes its private runtime and required notices.',
             'Every staged file was recorded by SHA-256; the resulting ZIP is checked byte-for-byte.'],
@@ -270,7 +307,7 @@ def manual(args):
     sums = ''.join(f"{entry['sha256']}  {entry['path']}\n" for entry in sorted(stage.files, key=lambda x: x['path']))
     stage.add(support + 'SHA256SUMS.txt', sums.encode())
     stage.verify()
-    archive = args.output / f'Stars-of-Destiny-{VERSION}-Mod-Only-Windows.zip'
+    archive = args.output / artifact_name(args, 'Mod-Only-Windows.zip')
     with ZipFile(archive, 'w', ZIP_DEFLATED, compresslevel=6) as z:
         for entry in stage.files:
             z.write(stage.directory / entry['path'], entry['path'])
@@ -281,7 +318,8 @@ def manual(args):
             if digest(z.read(entry['path'])) != entry['sha256']:
                 raise ValueError('ZIP entry checksum mismatch')
     archive.with_name(archive.name + '.sha256').write_text(sha(archive) + '  ' + archive.name + '\n', encoding='ascii')
-    return dict(files=len(stage.files), name=archive.name, sha256=sha(archive), bytes=archive.stat().st_size)
+    return dict(files=len(stage.files), name=archive.name, sha256=sha(archive), bytes=archive.stat().st_size,
+                **distribution_metadata(args))
 
 
 def main():
@@ -292,6 +330,12 @@ def main():
     parser.add_argument('--launcher-dir', type=Path, required=True, help='Self-contained win-x64 launcher publish directory')
     parser.add_argument('--dependencies', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--package-revision', type=package_revision,
+                        help='Optional distribution revision, e.g. r2; runtime version remains ' + VERSION)
+    parser.add_argument('--runtime-source-commit', type=source_commit,
+                        help='Declared reviewed source commit for reused runtime DLLs; bytes must be verified separately')
+    parser.add_argument('--launcher-source-commit', type=source_commit,
+                        help='Declared reviewed source commit for the launcher publish; bytes must be verified separately')
     parser.add_argument('--makensis', type=Path)
     parser.add_argument('--reviewed-atb-sha256', help='Same reviewed hash passed as ReviewedAtbSha256 when publishing a custom launcher')
     parser.add_argument('--download-dependencies', action='store_true')
@@ -324,6 +368,7 @@ def main():
     dependencies(args)
     args.output.mkdir(parents=True, exist_ok=True)
     result = dict(packageVersion=VERSION, builtUtc=datetime.now(timezone.utc).isoformat(),
+                  launcherVersion=LAUNCHER_VERSION, **distribution_metadata(args),
                   claim='Packaging checks only; no game launch, native gameplay, install or platform approval is claimed.')
     result['manual'] = manual(args)
     if args.mode == 'all':

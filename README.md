@@ -22,6 +22,8 @@ Suikoden II ATB and chest shuffle, Nuzlocke, shared-inventory changes and extra 
 
 | Asset | Installation | BepInEx |
 | --- | --- | --- |
+| `Stars-of-Destiny-0.14.4-r2-Setup.exe` | Current full package with launcher 1.0.5, optional ATB and transaction recovery | Included |
+| `Stars-of-Destiny-0.14.4-r2-Mod-Only-Windows.zip` | Current manual package with launcher 1.0.5 | Required separately |
 | `Stars-of-Destiny-0.14.4-Plugins-Only-Nexus.zip` | Manual plugins/configs/docs; no EXEs, scripts or launcher runtime | Required separately |
 | `Stars-of-Destiny-Launcher-1.0.5-Windows.zip` | Latest optional settings launcher; install plugins separately | Required for the mod, not bundled |
 | `Stars-of-Destiny-0.14.4-Optional-Launcher-Windows.zip` | Original launcher 1.0.4, retained for reference | Required for the mod, not bundled |
@@ -31,6 +33,8 @@ Suikoden II ATB and chest shuffle, Nuzlocke, shared-inventory changes and extra 
 For Nexus, use the **Plugins-Only-Nexus** ZIP. It includes the combined randomizer, Suikoden Fix, configs, manual instructions and dormant optional S1 ATB. Install BepInEx separately. Edit CFG files by hand, or add the separate optional launcher from GitHub. The launcher-only download does not install the plugins or loader. It retains its complete private .NET runtime; players do not need a separate .NET SDK or runtime installation.
 
 Launcher **1.0.5** replaces the two S1 treasure switches with **Enable chest shuffle for new campaigns** and retains the saved-policy list/reset controls. On explicit Apply, it clears the legacy global pause so existing saved shuffles can use their own policies. Read the [launcher update notes](docs/launcher-1.0.5.md) before upgrading. Its ZIP has a matching `.zip.sha256` checksum file.
+
+Package revision **0.14.4-r2** includes launcher 1.0.5 in both the full setup and manual mod ZIP, with the original 0.14.4 gameplay DLLs, Fix, ATB and defaults. `SHA256SUMS-0.14.4-r2.txt` covers these updated packages. The Nexus plugins-only ZIP stays separate from the optional launcher.
 
 The original setup and Mod-Only-Windows assets remain available with launcher 1.0.4 and unchanged plugin bytes. The earlier split downloads also retain their released bytes. `SHA256SUMS-Split-0.14.4.txt` covers those two original split ZIPs; the original `SHA256SUMS.txt` covers the original setup/manual assets. Existing users should read the upgrade instructions before replacing files. Compiled code may still require host review; no Nexus or antivirus approval is claimed.
 

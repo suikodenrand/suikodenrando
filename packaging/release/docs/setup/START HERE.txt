@@ -1,5 +1,6 @@
 STARS OF DESTINY 0.14.4 - FULL WINDOWS RELEASE
 Suikoden I & II HD Remaster | Steam | Windows x64
+Package revision r2 | Launcher 1.0.5
 
 INSTALL
 1. Close the game and the Stars of Destiny launcher. Keep a paired backup
@@ -31,7 +32,7 @@ WHAT IS INCLUDED
 - Supported English dialogue-name replacement in both games.
 - Native shuffled-character Unite previews for both games.
 - Suikoden I seeded chest shuffle, off until you enable it.
-- Windows launcher 1.0.4, preset import/export and configuration backups.
+- Windows launcher 1.0.5, preset import/export and configuration backups.
 - BepInEx 6 IL2CPP x64 build 697 and its private loader runtime.
 - Suikoden Fix 1.5.2b and its launcher settings.
 - Optional separate Suikoden I ATB Preview 0.10.1, installed disabled.
@@ -80,11 +81,14 @@ observed in that test. Broader S1/S2 join, compatibility and rejoin coverage
 remains limited; managed tests cover saved-policy persistence.
 
 OPTIONAL S1 CHESTS
-In Treasure, enable both the global chest allowance and the option for new
-campaigns/saves without a policy. A save with an existing disabled policy
-needs its chest policy reset through the selected-save manager, then a load.
-The manager keeps a backup. Acquired items and opened chest flags stay put.
-Disabling the global allowance pauses the saved shuffle without deleting it.
+In Treasure, tick "Enable chest shuffle for new campaigns" and Apply settings
+before starting a new game. Existing saves keep their stored chest policy.
+To change one, choose checked (shuffled) or unchecked (original), Apply,
+select its saved snapshot and use Reset selected save's chest settings.
+The next load adopts that policy. The manager keeps a backup; acquired items
+and opened chest flags stay put. On Apply, launcher 1.0.5 clears the older
+global pause and resumes saved shuffles. Unticking the new-campaign option
+does not pause an existing shuffled policy. S2 chest shuffle is unavailable.
 
 OPTIONAL S1 ATB
 Select "Experimental S1 ATB (installed disabled)" during setup. In the
