@@ -1,0 +1,65 @@
+STARS OF DESTINY 0.14.4 - PLUGINS-ONLY MANUAL UPGRADE / REMOVAL
+
+1. Close the game and launcher. Back up Save and BepInEx/config TOGETHER
+   outside the game folder, along with existing mod files you will replace.
+   Preserve campaign sidecars. Keep earlier installer recovery files too.
+2. Extract this ZIP into a temporary folder. Review FILES.txt in this support
+   folder. Copy only packaged CFG files that do not already exist into the
+   game's BepInEx/config. Keep every existing CFG and campaign sidecar.
+   Then omit the extracted ZIP's BepInEx/config folder during the bulk copy.
+   Do not remove or clear the game's actual config folder.
+3. Retain a working matching BepInEx build 697 installation. This plugins ZIP
+   does not update loader core, dotnet or Doorstop. If absent, install the
+   external requirement first. Do not mix different loader builds; back up
+   any loader you deliberately change and check other mods' requirements.
+4. Keep exactly these four combined randomizer DLLs in
+   BepInEx/plugins/SuikodenRandomizer:
+     SuikodenRandomizer.dll
+     SuikodenRandomizer.Core.dll
+     SuikodenRandomizer.Suikoden2.Core.dll
+     SuikodenRandomizer.Shared.dll
+   Back up and remove an old standalone SuikodenRandomizer.Suikoden2.dll.
+   Move other duplicate/renamed randomizer copies OUTSIDE the entire plugins
+   tree. Renaming a folder inside plugins does not stop BepInEx loading it.
+   Keep one Suikoden_Fix.dll and at most one active ATB DLL. Older Fix builds
+   containing an embedded randomizer also conflict. Keep unrelated mods.
+5. Copy this package's binaries and support files into the game folder,
+   preserving the configs from step 2. Record newly added files. This package
+   does not replace, remove or require an existing optional launcher.
+6. Existing ATB installations stay active if previously enabled: this manual
+   package does not remove them. Keep their configs. The bundled ATB copy
+   directly under BepInEx is dormant. Keep S1 shuffled Unites off while ATB
+   is enabled; read SETTINGS.txt before activating or disabling ATB.
+7. Review settings with the game closed. Seed, roster, weapon and inventory
+   choices for new campaigns do not rewrite bound saves. Existing settings
+   may retain older defaults; configure new-campaign choices deliberately.
+
+JOINING EQUIPMENT
+MatchRole is the fresh joining-inventory default in both games and all three
+roster modes. It copies the original role's starting inventory and substitutes
+comparable wearable gear where needed. Existing campaigns without saved
+equipment-policy metadata keep Donor behavior. Upgrading does not retrofit
+inventory or reset equipment. Joining weapon levels are a separate policy.
+
+OPTIONAL LAUNCHER UPGRADE
+Install the separate optional launcher ZIP only if wanted. Keep its complete
+StarsOfDestiny Launcher folder together and replace that folder as a unit,
+after backing it up. Keep personalized launcher preferences/presets from the
+backup as needed. The plugins-only ZIP does not contain a launcher update.
+
+MANUAL UNDO / REMOVAL
+Close the game. Back up configurations and saves changed since installation.
+Restore overwritten files from your backup. Remove newly added package-owned
+files using your added-file record and FILES.txt. If a file existed before,
+restore its backup instead of deleting it. If you activated ATB, disable it
+and account for its copied active DLL under plugins during removal.
+
+Do not delete the entire BepInEx folder: it may contain the shared loader,
+other mods, configs and campaign data. Do not delete binding sidecars to
+force a different seed onto an old save. Keep Save and config backups paired.
+Mod rollback does not rewind gameplay progress. Starting New Game can replace
+the autosave. External BepInEx removal is outside this package's undo steps.
+
+This copy creates no installer transaction and is not covered by an earlier
+Restore.cmd transaction. Restore this manual copy's own backup before using
+an older installer transaction. Existing installer recovery files remain useful.

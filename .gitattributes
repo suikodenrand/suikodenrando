@@ -15,3 +15,4 @@
 # Preserve hash-pinned upstream notices/sources and reviewed default CFG bytes.
 packaging/release/licenses/** -text
 packaging/release/defaults/** -text
+packaging/release/nexus-templates/** text eol=lf

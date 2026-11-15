@@ -1,0 +1,53 @@
+STARS OF DESTINY 0.14.4 - OPTIONAL WINDOWS LAUNCHER 1.0.4
+
+This download contains ONLY the optional settings launcher and its complete
+self-contained Microsoft .NET 10.0.14 Windows x64 runtime. It does not install
+the randomizer plugins, Suikoden Fix, ATB or BepInEx. Get the plugins-only
+0.14.4 ZIP and install its external BepInEx requirement first.
+https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.4
+
+INSTALL / RUN
+1. Close the game and launcher. Back up an existing launcher folder and its
+   preferences/presets before replacing it. Keep Save and BepInEx/config
+   backed up together before changing campaign settings.
+2. Extract this ZIP into the game folder beside
+   Suikoden I and II HD Remaster.exe. The resulting folder should be:
+     StarsOfDestiny Launcher/StarsOfDestiny.Launcher.exe
+   Keep ALL files/subfolders of StarsOfDestiny Launcher together. Do not
+   copy just its EXE. No separate .NET runtime, SDK or compiler is required.
+3. Run that EXE. The launcher can detect the containing game folder; if it
+   asks for a location, select the folder containing the game's EXE.
+4. Choose S1 or S2, seed and settings. With the game closed, use Apply settings
+   or Save & launch game. Steam must be installed/available to launch normally.
+   A launcher choice does not rewrite an existing campaign's seed, mapping,
+   weapon or inventory policies. Use New Game to test new-campaign settings.
+5. For optional S1 ATB, install the plugins-only package first (it supplies
+   the reviewed dormant DLL). Turn off S1 shuffled Unites, activate the ATB
+   preview, then enable it. Activation leaves fresh default ATB settings
+   disabled; an already-enabled existing config is preserved. Also disable
+   the legacy ShuffledTalismanPreview flag if previously enabled; see the
+   plugins package's SETTINGS.txt. Never run S1 shuffled Unites and ATB
+   together. ATB remains experimental and S1 only.
+
+TROUBLESHOOTING
+If the launcher does not open, confirm the entire folder was extracted and
+has not been mixed with files from a different launcher version. If the game
+loads without mods, check the separate external BepInEx installation and
+BepInEx/LogOutput.log. The launcher download does not supply that loader.
+Manual config editing is supported without installing or running this EXE.
+Do not disable security protections to run it; report the exact file/hash and
+security report URL if it is quarantined. Host approval is not guaranteed.
+
+UPGRADE / REMOVE
+Replace an existing launcher folder as a complete set after backing it up.
+Preserve personalized preferences/presets as needed. To remove this optional
+download, close it, back up those preferences and remove only its package-owned
+files listed in StarsOfDestiny Launcher Package/FILES.txt. Keep game saves,
+configs, randomizer plugins and the external BepInEx loader. Launcher removal
+does not undo settings already applied. Keep any prior installer recovery.
+
+NOTICES / SOURCE
+Microsoft runtime notices remain inside StarsOfDestiny Launcher. Project MIT
+and download details are in StarsOfDestiny Launcher Package. Source/build:
+https://github.com/suikodenrand/suikodenrando/tree/v0.14.4
+These are the unchanged launcher 1.0.4 bytes from the 0.14.4 release.

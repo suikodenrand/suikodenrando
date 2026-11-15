@@ -1,0 +1,33 @@
+STARS OF DESTINY 0.14.4 - EXTERNAL REQUIREMENTS
+
+Required: the Windows x64 Steam version of Suikoden I & II HD Remaster.
+Required separately: BepInEx 6 Unity IL2CPP Windows x64, tested build below.
+
+Tested version: BepInEx 6.0.0-be.697+5362580
+Exact archive: BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.697+5362580.zip
+SHA-256: 616ec7eb06cf11b2a0000e8fcef04d1b12bb58e84a2e0bdac9523234fc193ceb
+Official download:
+https://builds.bepinex.dev/projects/bepinex_be/697/BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.697%2B5362580.zip
+Official installation guide:
+https://docs.bepinex.dev/master/articles/user_guide/installation/unity_il2cpp.html
+
+Extract external BepInEx into the game folder FIRST, then this plugins ZIP
+into the same folder. BepInEx 5, Unity Mono and x86 are incompatible choices.
+Newer bleeding-edge builds have not been qualified with this package.
+Retain an already-working matching loader rather than reinstalling it.
+Do not mix loader core, dotnet or Doorstop files from different builds.
+First modded launch needs internet for Unity reference libraries.
+
+This ZIP does NOT redistribute BepInEx/core, the loader's dotnet runtime,
+winhttp.dll, doorstop_config.ini, .doorstop_version or loader source bundles.
+The external loader still needs its supplied files; do not remove them from
+your installed copy to imitate this plugins-only archive.
+
+Suikoden Fix 1.5.2b is included with its MIT license; no separate download is
+needed. Its plugin reports version 1.5.2. Keep only one active Fix copy.
+
+The launcher is OPTIONAL and NOT included. No .NET SDK, compiler or separate
+launcher-runtime installation is needed to use this plugins-only package.
+Optional launcher: https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.4
+
+Existing users: read StarsOfDestiny Manual/MANUAL UPGRADE.txt before copying.

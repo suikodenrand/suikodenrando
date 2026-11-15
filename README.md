@@ -22,10 +22,14 @@ Suikoden II ATB and chest shuffle, Nuzlocke, shared-inventory changes and extra 
 
 | Asset | Installation | BepInEx |
 | --- | --- | --- |
+| `Stars-of-Destiny-0.14.4-Plugins-Only-Nexus.zip` | Manual plugins/configs/docs; no EXEs, scripts or launcher runtime | Required separately |
+| `Stars-of-Destiny-0.14.4-Optional-Launcher-Windows.zip` | Optional graphical settings editor; install plugins separately | Required for the mod, not bundled |
 | `Stars-of-Destiny-0.14.4-Setup.exe` | Guided full installation, optional ATB component and transaction recovery | Included |
 | `Stars-of-Destiny-0.14.4-Mod-Only-Windows.zip` | Manual extraction into the game folder | Required separately |
 
-Both include the combined randomizer, launcher and Suikoden Fix. The launcher includes its own .NET runtime; players do not need a separate .NET SDK or runtime installation. The release also provides SHA-256 checksums and the project's MIT license. Existing users should read the upgrade instructions before replacing files.
+For Nexus, use the **Plugins-Only-Nexus** ZIP. It includes the combined randomizer, Suikoden Fix, configs, manual instructions and dormant optional S1 ATB. Install BepInEx separately. Edit CFG files by hand, or add the separate optional launcher from GitHub. The launcher-only download does not install the plugins or loader. It retains its complete private .NET runtime; players do not need a separate .NET SDK or runtime installation.
+
+The original setup and Mod-Only-Windows assets remain available and include both plugins and launcher. The split downloads preserve their released binary bytes; this is a packaging change, not a gameplay update or a guarantee of Nexus approval. `SHA256SUMS-Split-0.14.4.txt` covers the two split ZIPs; the original `SHA256SUMS.txt` covers the original assets. Existing users should read the upgrade instructions before replacing files.
 
 ### Full setup
 
@@ -37,8 +41,8 @@ The full setup includes upstream BepInEx files. The reported detections for `Bep
 
 1. Close the game and launcher. In Steam, use **Manage > Browse local files** to find the folder containing `Suikoden I and II HD Remaster.exe`.
 2. Install **BepInEx 6 Unity IL2CPP Windows x64, build 697 (`5362580`)** from the [official download](https://builds.bepinex.dev/projects/bepinex_be/697/BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.697%2B5362580.zip). Extract its contents into the game folder first. Do not substitute BepInEx 5, a Mono build or an x86 build.
-3. Extract the mod-only ZIP into the same game folder. Its `BepInEx` folder contains mod plugins and settings, not the BepInEx loader.
-4. Open `StarsOfDestiny Launcher/StarsOfDestiny.Launcher.exe`, choose settings and use **Apply settings** or **Save & launch game**.
+3. Extract the plugins-only ZIP into the same game folder. Its `BepInEx` folder contains mod plugins and settings, not the BepInEx loader.
+4. With the game closed, edit `[Shuffle] Seed` in `BepInEx/config/agilen.suikoden.recruitment_randomizer.cfg` (S1) or `agilen.suikoden2.recruitment_randomizer.cfg` (S2). Read the packaged `StarsOfDestiny Manual/SETTINGS.txt` for toggles and optional ATB. Launch normally through Steam. For a graphical editor, separately extract the optional launcher ZIP beside the game EXE, then open `StarsOfDestiny Launcher/StarsOfDestiny.Launcher.exe` and use **Apply settings** or **Save & launch game**.
 5. Allow time and internet access for the first BepInEx launch to obtain Unity reference files and generate interop assemblies. Start a New Game for a new randomized campaign.
 
 For an existing modded installation, first back up `Save` and `BepInEx/config` together outside the game folder. Follow `StarsOfDestiny Manual/MANUAL UPGRADE.txt` in the ZIP to replace binaries while preserving existing configs and campaign sidecars. Manual copying does not run installer conflict checks, create backups or create restore transactions. Do not remove the external loader as part of a mod-only rollback.
@@ -53,7 +57,7 @@ Campaigns saved before this feature keep the legacy replacement inventory behavi
 
 First joining weapons follow Tir or Riou with seeded -3 to +3 variance, including a possible exact match. These are new-campaign policies. Changing launcher settings does not rewrite the seed, mapping or weapon policy already bound to a saved campaign.
 
-ATB is inactive by default. In the manual ZIP its reviewed DLL is dormant directly under `BepInEx`, outside the active plugins tree. With the game closed, disable S1 shuffled Unites, choose **Activate ATB preview** in the launcher's S1 Battle & ATB tab, then enable ATB and apply settings. Activation alone does not enable it. S1 ATB and shuffled S1 Unites must not be enabled together.
+ATB is inactive by default. In the manual ZIPs its reviewed DLL is dormant directly under `BepInEx`, outside the active plugins tree. With the game closed, follow the plugins-only package's `SETTINGS.txt` to disable both S1 Unite preview flags, copy the dormant DLL into `BepInEx/plugins` and enable ATB in its CFG. Alternatively use **Activate ATB preview** in the optional launcher's S1 Battle & ATB tab, then enable ATB and apply settings. Activation preserves existing settings; fresh defaults remain disabled until enabled. S1 ATB and shuffled S1 Unites must not run together.
 
 ## Source, builds and license
 

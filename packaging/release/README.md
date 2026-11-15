@@ -9,6 +9,14 @@ actual checksums. Packaging itself never installs or publishes its outputs.
 installs into or launches the game. Start with the repository's
 [BUILDING.md](../../BUILDING.md) and `packaging/Build-Release.ps1`.
 
+For the additional **plugins-only Nexus** and **optional launcher** downloads,
+use `split_nexus.py` with the exact published manual ZIP. It preserves released
+binary/config bytes and uses the instructions in `nexus-templates`, with no
+loader or launcher EXEs in the plugins ZIP. The launcher is a separate complete
+self-contained download. See the split-package instructions in
+[BUILDING.md](../../BUILDING.md#split-nexus-plugins-and-optional-launcher).
+The original setup/manual assets and binary source tag remain unchanged.
+
 Requirements are Python 3.12 or later, the four combined runtime DLLs, the
 optional ATB DLL, and a complete self-contained `win-x64` launcher publish.
 NSIS 3.11 is additionally required to compile the full setup.

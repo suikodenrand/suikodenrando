@@ -1,0 +1,68 @@
+STARS OF DESTINY 0.14.4 - PLUGINS-ONLY NEXUS PACKAGE
+Suikoden I & II HD Remaster | Steam | Windows x64
+
+This is a manual-install package. The launcher is OPTIONAL and downloaded
+separately. This ZIP contains no EXE, install scripts or BepInEx loader.
+It includes the combined randomizer, Suikoden Fix, defaults and dormant S1 ATB.
+
+FRESH INSTALL
+1. Close the game and any launcher. In Steam, right-click the game > Manage
+   > Browse local files. Use the folder containing
+   Suikoden I and II HD Remaster.exe and GameAssembly.dll.
+2. If you already have mods or saves, read
+   StarsOfDestiny Manual/MANUAL UPGRADE.txt BEFORE copying anything.
+   Back up Save and BepInEx/config together outside the game folder, plus
+   existing mod files that you plan to replace. Manual copying makes no backup.
+3. Install the tested BepInEx 6 Unity IL2CPP Windows x64 build 697 separately.
+   REQUIREMENTS.txt contains its official download, checksum and install guide.
+   Extract that external archive into the game folder first. Keep its core,
+   dotnet, winhttp.dll and Doorstop files together as supplied upstream.
+4. Extract THIS ZIP into the same game folder, merging its BepInEx folder.
+   Do not add an extra mod-named folder. You should have:
+     BepInEx/plugins/SuikodenRandomizer/SuikodenRandomizer.dll
+     BepInEx/plugins/Suikoden_Fix.dll
+     BepInEx/config/agilen.suikoden.recruitment_randomizer.cfg
+   All files listed in StarsOfDestiny Manual/FILES.txt belong to this package.
+5. With the game closed, edit the CFG files in BepInEx/config using Notepad.
+   To choose a seed, edit Seed under [Shuffle] in the relevant game's file:
+     S1: agilen.suikoden.recruitment_randomizer.cfg
+     S2: agilen.suikoden2.recruitment_randomizer.cfg
+   Use the same seed AND settings to reproduce a new campaign. Read
+   StarsOfDestiny Manual/SETTINGS.txt for toggles, equipment and optional ATB.
+   The supplied defaults work without editing or installing the launcher.
+6. Launch the game normally through Steam. Keep Steam and internet available
+   on the first modded launch. BepInEx downloads Unity reference libraries and
+   generates interop files; allow several minutes. Check BepInEx/LogOutput.log
+   for progress. Do not repeatedly close the game during this first setup.
+7. Choose S1 or S2 and start New Game for your new randomized campaign.
+   Starting New Game may replace the autosave. Existing bound saves keep
+   their own seed, roster and saved policies. Press F6 to display the initially
+   hidden text-only status panel; F6 cycles Full, Compact and Hidden.
+
+DEFAULTS
+Shuffle mode; seed stars-of-destiny; normal openings; English dialogue name
+replacement and shuffled Unites on. Original role's starting inventory with
+comparable wearable gear (MatchRole). Joining weapons follow Tir in S1 or
+Riou in S2 with seeded -3 to +3 variance. Protagonist shuffle, chest shuffle
+and optional ATB are off. See Features and defaults.txt in the support folder.
+
+OPTIONAL LAUNCHER
+For a graphical settings editor, download
+Stars-of-Destiny-0.14.4-Optional-Launcher-Windows.zip from:
+https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.4
+Extract it beside the game EXE after installing this plugins package. Keep
+the complete StarsOfDestiny Launcher folder together. No separate .NET SDK
+or runtime install is required for that optional self-contained launcher.
+The launcher download alone does not install plugins or BepInEx.
+
+HELP AND RECOVERY
+Read SETTINGS.txt, MANUAL UPGRADE.txt and Troubleshooting.txt inside
+StarsOfDestiny Manual. Undo uses your own backup and the packaged file list;
+there is no automatic installer transaction or Restore script in this ZIP.
+Do not delete the entire BepInEx folder or campaign sidecars to remove mods.
+Third-party and project licenses are in StarsOfDestiny Manual/Licenses.
+Source/build instructions: https://github.com/suikodenrand/suikodenrando
+
+This is a distribution split of existing 0.14.4 binaries, not a gameplay
+update. Native playtesting remains limited; ATB and S1 chest shuffle are
+experimental. Packaging checks do not guarantee Nexus or antivirus approval.

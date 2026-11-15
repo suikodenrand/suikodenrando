@@ -13,12 +13,17 @@ Shuffled recruits can now receive the original story role's starting inventory i
 
 ## Downloads
 
+- **`Stars-of-Destiny-0.14.4-Plugins-Only-Nexus.zip`** — manual plugins, defaults, instructions, Suikoden Fix and dormant optional S1 ATB. No EXEs, launcher/runtime, loader or install scripts. Install the tested BepInEx separately; the launcher is optional.
+- **`Stars-of-Destiny-0.14.4-Optional-Launcher-Windows.zip`** — separate optional launcher **1.0.4** and its complete private .NET runtime. Extract beside the game EXE after installing the plugins and external BepInEx. Does not supply mod plugins or the loader.
+- **`SHA256SUMS-Split-0.14.4.txt`** — hashes for the two split downloads above.
 - **`Stars-of-Destiny-0.14.4-Setup.exe`** — full Windows setup, including the tested BepInEx loader, launcher, Suikoden Fix and optional S1 ATB.
 - **`Stars-of-Destiny-0.14.4-Mod-Only-Windows.zip`** — manual mod package with launcher, Suikoden Fix and dormant optional S1 ATB. Install **BepInEx 6 Unity IL2CPP Windows x64 build 697 (`5362580`) separately first**.
 - **`SHA256SUMS.txt`** — hashes for the actual release assets.
 - **`LICENSE.txt`** — MIT license for the project's own code. Dependencies retain their original licenses.
 
-For manual installation, use the [tested official BepInEx download](https://builds.bepinex.dev/projects/bepinex_be/697/BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.697%2B5362580.zip), then extract the mod ZIP into the same game folder. The mod-only ZIP does not include BepInEx core, its root `dotnet` runtime, `winhttp.dll` or Doorstop files. Read `START HERE.txt` and `REQUIREMENTS.txt` in the package. Existing users should follow `StarsOfDestiny Manual/MANUAL UPGRADE.txt` to preserve configurations and campaign sidecars before replacing binaries.
+For manual installation, use the [tested official BepInEx download](https://builds.bepinex.dev/projects/bepinex_be/697/BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.697%2B5362580.zip), then extract the plugins ZIP into the same game folder. The manual plugin downloads do not include BepInEx core, its root `dotnet` runtime, `winhttp.dll` or Doorstop files. Read `START HERE.txt` and `REQUIREMENTS.txt` in the package. Existing users should follow `StarsOfDestiny Manual/MANUAL UPGRADE.txt` to preserve configurations and campaign sidecars before replacing binaries.
+
+For Nexus, use **Plugins-Only-Nexus**. Edit the supplied CFGs with the game closed and launch through Steam; its `SETTINGS.txt` covers seeds, toggles and optional ATB without requiring the launcher. The original Mod-Only-Windows ZIP includes the launcher; the new plugins-only ZIP does not. This distribution split retains the exact released plugin/config and launcher binary bytes. It changes packaging and documentation, not gameplay. The original assets and `v0.14.4` source tag remain unchanged. Compiled DLL plugins can still require host review; no Nexus or antivirus approval is claimed.
 
 The full setup includes the upstream loader distribution. Previously reported detections for `dobby.dll` and `.doorstop_version` matched unmodified upstream files; their origin alone does not establish an antivirus false-positive ruling or host approval.
 

@@ -1,0 +1,110 @@
+STARS OF DESTINY 0.14.4 - MANUAL SETTINGS
+
+Close the game and launcher before editing CFG files in BepInEx/config.
+Keep each key under its named [Section]; do not add duplicate keys. Use true
+or false for toggles. Save as plain text with the existing .cfg extension.
+Back up Save and the entire config folder together. Do not edit campaign
+binding/sidecar files. Launcher 1.0.4 is an optional graphical editor.
+
+PER-GAME FILES
+S1: agilen.suikoden.recruitment_randomizer.cfg
+S2: agilen.suikoden2.recruitment_randomizer.cfg
+
+[Shuffle]
+Seed = your-seed-here
+Mode = Shuffle
+JoiningEquipment = MatchRole
+JoiningWeaponLevel = TirVariance
+
+Mode accepts Shuffle, FixedChosen or FixedRandom. FixedChosen needs exactly
+five distinct eligible comma-separated numeric IDs in Companions. S1 reserves
+Tir; S2 reserves Riou and accepts only one-slot companions. Use the optional
+launcher or source catalogs to select valid IDs; do not guess them.
+Under [Shuffle], IncludeTir=true/false (S1) or IncludeProtagonist=true/false
+(S2) controls protagonist shuffle; both are false in the supplied defaults.
+Under [Start], Point accepts Opening or BeforeViktor (S1), or Opening or
+ViktorCamp (S2). These quick starts apply to new campaigns only.
+
+Use RiouVariance for S2 JoiningWeaponLevel (its supplied default).
+Seed and roster/policy changes apply when starting a NEW campaign. Loading
+a bound save restores its saved choices. Do not remove sidecars to force
+settings onto a saved campaign. Existing campaigns without equipment-policy
+metadata keep Donor inventory behavior; there is no inventory retrofit.
+
+JoiningEquipment accepts MatchRole or Donor in both games:
+  MatchRole: original role's full starting inventory, including consumables,
+  with comparable wearable equipment for the replacement where needed.
+  Donor: replacement character's own starting inventory (legacy behavior).
+JoiningWeaponLevel accepts TirVariance / MatchRole / Level1 in S1, or
+RiouVariance / MatchRole / Level1 in S2. Variance follows the protagonist's
+current weapon level with a seeded -3 to +3 offset, clamped to legal levels.
+MatchRole uses the original role's joining weapon level. Level1 starts at 1.
+Protected story setups and S2 natural weapons retain native handling.
+Weapon and inventory policies are separate; the replacement keeps its own
+weapon identity and rune setup. These are first-join initialization choices.
+
+OPTIONAL S1 CHEST SHUFFLE (EXPERIMENTAL)
+In the S1 file only:
+[Treasure]
+Enabled = false
+ShuffleChests = false
+
+Leave both false to keep chest randomization off. Set both true before a new
+campaign to enable it. Enabled=false pauses chest replacement globally even
+for a campaign with a stored chest map; it does not delete that saved map,
+undo already received rewards or close already opened chests. Changing
+ShuffleChests does not rewrite a bound campaign's saved treasure policy.
+S2 chest randomization is not implemented.
+
+SHUFFLED UNITES
+In each game's file:
+[Battle]
+ShuffledUnitesPreview = true
+
+Set false to disable that game's shuffled-character Unite support. S1 also
+has the legacy ShuffledTalismanPreview key; leave it false. Turn BOTH S1
+preview keys off before enabling the separate optional ATB plugin.
+
+SHARED RANDOMIZER / DIALOGUE / DISPLAY
+File: agilen.starsofdestiny.cfg
+[General]
+Enabled = true
+[Dialogue]
+ReplaceCharacterMentions = true
+[Interface]
+ViewMode = Hidden
+
+General/Enabled=false disables the combined randomizer engine, not the
+separate Suikoden Fix or ATB plugin. Dialogue/ReplaceCharacterMentions=false
+disables supported English dialogue mention replacement. Interface/ViewMode
+selects startup Hidden, Compact or Full. F6 cycles the view for the session.
+The visible panel is text only. Dialogue support is curated; unsupported
+messages and languages retain their original text.
+
+OPTIONAL S1 ATB (EXPERIMENTAL; OFF BY DEFAULT)
+1. Close the game. Back up existing plugins/configs.
+2. In S1 agilen.suikoden.recruitment_randomizer.cfg, set under [Battle]:
+     ShuffledUnitesPreview = false
+     ShuffledTalismanPreview = false
+3. The packaged DLL is dormant outside the active plugins tree:
+     BepInEx/SuikodenRandomizer.S1BattlePreview.dll
+   Copy it to BepInEx/plugins/SuikodenRandomizer.S1BattlePreview.dll.
+   Keep exactly ONE active copy anywhere under BepInEx/plugins.
+4. In agilen.suikoden1.battle-preview.cfg, under [Preview], set Enabled=true.
+   Keep OneShotAttack=false and the supplied remaining options: ActiveAtb,
+   RepeatTurns, ReadyCommands, NativeReadyMenus, NativeSpdMeters, ActiveInput,
+   EnemyDexCharge and OpeningCharge all true. Relaunch normally through Steam.
+5. To return to turn-based combat, close the game and set ATB Enabled=false.
+   Then re-enable S1 ShuffledUnitesPreview if desired. Never run the ATB or
+   one-shot probe together with S1 shuffled Unites. S2 ATB is not implemented.
+
+OTHER OPTIONS
+The optional launcher exposes fixed rosters, companion choices, protagonist
+shuffle, quick starts and upstream Suikoden Fix display/audio/QoL options.
+After a launch BepInEx adds comments to recognized configuration entries.
+For manual advanced values, consult the source or use the optional launcher
+rather than guessing character IDs. Suikoden Fix settings are independent
+in d3xMachina.suikoden_fix.cfg; supplied gameplay multipliers are normal.
+
+Source and build instructions:
+https://github.com/suikodenrand/suikodenrando/tree/v0.14.4

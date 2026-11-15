@@ -1,0 +1,52 @@
+STARS OF DESTINY 0.14.4 - PLUGINS-ONLY FEATURES AND DEFAULTS
+
+Included unchanged: combined randomizer 0.14.4, Suikoden Fix 1.5.2b (plugin
+reports 1.5.2), optional dormant S1 ATB Preview 0.10.1 and default CFG files.
+BepInEx 6 IL2CPP Windows x64 build 697 is required separately.
+Launcher 1.0.4 is an OPTIONAL separate GitHub download, not part of this ZIP.
+
+BOTH GAMES
+Seeded role Shuffle, five chosen companions or seeded random fixed roster;
+optional protagonist shuffle and quick start; separate campaign mappings and
+settings, shared F6 interface. Native story/recruitment conditions remain.
+Names, portraits, party and battle appearance follow replacements. Supported
+English dialogue mentions follow shuffled names; unsupported text/languages
+and native custom-name/event tokens retain native handling. Both games have
+shuffled Unite support using actual displayed fighters with native targeting.
+
+JOINING WEAPONS / INVENTORY
+Default inventory policy MatchRole: original role's full starting inventory,
+including carried consumables and equipped state, with comparable wearable
+equipment for replacements when needed. Donor retains replacement inventory.
+Default weapon policy TirVariance (S1) / RiouVariance (S2): protagonist's
+weapon level plus a seeded -3 to +3 offset, clamped to the legal range.
+Alternatives MatchRole and Level1 are available. Inventory and weapon
+policies are independent; weapon identity and rune setup remain replacement's.
+First-join history/policies persist with campaigns; later earned equipment
+is not intended to reset. Legacy saves without equipment metadata keep Donor;
+upgrading does not retrofit inventory. All three roster modes are supported.
+
+OPTIONAL / EXPERIMENTAL S1 FEATURES
+Chest shuffle: deterministic campaign-seeded ordinary item rewards, with
+potch and protected quest/recruitment rewards retained. Disabled by default.
+ATB: native individual ready-hero menus/targeting, SPD meters, DEX influence,
+queued commands and repeat actions. Bundled dormant and disabled; enable
+manually as described in SETTINGS.txt, or use the optional launcher. S1
+shuffled Unites and ATB/one-shot probes must not run together.
+
+FRESH DEFAULTS
+Seed=stars-of-destiny; Shuffle; normal openings; original role's starting
+inventory; Tir/Riou weapon variance; dialogue replacement and shuffled Unites
+on. Protagonist shuffle, S1 chest shuffle and ATB off. F6 starts Hidden and
+visible modes use text only. Suikoden Fix gameplay multipliers are normal.
+Existing configurations are not merged by manual installation; preserve them
+on upgrade and deliberately choose settings for new campaigns.
+
+NOT INCLUDED / LIMITS
+No BepInEx loader/core/runtime, launcher/runtime, EXEs, install scripts,
+nested archives, personal saves or generated interop assemblies in this ZIP.
+Nuzlocke, S2 ATB/chest shuffle, extra rune slots and shared inventory/storage
+rewrites are not included. Wider S1/S2 story, recruit and Unite playtesting is
+still needed. The native 0.14.4 equipment check observed Meg replacing Viktor,
+first-join gear and a save; reload was not observed. This packaging split
+does not change gameplay binaries or expand that native test coverage.

@@ -1,0 +1,20 @@
+THIRD-PARTY SOFTWARE - STARS OF DESTINY 0.14.4 PLUGINS-ONLY
+
+Suikoden Fix 1.5.2b by d3xMachina
+Suikoden_Fix.dll is included unchanged under MIT. See Suikoden-Fix-LICENSE.txt.
+https://github.com/d3xMachina/Suikoden-Fix/releases/tag/v1.5.2b
+
+Stars of Destiny's own code, including its optional S1 ATB plugin, is MIT.
+See Stars-of-Destiny-MIT-LICENSE.txt. Source and build instructions:
+https://github.com/suikodenrand/suikodenrando/tree/v0.14.4
+
+EXTERNAL REQUIREMENT: BEPINEX
+BepInEx 6.0.0-be.697+5362580 Unity IL2CPP Windows x64 is required separately.
+Its core libraries, Dobby, Doorstop, loader runtime and corresponding source
+bundles are not redistributed in this ZIP. Obtain the official package and
+retain its supplied notices/components together. See REQUIREMENTS.txt.
+https://builds.bepinex.dev/projects/bepinex_be
+
+The optional launcher and its Microsoft .NET runtime are distributed in a
+separate GitHub download, with their notices. They are not included here.
+No NSIS, setup executable or install/restore script is included here.

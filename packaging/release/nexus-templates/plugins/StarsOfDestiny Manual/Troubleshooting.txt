@@ -1,0 +1,63 @@
+STARS OF DESTINY 0.14.4 - PLUGINS-ONLY TROUBLESHOOTING
+
+NO MOD / NO F6 PANEL
+F6 starts hidden. Press F6 at the relevant game title or campaign. Verify
+BepInEx/LogOutput.log exists and reports the combined Stars of Destiny 0.14.4
+plugin. Check agilen.starsofdestiny.cfg [General]Enabled=true. If no BepInEx
+log exists, check the external loader installation: IL2CPP Windows x64 build
+697 and root files beside the game EXE, not inside an extra folder.
+This ZIP alone cannot initialize BepInEx; see REQUIREMENTS.txt.
+
+FIRST LAUNCH IS SLOW
+BepInEx generates interop and may download Unity reference files. Keep Steam
+and internet available and read LogOutput.log for progress/errors. Wait for
+the title rather than repeatedly terminating setup. Generated interop files
+are local game-specific outputs, not files missing from this plugins ZIP.
+
+SEED / EQUIPMENT / ROSTER DID NOT CHANGE
+Edit the correct game's CFG with the game closed. Existing bound campaigns
+restore their saved mapping and policies. Configure a NEW campaign to test
+new-campaign options; back up saves first because New Game may replace the
+autosave. Never delete campaign sidecars to force a new policy onto old saves.
+Old campaigns without joining-equipment metadata keep Donor behavior.
+The 0.14.4 runtime supports MatchRole without requiring any launcher.
+
+CHEST RANDOMIZATION IS STILL ACTIVE
+In S1's CFG, set [Treasure]Enabled=false with the game closed. A campaign can
+retain its stored chest map, so changing ShuffleChests alone is not a global
+off switch. Disabling replacement does not undo previously granted rewards
+or reopen chests. S2 has no chest shuffler.
+
+DUPLICATE PANELS / PATCH ERRORS / WRONG VERSION
+Keep one combined host with its four matching DLLs. Move duplicate or old
+standalone S2 randomizer DLLs outside the complete BepInEx/plugins tree.
+Keep one Suikoden Fix; older embedded-randomizer Fix builds conflict. Check
+other mods individually and preserve backups. Do not rename a duplicate
+folder inside plugins and assume it is disabled.
+
+ATB DOES NOT APPEAR / CONFLICTS WITH UNITES
+ATB is dormant under BepInEx, outside plugins, and disabled by config. Follow
+SETTINGS.txt to copy it into plugins and enable it. Disable BOTH S1
+ShuffledUnitesPreview and legacy ShuffledTalismanPreview before ATB. Keep only
+one active ATB DLL. Turn ATB off before re-enabling shuffled Unites. S2 ATB
+is not included. These experimental features need wider encounter testing.
+
+OPTIONAL LAUNCHER FAILS TO OPEN / CANNOT FIND GAME
+Download the separate optional launcher ZIP from the 0.14.4 GitHub release.
+Extract the entire StarsOfDestiny Launcher folder beside the game EXE; do not
+copy just its EXE. Keep its private .NET runtime and notices together. No
+separate .NET SDK is required. The launcher does not install BepInEx or the
+randomizer. Manual CFG editing remains available without the launcher.
+
+QUARANTINE / SECURITY REPORT
+This plugins-only archive contains DLL plugins, CFGs and documentation; no
+launcher EXEs, runtime bundle, setup or scripts. Compiled DLLs may still
+require host review. Do not disable security protections to install it.
+Report the exact filename, SHA-256 and security report URL so a specific
+detection can be investigated. Packaging checks do not guarantee host approval.
+
+REPORTING A BUG
+Include game (S1/S2), randomizer version, seed, relevant settings, encounter
+or story location and relevant BepInEx/LogOutput.log lines. Keep matching saves
+and config sidecars backed up. Inspect logs for personal paths before sharing.
+Source/build instructions: https://github.com/suikodenrand/suikodenrando

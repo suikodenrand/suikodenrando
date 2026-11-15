@@ -1,0 +1,19 @@
+THIRD-PARTY SOFTWARE - OPTIONAL STARS OF DESTINY LAUNCHER 1.0.4
+
+The project's launcher is MIT licensed. See Stars-of-Destiny-MIT-LICENSE.txt.
+Source/build: https://github.com/suikodenrand/suikodenrando/tree/v0.14.4
+
+Microsoft .NET 10.0.14 Windows x64
+The self-contained launcher redistributes Microsoft's runtime and Windows
+Desktop components. Original notices remain in StarsOfDestiny Launcher:
+  dotnet10-Core-LICENSE.txt
+  dotnet10-Core-THIRD-PARTY-NOTICES.txt
+  dotnet10-WindowsDesktop-LICENSE.txt
+Keep these files and the complete runtime folder with the launcher.
+createdump.exe is an upstream Microsoft runtime diagnostic utility included
+with that runtime, not a mod installer. The launcher executable and runtime
+are intentionally in this OPTIONAL GitHub download rather than the Nexus ZIP.
+
+This download contains no game files, randomizer/Fix/ATB plugin payload or
+BepInEx loader. BepInEx is a separate prerequisite for the mod; its files and
+licenses are not redistributed here. No NSIS setup or install/restore scripts.

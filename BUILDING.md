@@ -170,6 +170,21 @@ Do not include `GameAssembly.dll`, game-generated interop DLLs, native game asse
 
 ## Verify and publish
 
+### Split Nexus plugins and optional launcher
+
+`packaging/release/split_nexus.py` repackages the exact published 0.14.4 manual ZIP into separate plugins-only and optional-launcher downloads. It does not rebuild or execute binaries, install into a game or publish anything. Download `Stars-of-Destiny-0.14.4-Mod-Only-Windows.zip` from the existing release; its required SHA-256 is `cdfdd33b8ceb2cc5c2304f4879700e26306b73ceec3fb5b18d87a6fd198f17b5`. The script refuses another input, including custom rebuilt ZIPs.
+
+```powershell
+python packaging/release/split_nexus.py --manual-zip path/to/Stars-of-Destiny-0.14.4-Mod-Only-Windows.zip --output artifacts/0.14.4-split
+python -m unittest discover -s packaging/release/tests -v
+```
+
+Use a fresh output directory. The recipe uses committed per-distribution instructions in `packaging/release/nexus-templates`. Plugins retain all six released plugin DLLs (the optional ATB DLL is dormant outside `plugins`) and five default CFGs, with no EXEs, scripts, launcher runtime, loader or nested archives. The launcher download retains its entire original self-contained runtime and notices, without plugins or CFGs. Each archive has independent support-folder manifests/checksums; those paths do not collide when both packages are extracted. `SHA256SUMS-Split-0.14.4.txt` covers the two ZIPs, and `build-verification.json` records exact-byte, defaults, paths and final archive checks.
+
+The original setup/manual assets, checksum file and binary source tag remain unchanged. Publish the new ZIPs and split checksum file as additional assets on the existing `v0.14.4` release; link this packaging revision separately. This is a packaging/documentation change and adds no native gameplay or platform-approval claim. Do not update the website as part of this split unless separately requested.
+
+### Release review
+
 Build from the reviewed source tag and record the SDK, dependency versions, source commit and artifact hashes. Validate archive paths and extraction, fresh defaults, config-preserving upgrades, optional-component behavior and undo on disposable fixtures. Keep package validation separate from native gameplay validation.
 
 The official release assets were prepared from the reviewed source and pinned inputs. Matching source and tool versions are necessary for a corresponding build, but byte-for-byte equality across machines is not promised: absolute paths, PDB/document metadata, compiler settings and dependency pack contents can affect binary hashes. Compare the release's own checksum file to verify a downloaded asset; do not reuse an official checksum for a custom rebuild.
