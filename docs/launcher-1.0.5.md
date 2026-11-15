@@ -2,6 +2,8 @@
 
 This launcher update simplifies Suikoden I treasure settings and remains compatible with randomizer 0.14.4. It does not change plugin binaries, chest mappings or the saved-policy format.
 
+Download `Stars-of-Destiny-Launcher-1.0.5-Windows.zip` and its `.zip.sha256` checksum from the [0.14.4 release](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.4). The exact binary source is commit [`c45431e`](https://github.com/suikodenrand/suikodenrando/commit/c45431e68926b863d5914c8cb7d11c70f589359d), tagged `launcher-v1.0.5`; this publication documentation is recorded separately. The older bundled installers, manual ZIPs and 1.0.4 launcher download remain unchanged.
+
 - Replace the two Treasure-page switches with **Enable chest shuffle for new campaigns**.
 - Keep the saved campaign list, refresh and **Reset selected save's chest settings** controls, including their backups and running-game checks.
 - Explain the saved-policy workflow: choose checked for shuffled rewards or unchecked for original rewards, apply settings, select the saved snapshot and reset it. The next load adopts the selected default; acquired items and opened chest flags stay intact.

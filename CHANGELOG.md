@@ -1,10 +1,12 @@
 # Changelog
 
-## Launcher 1.0.5 (unreleased)
+## Launcher 1.0.5 — 2026-11-15
 
 - Simplify S1 treasure settings to one new-campaign checkbox while retaining the separate saved-policy controls and backups.
 - Retire the legacy global chest pause on explicit Apply, preserving each existing save's chest policy. Hide that managed switch in Advanced.
 - Keep loading/no-op behavior free of config writes and preserve missing S1 configs on S2-only edits. See [launcher notes](docs/launcher-1.0.5.md).
+
+Available as a separate optional download on the 0.14.4 release. The existing plugin ZIPs and installers retain their original bytes and bundled launcher 1.0.4.
 
 ## [0.14.4](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.4) — 2026-11-15
 

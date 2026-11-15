@@ -1,6 +1,6 @@
 # Stars of Destiny
 
-A seeded character randomizer for the Windows Steam release of **Suikoden I & II HD Remaster**. Both games share one plugin host and interface, with separate settings and saved campaign mappings. The current release is **0.14.4**, with launcher **1.0.4**.
+A seeded character randomizer for the Windows Steam release of **Suikoden I & II HD Remaster**. Both games share one plugin host and interface, with separate settings and saved campaign mappings. The current randomizer release is **0.14.4**; the latest separate optional launcher is **1.0.5**.
 
 Download the [0.14.4 release](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.4). Developers and reviewers can build the source using [BUILDING.md](BUILDING.md); see [CHANGELOG.md](CHANGELOG.md) for release history. The earlier [0.14.3 release](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.3) remains available with its original source and assets.
 
@@ -23,13 +23,16 @@ Suikoden II ATB and chest shuffle, Nuzlocke, shared-inventory changes and extra 
 | Asset | Installation | BepInEx |
 | --- | --- | --- |
 | `Stars-of-Destiny-0.14.4-Plugins-Only-Nexus.zip` | Manual plugins/configs/docs; no EXEs, scripts or launcher runtime | Required separately |
-| `Stars-of-Destiny-0.14.4-Optional-Launcher-Windows.zip` | Optional graphical settings editor; install plugins separately | Required for the mod, not bundled |
+| `Stars-of-Destiny-Launcher-1.0.5-Windows.zip` | Latest optional settings launcher; install plugins separately | Required for the mod, not bundled |
+| `Stars-of-Destiny-0.14.4-Optional-Launcher-Windows.zip` | Original launcher 1.0.4, retained for reference | Required for the mod, not bundled |
 | `Stars-of-Destiny-0.14.4-Setup.exe` | Guided full installation, optional ATB component and transaction recovery | Included |
 | `Stars-of-Destiny-0.14.4-Mod-Only-Windows.zip` | Manual extraction into the game folder | Required separately |
 
 For Nexus, use the **Plugins-Only-Nexus** ZIP. It includes the combined randomizer, Suikoden Fix, configs, manual instructions and dormant optional S1 ATB. Install BepInEx separately. Edit CFG files by hand, or add the separate optional launcher from GitHub. The launcher-only download does not install the plugins or loader. It retains its complete private .NET runtime; players do not need a separate .NET SDK or runtime installation.
 
-The original setup and Mod-Only-Windows assets remain available and include both plugins and launcher. The split downloads preserve their released binary bytes; this is a packaging change, not a gameplay update or a guarantee of Nexus approval. `SHA256SUMS-Split-0.14.4.txt` covers the two split ZIPs; the original `SHA256SUMS.txt` covers the original assets. Existing users should read the upgrade instructions before replacing files.
+Launcher **1.0.5** replaces the two S1 treasure switches with **Enable chest shuffle for new campaigns** and retains the saved-policy list/reset controls. On explicit Apply, it clears the legacy global pause so existing saved shuffles can use their own policies. Read the [launcher update notes](docs/launcher-1.0.5.md) before upgrading. Its ZIP has a matching `.zip.sha256` checksum file.
+
+The original setup and Mod-Only-Windows assets remain available with launcher 1.0.4 and unchanged plugin bytes. The earlier split downloads also retain their released bytes. `SHA256SUMS-Split-0.14.4.txt` covers those two original split ZIPs; the original `SHA256SUMS.txt` covers the original setup/manual assets. Existing users should read the upgrade instructions before replacing files. Compiled code may still require host review; no Nexus or antivirus approval is claimed.
 
 ### Full setup
 
