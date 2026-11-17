@@ -1,4 +1,5 @@
 # Stars of Destiny
+Disclaimer: to those that it matters. This was vibecoded by me with AI. I came up with all the features and tested and iterated on them, but AI took care of the Technical groundwork and making it happen.
 
 A seeded character randomizer for the Windows Steam release of **Suikoden I & II HD Remaster**. Both games share one plugin host and interface, with separate settings and saved campaign mappings. The current randomizer release is **0.14.4**; the latest separate optional launcher is **1.0.5**.
 
