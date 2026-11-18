@@ -10,6 +10,7 @@ namespace HarmonyLib
     { internal HarmonyPatch(Type target, string name, Type[] args) { } }
     [AttributeUsage(AttributeTargets.All)] internal sealed class HarmonyPrefix : Attribute { }
     [AttributeUsage(AttributeTargets.All)] internal sealed class HarmonyPostfix : Attribute { }
+    [AttributeUsage(AttributeTargets.Method)] internal sealed class HarmonyPriority : Attribute { public HarmonyPriority(int value) { } }
     internal sealed class Harmony
     {
         internal Harmony(string id) => throw new NotSupportedException("Tests never install runtime patches.");

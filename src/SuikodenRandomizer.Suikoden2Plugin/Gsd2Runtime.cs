@@ -367,7 +367,7 @@ internal sealed partial class Gsd2Runtime
     {
         foreach (var entry in pending) { _joiningWeaponInitializedDonors.Add(entry.Donor); Trace(entry.Log); }
     }
-    private IEnumerable<KeyValuePair<int, int>> Assignments => Profile.Mode == "Shuffle" ? Profile.Assignments : _fixed!.Assignments;
+    internal IReadOnlyDictionary<int, int> Assignments => Profile.Mode == "Shuffle" ? Profile.Assignments : _fixed!.Assignments;
     private void Publish(GSD2.CHARA_DATA next)
     {
         var game = GSD2.OldSrcBase.game_work ?? throw new InvalidOperationException("No native Suikoden II game state.");
@@ -425,8 +425,14 @@ internal sealed partial class Gsd2Runtime
         if (roles.Length == 0) return;
         string signature = string.Join(",", roles);
         if (!force && signature == _partySignature) return;
+        var prior = _fixed;
+        var nextAssignments = prior.Reconcile(roles);
+        if (!force && ReferenceEquals(prior, nextAssignments))
+        {
+            _partySignature = signature;
+            return;
+        }
         CaptureFighters();
-        var prior = _fixed; var nextAssignments = prior.Reconcile(roles);
         var next = Gsd2NativeData.Characters(game.chara_data);
         int? riouReference = ActiveJoiningWeaponLevel == "RiouVariance" ? RiouWeaponReference(next) : null;
         var weaponInitializations = new List<(int Donor, string Log)>();
@@ -469,10 +475,7 @@ internal sealed partial class Gsd2Runtime
         ResetJoiningEquipment();
         string identity = Hash(json); string path = BindingPath(identity);
         if (!File.Exists(path)) { Trace("Unbound Suikoden II save: original behavior retained."); return; }
-        var info = new FileInfo(path);
-        if (info.Length > 4 * 1024 * 1024) throw new InvalidDataException("Suikoden II binding is too large.");
-        var binding = JsonSerializer.Deserialize<Gsd2CampaignBinding>(File.ReadAllText(path), JsonOptions)
-            ?? throw new InvalidDataException("Empty Suikoden II campaign binding.");
+        var binding = ReadBinding(path);
         if (binding.Schema != 1 || binding.Game != "GSD2" || binding.SaveIdentity != identity || binding.Build != global::SuikodenRandomizer.Plugin.BuildCompatibility.GameAssemblySha256 || !binding.Initialized)
             throw new InvalidDataException("Suikoden II campaign identity/build does not match this save.");
         Profile = binding.Mode switch
@@ -583,11 +586,62 @@ internal sealed partial class Gsd2Runtime
             Assignments = _fixed?.Assignments.ToDictionary(pair => pair.Key, pair => pair.Value) ?? new Dictionary<int, int>(), Fighters = _fighters,
             CanonicalRoles = _canonicalRoles
         };
-        string path = BindingPath(binding.SaveIdentity); Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        string temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
-        try { File.WriteAllText(temporary, JsonSerializer.Serialize(binding, JsonOptions), new UTF8Encoding(false)); File.Move(temporary, path, true); }
-        finally { if (File.Exists(temporary)) File.Delete(temporary); }
+        string path = BindingPath(binding.SaveIdentity);
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        string payload = BindingJson(binding);
+        if (File.Exists(path)) RequireMatchingBinding(path, payload);
+        else
+        {
+            string temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            try
+            {
+                using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                {
+                    using var writer = new StreamWriter(stream, new UTF8Encoding(false), leaveOpen: true);
+                    writer.Write(payload);
+                    writer.Flush();
+                    stream.Flush(true);
+                }
+                try { File.Move(temporary, path); }
+                catch (IOException) when (File.Exists(path)) { RequireMatchingBinding(path, payload); }
+            }
+            finally { if (File.Exists(temporary)) File.Delete(temporary); }
+        }
         return MatchesExecution(epoch);
+    }
+
+    private static Gsd2CampaignBinding ReadBinding(string path)
+    {
+        using var stream = File.OpenRead(path);
+        if (stream.Length > 4 * 1024 * 1024) throw new InvalidDataException("Suikoden II binding is too large.");
+        using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+        return JsonSerializer.Deserialize<Gsd2CampaignBinding>(reader.ReadToEnd(), JsonOptions)
+            ?? throw new InvalidDataException("Empty Suikoden II campaign binding.");
+    }
+
+    private static void RequireMatchingBinding(string path, string expected)
+    {
+        if (BindingJson(ReadBinding(path)) != expected)
+            throw new InvalidDataException("This native Suikoden II snapshot already belongs to a different campaign or policy state.");
+    }
+
+    private static string BindingJson(Gsd2CampaignBinding binding)
+    {
+        // Older bindings omit the donor defaults. Dictionary insertion order and
+        // the order of initialized donor sets have no effect on a restored game.
+        binding.JoiningWeaponLevel ??= "Donor";
+        binding.JoiningEquipment ??= "Donor";
+        binding.JoiningWeaponInitializedDonors = binding.JoiningWeaponInitializedDonors.OrderBy(id => id).ToArray();
+        binding.JoiningEquipmentInitializedDonors = binding.JoiningEquipmentInitializedDonors.OrderBy(id => id).ToArray();
+        binding.Assignments = Ordered(binding.Assignments);
+        binding.Fighters = Ordered(binding.Fighters);
+        binding.CanonicalRoles = Ordered(binding.CanonicalRoles);
+        binding.OriginalRoleEquipment = Ordered(binding.OriginalRoleEquipment);
+        binding.PendingJoiningEquipment = Ordered(binding.PendingJoiningEquipment);
+        return JsonSerializer.Serialize(binding, JsonOptions);
+
+        static Dictionary<int, T> Ordered<T>(Dictionary<int, T> values) =>
+            values.OrderBy(pair => pair.Key).ToDictionary(pair => pair.Key, pair => pair.Value);
     }
     private void RestorePublishedTables()
     {

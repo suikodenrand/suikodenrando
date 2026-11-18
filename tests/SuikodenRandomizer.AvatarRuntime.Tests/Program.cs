@@ -296,7 +296,7 @@ internal static partial class Program
     var ted=w.Base(108);
     ted.exp=975;ted.hp=23;ted.Equipment=888;
     var save=new GSD1.SaveDataManager.SaveData{Identity=new string('e',64)};
-    w.Runtime.WriteCampaignBinding(save);
+    w.Runtime.WriteCampaignBinding(save, save.Identity);
     int copies=AvatarNativeData.CopyCalls;
     AvatarPlugin.ConfiguredMode="FixedRandom";
     AvatarPlugin.ConfiguredSeed="other future campaign";
@@ -335,6 +335,7 @@ internal static partial class Program
    RunViktorStartChecks();
    RunTirShuffleChecks();
    RunExecutionOwnershipChecks();
+   RunSaveAdmissionChecks();
    RunTreasureLifecycleChecks();
    RunJoiningWeaponChecks();
    RunTirVarianceWeaponChecks();

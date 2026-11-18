@@ -36,6 +36,10 @@ internal static class Program
                 foreach (int id in new[] {0,1,80,81,82,83,84}) Check(!Gsd2CharacterCatalog.IsNormalCombat(id), "Protected ID became eligible");
             }),
             ("Shuffle is deterministic, bijective and formation preserving", () => {
+                Check(Gsd2AvatarProfile.Create("first-adventure").Fingerprint == "fa253b57d1b1f752c8b2b65b05cc481b19fa48a97ea450611c165b5466172f58",
+                    "Existing shuffled campaigns must retain their character assignments.");
+                Check(Gsd2AvatarProfile.Create("first-adventure", true).Fingerprint == "19884b1f36099507579d72d4dd64f27dfdebd2ed173d88dfb2ec8d1a19d78ff1",
+                    "Including the protagonist changed the existing seed mapping.");
                 foreach (int number in Enumerable.Range(0, 100)) foreach (bool include in new[] {false,true}) {
                     var p = Gsd2AvatarProfile.Create("seed-"+number, include);
                     Check(p.RoleIds.Count == (include ? 79 : 78) && p.Assignments.Values.OrderBy(x=>x).SequenceEqual(p.RoleIds), "Not a bijection");

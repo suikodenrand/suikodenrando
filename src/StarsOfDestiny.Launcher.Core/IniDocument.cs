@@ -37,6 +37,17 @@ public sealed class IniDocument
         return new IniDocument(lines, newline ?? Environment.NewLine);
     }
 
+    public IEnumerable<(string Section, string Key, string Value)> Entries()
+    {
+        string section = "";
+        foreach (var line in _lines)
+        {
+            if (TrySection(line.Text, out string name)) section = name;
+            else if (TryKey(line.Text, out string key, out int equals))
+                yield return (section, key, line.Text[(equals + 1)..].Trim());
+        }
+    }
+
     public string Get(string section, string key, string defaultValue = "")
     {
         ValidateName(section, nameof(section));
@@ -69,9 +80,9 @@ public sealed class IniDocument
             var line = _lines[index];
             if (TrySection(line.Text, out string name))
             {
-                if (foundSection && !Same(name, section)) { sectionEnd = index; break; }
+                if (Same(current, section) && !Same(name, section)) sectionEnd = index;
                 current = name;
-                if (Same(name, section)) foundSection = true;
+                if (Same(name, section)) { foundSection = true; sectionEnd = -1; }
                 continue;
             }
             if (!Same(current, section) || !TryKey(line.Text, out string candidate, out int equals) || !Same(candidate, key)) continue;
@@ -112,7 +123,7 @@ public sealed class IniDocument
     {
         string trimmed = line.Trim().TrimStart('\uFEFF');
         if (trimmed.Length >= 2 && trimmed[0] == '[' && trimmed[^1] == ']')
-        { name = trimmed[1..^1].Trim(); return true; }
+        { name = trimmed[1..^1]; return true; }
         name = "";
         return false;
     }
@@ -127,7 +138,7 @@ public sealed class IniDocument
         return false;
     }
 
-    private static bool Same(string left, string right) => string.Equals(left, right, StringComparison.OrdinalIgnoreCase);
+    private static bool Same(string left, string right) => string.Equals(left, right, StringComparison.Ordinal);
     private static void ValidateName(string value, string parameter)
     {
         if (string.IsNullOrWhiteSpace(value) || value.Any(character => character is '\r' or '\n' or '\0' or '[' or ']' or '='))

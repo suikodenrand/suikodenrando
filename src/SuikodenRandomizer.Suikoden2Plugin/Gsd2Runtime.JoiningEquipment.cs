@@ -21,8 +21,7 @@ internal sealed partial class Gsd2Runtime
     private readonly HashSet<int> _joiningEquipmentInitializedDonors = new();
     private Dictionary<int, Gsd2EquipmentSnapshot> _originalRoleEquipment = new();
     private Dictionary<int, Gsd2PendingEquipment> _pendingJoiningEquipment = new();
-    private readonly HashSet<int> _equipmentBagWaitLogged = new();
-    private string? _equipmentBagWaitSignature;
+    private readonly Dictionary<int, int> _equipmentSlotsNeeded = new();
 
     private static string ReadJoiningEquipmentPolicy(string? value, bool saved)
     {
@@ -35,7 +34,7 @@ internal sealed partial class Gsd2Runtime
     {
         ActiveJoiningEquipment = "Donor";
         _joiningEquipmentInitializedDonors.Clear(); _originalRoleEquipment.Clear();
-        _pendingJoiningEquipment.Clear(); _equipmentBagWaitLogged.Clear(); _equipmentBagWaitSignature = null;
+        _pendingJoiningEquipment.Clear(); _equipmentSlotsNeeded.Clear();
     }
 
     private void CaptureOriginalRoleEquipment(GSD2.CHARA_DATA starts)
@@ -77,86 +76,97 @@ internal sealed partial class Gsd2Runtime
         var baseline = _baseline ?? throw new InvalidOperationException("Original equipment metadata is unavailable.");
         if (current is null || current.Pointer != _projected.Pointer)
             throw new InvalidOperationException("Recruitment equipment publication is not current.");
-        // A full bag can defer the first join transaction. Never erase gear,
-        // consumed uses or newly granted items while waiting for bag capacity.
-        var unchanged = new List<int>();
-        foreach (int role in roles)
-        {
-            int donor = EquipmentDonor(role);
-            if (_pendingJoiningEquipment.TryGetValue(donor, out var pending)
-                && !pending.ObservedLoadout.Same(Gsd2EquipmentSnapshot.Capture(current.c_varia_dat[role])))
-            {
-                _joiningEquipmentInitializedDonors.Add(donor); _pendingJoiningEquipment.Remove(donor); _equipmentBagWaitLogged.Remove(donor);
-                Trace("JOIN EQUIPMENT S2 skipped role=" + role + "; donor=" + donor + "; inventory changed while waiting; earned items and equipment preserved.");
-            }
-            else unchanged.Add(role);
-        }
-        roles = unchanged.ToArray();
-        if (roles.Length == 0) return;
         var bag = game.party_data.party_item ?? throw new InvalidOperationException("Suikoden II shared inventory is missing.");
-        var bagRows = bag.ToArray();
-        if (bagRows.Any(item => item is null)) throw new InvalidOperationException("Suikoden II shared inventory is incomplete.");
-        var bagBefore = bagRows.Select(item => (Id: item.item_no, Uses: item.use_cnt)).ToArray();
-        int[] empty = Enumerable.Range(0, bagRows.Length).Where(index => bagBefore[index].Id == 0 && bagBefore[index].Uses == 0).ToArray();
-        string waitSignature = string.Join(",", roles.Select(role => role + ":" + EquipmentDonor(role) + ":"
-            + (_pendingJoiningEquipment.TryGetValue(EquipmentDonor(role), out var pending) ? pending.OriginalRole : role)))
-            + ":" + string.Join(",", empty);
-        if (_equipmentBagWaitSignature == waitSignature) return;
+        var empty = new Queue<int>();
+        for (int index = 0; index < bag.Count; index++)
+        {
+            var item = bag[index] ?? throw new InvalidOperationException("Suikoden II shared inventory is incomplete.");
+            if (item.item_no == 0 && item.use_cnt == 0) empty.Enqueue(index);
+        }
         string party = string.Join(",", game.party_data.party_cha_no.Take(6));
-        var before = roles.ToDictionary(role => role, role => Gsd2NativeData.Variable(current.c_varia_dat[role]));
-        var rows = roles.ToDictionary(role => role, role => current.c_varia_dat[role]);
-        var desired = new Dictionary<int, Gsd2EquipmentSnapshot>();
         foreach (int role in roles)
         {
             int donor = EquipmentDonor(role);
+            var observed = Gsd2EquipmentSnapshot.Capture(current.c_varia_dat[role]);
             if (!_pendingJoiningEquipment.TryGetValue(donor, out var pending))
             {
                 if (Profile.Mode != "Shuffle" || !_originalRoleEquipment.TryGetValue(role, out var original))
                     throw new InvalidDataException("Missing first-role Suikoden II recruitment equipment for donor " + donor + ".");
-                RememberFirstEquipment(role, donor, original, Gsd2EquipmentSnapshot.Capture(rows[role])); pending = _pendingJoiningEquipment[donor];
+                RememberFirstEquipment(role, donor, original, observed);
+                pending = _pendingJoiningEquipment[donor];
             }
-            desired.Add(role, Gsd2EquipmentBalance.Plan(game, baseline, pending.OriginalRole, donor, pending.Loadout));
-        }
-        byte[] transfers = roles.SelectMany(role => desired[role].TransferToBag).ToArray();
-        if (transfers.Length > empty.Length)
-        {
-            _equipmentBagWaitSignature = waitSignature;
-            foreach (int role in roles)
+            else if (!pending.ObservedLoadout.Same(observed))
             {
-                int donor = EquipmentDonor(role);
-                if (_equipmentBagWaitLogged.Add(donor))
-                    Trace("JOIN EQUIPMENT S2 pending role=" + role + "; donor=" + donor
-                        + "; shared inventory needs " + transfers.Length + " free slots; initialization will retry when space is available.");
+                // Preserve earned gear and consumed uses if this recruit's own transaction had to wait.
+                FinishJoiningEquipment(donor);
+                Trace("JOIN EQUIPMENT S2 skipped role=" + role + "; donor=" + donor + "; inventory changed while waiting; earned items and equipment preserved.");
+                continue;
             }
-            return;
+            if (_equipmentSlotsNeeded.TryGetValue(donor, out int needed) && needed > empty.Count) continue;
+            var planned = Gsd2EquipmentBalance.Plan(game, baseline, pending.OriginalRole, donor, pending.Loadout);
+            if (planned.TransferToBag.Length > empty.Count)
+            {
+                _equipmentSlotsNeeded[donor] = planned.TransferToBag.Length;
+                Trace("JOIN EQUIPMENT S2 pending role=" + role + "; donor=" + donor
+                    + "; shared inventory needs " + planned.TransferToBag.Length + " free slots; initialization will retry when space is available.");
+                continue;
+            }
+
+            var targets = new int[planned.TransferToBag.Length];
+            for (int index = 0; index < targets.Length; index++) targets[index] = empty.Dequeue();
+            ApplyJoiningEquipment(game, current, party, role, planned, targets);
+            FinishJoiningEquipment(donor);
+            Trace("JOIN EQUIPMENT S2 role=" + role + "; donor=" + donor + "; policy=" + ActiveJoiningEquipment
+                + "; armor=" + string.Join(",", planned.Armor) + "; items=" + string.Join(",", planned.Items)
+                + "; uses=" + string.Join(",", planned.ItemUses) + "; sharedBag=" + string.Join(",", planned.TransferToBag));
+            foreach (string decision in planned.Decisions) Trace("JOIN EQUIPMENT S2 role=" + role + "; donor=" + donor + "; " + decision);
         }
+    }
+
+    private void FinishJoiningEquipment(int donor)
+    {
+        _joiningEquipmentInitializedDonors.Add(donor);
+        _pendingJoiningEquipment.Remove(donor);
+        _equipmentSlotsNeeded.Remove(donor);
+    }
+
+    private void ApplyJoiningEquipment(GSD2.GAME_WORK game, GSD2.CHARA_DATA current, string party, int role,
+        Gsd2EquipmentSnapshot planned, int[] targets)
+    {
+        var row = current.c_varia_dat[role];
+        var before = Gsd2NativeData.Variable(row);
+        var expected = Gsd2NativeData.Variable(before);
+        planned.Apply(expected);
+        var bag = game.party_data.party_item;
+        var bagRows = bag.ToArray();
+        var bagBefore = bagRows.Select(item => (Id: item.item_no, Uses: item.use_cnt)).ToArray();
         var bagExpected = (ValueTuple<byte, byte>[])bagBefore.Clone();
-        for (int index = 0; index < transfers.Length; index++) bagExpected[empty[index]] = (transfers[index], 0x10);
-        void VerifyBag((byte Id, byte Uses)[] expected)
+        for (int index = 0; index < targets.Length; index++)
         {
-            if (game.party_data.party_item.Pointer != bag.Pointer || bag.Count != expected.Length)
+            if (bagBefore[targets[index]] != (0, 0))
+                throw new InvalidOperationException("Recruitment shared inventory space changed before initialization.");
+            bagExpected[targets[index]] = (planned.TransferToBag[index], 0x10);
+        }
+        void VerifyBag((byte Id, byte Uses)[] contents)
+        {
+            if (game.party_data.party_item.Pointer != bag.Pointer || bag.Count != contents.Length)
                 throw new InvalidOperationException("Recruitment shared inventory reference changed.");
-            for (int index = 0; index < expected.Length; index++)
-                if (bag[index].Pointer != bagRows[index].Pointer || bagRows[index].item_no != expected[index].Id
-                    || bagRows[index].use_cnt != expected[index].Uses)
+            for (int index = 0; index < contents.Length; index++)
+                if (bag[index].Pointer != bagRows[index].Pointer || bagRows[index].item_no != contents[index].Id
+                    || bagRows[index].use_cnt != contents[index].Uses)
                     throw new InvalidOperationException("Recruitment shared inventory write did not verify.");
         }
         try
         {
-            foreach (var entry in desired) entry.Value.Apply(rows[entry.Key]);
-            for (int index = 0; index < transfers.Length; index++)
+            planned.Apply(row);
+            for (int index = 0; index < targets.Length; index++)
             {
-                bagRows[empty[index]].item_no = transfers[index];
-                // G2_kind_no_get/CIT_KIND encode kind in the high nibble;
-                // G2_data_get/G2_def_val identify kind1 as the armor catalog.
-                bagRows[empty[index]].use_cnt = 0x10;
+                bagRows[targets[index]].item_no = planned.TransferToBag[index];
+                // G2_kind_no_get/CIT_KIND encode armor in the high nibble.
+                bagRows[targets[index]].use_cnt = 0x10;
             }
-            foreach (int role in roles)
-            {
-                var expected = Gsd2NativeData.Variable(before[role]); desired[role].Apply(expected);
-                if (current.c_varia_dat[role].Pointer != rows[role].Pointer || !SameFighter(expected, rows[role]))
-                    throw new InvalidOperationException("Recruitment equipment write did not verify.");
-            }
+            if (current.c_varia_dat[role].Pointer != row.Pointer || !SameFighter(expected, row))
+                throw new InvalidOperationException("Recruitment equipment write did not verify.");
             VerifyBag(bagExpected);
             if (!OwnsExecution || game.chara_data.Pointer != current.Pointer
                 || party != string.Join(",", game.party_data.party_cha_no.Take(6)))
@@ -165,19 +175,18 @@ internal sealed partial class Gsd2Runtime
         catch (Exception failure)
         {
             var rollback = new List<Exception>();
-            foreach (int role in roles)
-                try
-                {
-                    Gsd2EquipmentSnapshot.Capture(before[role]).Apply(rows[role]);
-                    if (current.c_varia_dat[role].Pointer != rows[role].Pointer || !SameFighter(before[role], rows[role]))
-                        throw new InvalidOperationException("Recruitment equipment rollback did not verify.");
-                }
-                catch (Exception error) { rollback.Add(error); }
             try
             {
-                for (int index = 0; index < transfers.Length; index++)
+                Gsd2EquipmentSnapshot.Capture(before).Apply(row);
+                if (current.c_varia_dat[role].Pointer != row.Pointer || !SameFighter(before, row))
+                    throw new InvalidOperationException("Recruitment equipment rollback did not verify.");
+            }
+            catch (Exception error) { rollback.Add(error); }
+            try
+            {
+                foreach (int target in targets)
                 {
-                    int target = empty[index]; bagRows[target].item_no = bagBefore[target].Id;
+                    bagRows[target].item_no = bagBefore[target].Id;
                     bagRows[target].use_cnt = bagBefore[target].Uses;
                 }
                 VerifyBag(bagBefore);
@@ -189,16 +198,6 @@ internal sealed partial class Gsd2Runtime
                 throw new AggregateException("Recruitment equipment write and rollback failed.", rollback);
             }
             throw;
-        }
-        _equipmentBagWaitSignature = null;
-        foreach (int role in roles)
-        {
-            int donor = EquipmentDonor(role); var planned = desired[role];
-            _joiningEquipmentInitializedDonors.Add(donor); _pendingJoiningEquipment.Remove(donor); _equipmentBagWaitLogged.Remove(donor);
-            Trace("JOIN EQUIPMENT S2 role=" + role + "; donor=" + donor + "; policy=" + ActiveJoiningEquipment
-                + "; armor=" + string.Join(",", planned.Armor) + "; items=" + string.Join(",", planned.Items)
-                + "; uses=" + string.Join(",", planned.ItemUses) + "; sharedBag=" + string.Join(",", planned.TransferToBag));
-            foreach (string decision in planned.Decisions) Trace("JOIN EQUIPMENT S2 role=" + role + "; donor=" + donor + "; " + decision);
         }
     }
 

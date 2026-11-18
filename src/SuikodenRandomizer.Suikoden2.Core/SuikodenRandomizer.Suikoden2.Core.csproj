@@ -6,6 +6,7 @@
     <Version>0.9.0</Version>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../SuikodenRandomizer.Core/SeededShuffle.cs" Link="SeededShuffle.cs" />
     <Compile Include="../SuikodenRandomizer.Core/Suikoden2/*.cs" Link="Suikoden2/%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

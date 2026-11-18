@@ -343,7 +343,7 @@ internal sealed partial class MainForm : Form
     {
         if (_loading || _workspace is null) return;
         var setting = SettingsCatalog.Find(id);
-        _workspace.Documents[setting.FileName].Set(setting.Section, setting.Key, value);
+        _workspace.StageValue(setting, value);
         _status.Text = "Unsaved settings. Apply them before starting the game.";
         RefreshStatus();
     }
@@ -375,7 +375,7 @@ internal sealed partial class MainForm : Form
         {
             _advanced?.EndEdit();
             _workspace.PrepareTreasureSettingsForApply();
-            var result = _workspace.SaveChanges();
+            var result = _workspace.SaveChanges(RebuildPages);
             _status.Text = result.ChangedFiles.Count == 0 ? "Settings are up to date." : "Settings saved. Backup in " + result.BackupDirectory;
             try { File.WriteAllText(PreferencePath, JsonSerializer.Serialize(new { gameFolder = _workspace.GameFolder })); }
             catch (Exception error) when (error is IOException or UnauthorizedAccessException)

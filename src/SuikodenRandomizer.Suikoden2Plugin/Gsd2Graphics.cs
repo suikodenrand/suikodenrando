@@ -18,23 +18,22 @@ internal static class Gsd2Graphics
     private static Gsd2Runtime? _session;
     private static int _generation;
     private static bool _ready;
-    private static string _preparedMap = "";
-    private static string _requestedMap = "";
+    private static IReadOnlyDictionary<int, int>? _preparedMap, _requestedMap;
+    private static int[] _npcDonors = Array.Empty<int>();
     private static float _started;
     private static readonly Dictionary<int, GSD2.P_GRAPH_DATA> Originals = new();
     private static readonly Dictionary<int, GSD2.P_GRAPH_DATA> Proxies = new();
     private static readonly Dictionary<int, float> Loading = new();
-    private static readonly HashSet<IntPtr> ProxyPointers = new();
     private static readonly Dictionary<IntPtr, GSD2.P_GRAPH_DATA> ProxyOriginals = new();
-    private static readonly HashSet<IntPtr> LeasedPointers = new();
     private static readonly HashSet<IntPtr> LeasedOpdPointers = new();
     private static readonly Gsd2NpcDirectionAdapters.RetryGate NpcAdapterRetries = new();
     // Native renderers may retain graph references after a campaign is retired.
-    // These leases prevent their shared OPDs being destroyed behind those references.
-    private static readonly List<GSD2.P_GRAPH_DATA> Retired = new();
+    // Retain each source and each detached projection once across campaign loads.
+    private static readonly Dictionary<IntPtr, GSD2.P_GRAPH_DATA> LeasedGraphs = new();
+    private static readonly Dictionary<(IntPtr Canonical, IntPtr Donor), GSD2.P_GRAPH_DATA> CachedProxies = new();
 
     internal static bool IsReady => _ready && ReferenceEquals(_session, Gsd2Runtime.Current)
-        && _session?.TablesReady == true && _preparedMap == Signature(_session);
+        && _session?.TablesReady == true && ReferenceEquals(_preparedMap, _session.Assignments);
     internal static Func<bool> PreserveRawResourceIds { get; set; } = () => false;
     internal static bool LoadingRaw => _rawDepth != 0 || PreserveRawResourceIds();
     internal static void Initialize(MonoBehaviour host) => _host = host ?? throw new ArgumentNullException(nameof(host));
@@ -53,20 +52,6 @@ internal static class Gsd2Graphics
             ? Gsd2NpcDirectionAdapters.Find(donor, source) : source;
     }
 
-    private static Dictionary<int, int> Assignments(Gsd2Runtime runtime)
-    {
-        var result = new Dictionary<int, int>();
-        for (int role = 1; role <= 83; role++)
-        {
-            if (!runtime.IsRole(role)) continue;
-            int donor = runtime.MapDisplayId(role);
-            if (donor < 1 || donor > 83) throw new InvalidOperationException("Avatar donor has no native combat graph.");
-            if (role != donor) result.Add(role, donor);
-        }
-        return result;
-    }
-    private static string Signature(Gsd2Runtime runtime) => string.Join(";", Assignments(runtime).Select(p => p.Key + ":" + p.Value));
-
     internal static void Tick()
     {
         var runtime = Gsd2Runtime.Current;
@@ -74,14 +59,21 @@ internal static class Gsd2Graphics
         try
         {
             if (!ReferenceEquals(_session, runtime)) { Reset(); _session = runtime; _started = Time.realtimeSinceStartup; }
-            var assignments = Assignments(runtime);
-            string signature = Signature(runtime);
-            if (_ready && signature == _preparedMap) { PrepareNpcAdapters(assignments.Values); RefreshResidents(); return; }
-            if (signature != _requestedMap) { _requestedMap = signature; _started = Time.realtimeSinceStartup; }
+            // Both roster implementations publish a new immutable dictionary when assignments change.
+            var map = runtime.Assignments;
+            if (_ready && ReferenceEquals(map, _preparedMap)) { PrepareNpcAdapters(); RefreshResidents(); return; }
+            var assignments = map.Where(pair => pair.Key != pair.Value).ToArray();
+            if (!ReferenceEquals(map, _requestedMap))
+            {
+                if (assignments.Any(pair => pair.Key < 1 || pair.Key > 83 || pair.Value < 1 || pair.Value > 83))
+                    throw new InvalidOperationException("Avatar mapping has no native combat graph.");
+                _npcDonors = assignments.Select(pair => pair.Value).Where(Gsd2NpcDirectionAdapters.IsSupportedDonor).Distinct().ToArray();
+                _requestedMap = map; _started = Time.realtimeSinceStartup;
+            }
             _ready = false;
             if (_host is null) throw new InvalidOperationException("Avatar graphics coroutine host is unavailable.");
-            var required = new HashSet<int>(assignments.Keys);
-            required.UnionWith(assignments.Values);
+            var required = new HashSet<int>(assignments.Select(pair => pair.Key));
+            required.UnionWith(assignments.Select(pair => pair.Value));
             foreach (int id in required.OrderBy(id => id))
             {
                 if (Originals.ContainsKey(id) || Loading.ContainsKey(id)) continue;
@@ -94,19 +86,24 @@ internal static class Gsd2Graphics
                     throw new InvalidOperationException("Timed out loading original avatar graph resources.");
                 return;
             }
-            PrepareNpcAdapters(assignments.Values);
+            PrepareNpcAdapters();
             // Validate and allocate the complete next projection before publishing it.
             var next = new Dictionary<int, GSD2.P_GRAPH_DATA>();
             foreach (var assignment in assignments)
             {
-                if (Proxies.TryGetValue(assignment.Key, out var existing)
-                    && _preparedMap == signature) next.Add(assignment.Key, existing);
-                else next.Add(assignment.Key, CreateProxy(Originals[assignment.Key], Originals[assignment.Value]));
+                var canonical = Originals[assignment.Key];
+                var donor = Originals[assignment.Value];
+                var sources = (canonical.Pointer, donor.Pointer);
+                if (!CachedProxies.TryGetValue(sources, out var proxy))
+                {
+                    proxy = CreateProxy(canonical, donor);
+                    CachedProxies.Add(sources, proxy);
+                }
+                next.Add(assignment.Key, proxy);
             }
-            foreach (var old in Proxies.Values) if (!next.Values.Any(p => p.Pointer == old.Pointer)) Retired.Add(old);
             Proxies.Clear();
             foreach (var entry in next) Proxies.Add(entry.Key, entry.Value);
-            _preparedMap = signature;
+            _preparedMap = map;
             RefreshResidents();
             _ready = true;
             runtime.Trace("GSD2 graphics ready: " + Proxies.Count + " detached canonical graph proxies; original loader caches preserved.");
@@ -125,7 +122,8 @@ internal static class Gsd2Graphics
                 if (generation != _generation || !ReferenceEquals(runtime, Gsd2Runtime.Current)
                     || !runtime.MatchesExecution(epoch)) return;
                 Loading.Remove(id);
-                try { Remember(id, asset); }
+                // A native lookup may already have supplied a newer source while this preload was pending.
+                try { if (!Originals.ContainsKey(id)) Remember(id, asset); }
                 catch (Exception error) { runtime.Fail("Original S2 character graph failed validation: " + error.Message); }
             })) ?? throw new InvalidOperationException("Could not bridge the original graphics-loader callback.");
         _rawDepth++;
@@ -142,21 +140,23 @@ internal static class Gsd2Graphics
 
     private static void Remember(int id, GSD2.P_GRAPH_DATA asset)
     {
-        if (asset is null || asset.Pointer == IntPtr.Zero || asset.chara_id != id || ProxyPointers.Contains(asset.Pointer))
+        if (asset is null || asset.Pointer == IntPtr.Zero || asset.chara_id != id || ProxyOriginals.ContainsKey(asset.Pointer))
             throw new InvalidOperationException("Loader returned an incorrect or projected character identity " + id + ".");
+        if (Originals.TryGetValue(id, out var previous) && previous.Pointer == asset.Pointer) return;
         if (asset.battle_data?.opd_data is null || asset.field_data?.opd_data is null
             || asset.battle_data.action_table is null || asset.battle_data.action_table.Count == 0)
             throw new InvalidOperationException("Original character graph is incomplete for " + id + ".");
         Originals[id] = asset;
-        LeasedPointers.Add(asset.Pointer);
+        if (previous is not null) _ready = false;
+        LeasedGraphs[asset.Pointer] = asset;
         foreach (var opd in Opds(asset)) if (opd is not null) LeasedOpdPointers.Add(opd.Pointer);
     }
 
-    private static void PrepareNpcAdapters(IEnumerable<int> donors)
+    private static void PrepareNpcAdapters()
     {
-        foreach (int donor in donors.Distinct())
+        foreach (int donor in _npcDonors)
         {
-            if (!Gsd2NpcDirectionAdapters.IsSupportedDonor(donor) || !Originals.TryGetValue(donor, out var graph)) continue;
+            if (!Originals.TryGetValue(donor, out var graph)) continue;
             var source = graph.field_data?.opd_data;
             if (source is null || source.Pointer == IntPtr.Zero) continue;
             var adapter = Gsd2NpcDirectionAdapters.Find(donor, source);
@@ -181,9 +181,16 @@ internal static class Gsd2Graphics
     {
         if (original is null || LoadingRaw) return original;
         var runtime = Gsd2Runtime.Current;
-        if (runtime?.TablesReady != true || !runtime.IsRole(canonical)) return original;
-        if (!ProxyPointers.Contains(original.Pointer) && !companion) Remember(canonical, original);
-        if (!IsReady || runtime.MapDisplayId(canonical) == canonical) return original;
+        if (runtime?.TablesReady != true) return original;
+        bool isRole = runtime.IsRole(canonical);
+        if (!companion && !ProxyOriginals.ContainsKey(original.Pointer)
+            && (isRole || Originals.ContainsKey(canonical) || Loading.ContainsKey(canonical)))
+        {
+            bool wasReady = _ready;
+            Remember(canonical, original);
+            if (wasReady && !_ready) Tick();
+        }
+        if (!isRole || !IsReady || runtime.MapDisplayId(canonical) == canonical) return original;
         if (!Proxies.TryGetValue(canonical, out var proxy))
             throw new InvalidOperationException("An admitted avatar has no prepared canonical graph proxy.");
         if (proxy.chara_id != canonical) throw new InvalidOperationException("Avatar graph lost its canonical character ID.");
@@ -224,7 +231,7 @@ internal static class Gsd2Graphics
             var graph = residents[slot];
             if (graph is null) continue;
             if (Proxies.TryGetValue(graph.chara_id, out var proxy)) residents[slot] = proxy;
-            else if (ProxyPointers.Contains(graph.Pointer) && Originals.TryGetValue(graph.chara_id, out var original)) residents[slot] = original;
+            else if (ProxyOriginals.ContainsKey(graph.Pointer) && Originals.TryGetValue(graph.chara_id, out var original)) residents[slot] = original;
         }
     }
 
@@ -248,21 +255,20 @@ internal static class Gsd2Graphics
     {
         _generation++;
         _ready = false;
-        Retired.AddRange(Proxies.Values); Retired.AddRange(Originals.Values);
         Proxies.Clear(); Originals.Clear(); Loading.Clear(); NpcAdapterRetries.Clear();
-        _session = null; _preparedMap = ""; _requestedMap = ""; _started = 0;
+        _session = null; _preparedMap = null; _requestedMap = null; _npcDonors = Array.Empty<int>(); _started = 0;
         // Do not StopCoroutine: the native loader must finish and decrement its
         // own counter. Generation-bound callbacks cannot enter the new session.
     }
 
     internal static bool MustRetain(GSD2.P_GRAPH_DATA asset)
     {
-        if (ProxyPointers.Contains(asset.Pointer) || LeasedPointers.Contains(asset.Pointer)) return true;
+        if (ProxyOriginals.ContainsKey(asset.Pointer) || LeasedGraphs.ContainsKey(asset.Pointer)) return true;
         // Normal and companion graph variants can reference the same OPD. The
         // destructive native method must also spare an otherwise unleased graph
         // when any of its resources is already used by a published proxy.
         if (!Opds(asset).Any(opd => opd is not null && LeasedOpdPointers.Contains(opd.Pointer))) return false;
-        LeasedPointers.Add(asset.Pointer); Retired.Add(asset);
+        LeasedGraphs.Add(asset.Pointer, asset);
         foreach (var opd in Opds(asset)) if (opd is not null) LeasedOpdPointers.Add(opd.Pointer);
         return true;
     }
@@ -304,7 +310,6 @@ internal static class Gsd2Graphics
             if (proxy.chara_id != canonical.chara_id || proxy.battle_data.Pointer == donor.battle_data.Pointer
                 || proxy.field_data.Pointer == donor.field_data.Pointer)
                 throw new InvalidOperationException("Detached avatar graph failed identity/ownership validation.");
-            ProxyPointers.Add(proxy.Pointer);
             ProxyOriginals.Add(proxy.Pointer, canonical);
             return proxy;
         }

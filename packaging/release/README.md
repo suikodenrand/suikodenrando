@@ -1,42 +1,34 @@
 # Release packaging
 
-This recipe targets runtime 0.14.4 with launcher 1.0.5. The existing
-v0.14.3 source tag and release remain unchanged. Build from the reviewed
-release commit and publish the resulting setup/manual assets with their
-actual checksums. Packaging itself never installs or publishes its outputs.
-
-Use `--package-revision r2` for the current distribution with launcher 1.0.5.
-It emits distinct `0.14.4-r2` setup/manual filenames while retaining runtime
-version 0.14.4. Reuse and byte-check the original 0.14.4 gameplay DLLs, optional
-ATB and defaults, plus the published launcher 1.0.5; record their source commits
-with `--runtime-source-commit` and `--launcher-source-commit`. See the r2
-procedure in [BUILDING.md](../../BUILDING.md#package-revision-0144-r2).
+This recipe builds runtime 0.14.5 and launcher 1.0.6 from the reviewed public source.
+Pass the published 0.10.1 ATB file to `-ReviewedAtbDll` for the official distribution.
+The release tag and published checksums identify the source and downloads.
 
 `build.py` assembles packages from already-built project binaries. It never
 installs into or launches the game. Start with the repository's
 [BUILDING.md](../../BUILDING.md) and `packaging/Build-Release.ps1`.
 
 For the additional **plugins-only Nexus** and **optional launcher** downloads,
-use `split_nexus.py` with the exact published manual ZIP. It preserves released
+use `split_nexus.py` with the 0.14.5 manual ZIP and its verified `--manual-sha256`. It preserves released
 binary/config bytes and uses the instructions in `nexus-templates`, with no
 loader or launcher EXEs in the plugins ZIP. The launcher is a separate complete
 self-contained download. See the split-package instructions in
-[BUILDING.md](../../BUILDING.md#split-nexus-plugins-and-optional-launcher).
+[BUILDING.md](../../BUILDING.md#produce-the-public-downloads).
 The original setup/manual assets and binary source tag remain unchanged.
 
-Requirements are Python 3.12 or later, the four combined runtime DLLs, the
+Requirements are Python 3.12 or later, the .NET SDK pinned in global.json, the four combined runtime DLLs, the
 optional ATB DLL, and a complete self-contained `win-x64` launcher publish.
 NSIS 3.11 is additionally required to compile the full setup.
 
 ```powershell
 python packaging/release/build.py --mode all `
-  --runtime-dir artifacts/0.14.4/runtime `
-  --atb-dll artifacts/0.14.4/atb/SuikodenRandomizer.S1BattlePreview.dll `
-  --launcher-dir artifacts/0.14.4/launcher `
+  --runtime-dir artifacts/0.14.5/runtime `
+  --atb-dll artifacts/0.14.5/atb/SuikodenRandomizer.S1BattlePreview.dll `
+  --launcher-dir artifacts/0.14.5/launcher `
   --reviewed-atb-sha256 <reviewed-ATB-SHA256-used-to-publish-that-launcher> `
   --dependencies artifacts/dependencies `
   --download-dependencies `
-  --output artifacts/0.14.4/packages `
+  --output artifacts/0.14.5/packages `
   --makensis C:/Tools/NSIS/makensis.exe
 ```
 
@@ -55,9 +47,10 @@ files in that directory are not copied):
 
 For a custom rebuild, pass the same reviewed ATB SHA-256 to the launcher's
 `ReviewedAtbSha256` MSBuild property and this script's
-`--reviewed-atb-sha256` argument. The package check fails if the DLL bytes do
-not match. The launcher itself enforces its compiled reviewed hash when
-activating ATB. Omitting the argument uses the original reviewed release hash.
+`--reviewed-atb-sha256` argument. Both packagers inspect the published launcher
+assembly and require its compiled hash to match the ATB bytes. Use `--dotnet`
+to select the SDK executable. Omitting the hash uses the original reviewed
+release hash for the combined package.
 Do not disable that check to accept a different DLL.
 
 ## Dependency cache
@@ -95,10 +88,10 @@ retain Donor behavior without an inventory retrofit. Weapon-level policies
 remain separate, and optional ATB stays disabled. Run the static metadata
 checks with `python -m unittest discover -s packaging/release/tests -v`.
 
-- `Stars-of-Destiny-0.14.4-Mod-Only-Windows.zip` is an ordinary Deflate ZIP
+- `Stars-of-Destiny-0.14.5-Mod-Only-Windows.zip` is an ordinary Deflate ZIP
   with game-folder-relative paths. It has no setup executable or product
   install/restore scripts.
-- `Stars-of-Destiny-0.14.4-Setup.exe` includes BepInEx and uses the unchanged
+- `Stars-of-Destiny-0.14.5-Setup.exe` includes BepInEx and uses the unchanged
   transactional install/restore implementation. ATB remains an optional
   setup component and is installed disabled when selected.
 - SHA-256 sidecars and `build-verification.json` record the local outputs.

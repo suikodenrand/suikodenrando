@@ -66,10 +66,10 @@ internal sealed partial class AvatarRuntime
         return true;
     }
 
-    private bool TryLoadFixedRoster(GSD1.SaveDataManager.SaveData save)
+    private bool TryLoadFixedRoster(GSD1.SaveDataManager.SaveData save, string identity)
     {
         if (!FixedRosterBindingStore.HasBindings) return false;
-        var binding = FixedRosterBindingStore.Read(FixedRosterBindingStore.ComputeIdentity(save));
+        var binding = FixedRosterBindingStore.Read(FixedRosterBindingStore.ComputeIdentity(save, identity));
         if (binding is null) return false;
         var profile = FixedRosterProfile.CreateChosen(binding.Companions);
         _fixedAssignments = FixedRosterAssignments.Restore(profile, binding.Assignments);
@@ -94,14 +94,13 @@ internal sealed partial class AvatarRuntime
         else AvatarBindingStore.CheckWritable();
     }
 
-    internal string WriteCampaignBinding(GSD1.SaveDataManager.SaveData save)
+    internal string WriteCampaignBinding(GSD1.SaveDataManager.SaveData save, string identity)
     {
         if (!IsActive) throw new InvalidOperationException("Suikoden I campaign is not active in this execution epoch.");
         if (_fixedProfile is null)
         {
-            string identity = AvatarSaveIdentity.Compute(save);
             if (FixedRosterBindingStore.HasBindings
-                && FixedRosterBindingStore.Read(FixedRosterBindingStore.ComputeIdentity(save)) is not null)
+                && FixedRosterBindingStore.Read(FixedRosterBindingStore.ComputeIdentity(save, identity)) is not null)
                 throw new InvalidOperationException("This snapshot already belongs to a fixed roster campaign.");
             AvatarBindingStore.Write(Profile, State, identity);
             return identity;
@@ -112,9 +111,9 @@ internal sealed partial class AvatarRuntime
         var states = new Dictionary<int, FixedRosterBaseSnapshot>(_fixedFighters);
         foreach (var pair in pairs)
             states[pair.Value] = CaptureFighter(AvatarNativeData.FindBase(pair.Key), pair.Value);
-        if (AvatarBindingStore.Read(AvatarSaveIdentity.Compute(save)) is not null)
+        if (AvatarBindingStore.Read(identity) is not null)
             throw new InvalidOperationException("This snapshot already belongs to a regular shuffle campaign.");
-        string fixedIdentity = FixedRosterBindingStore.ComputeIdentity(save);
+        string fixedIdentity = FixedRosterBindingStore.ComputeIdentity(save, identity);
         FixedRosterBindingStore.Write(fixedIdentity, new FixedRosterBinding
         {
             Seed = _fixedSeed,
@@ -172,8 +171,6 @@ internal sealed partial class AvatarRuntime
         if (slots.Keys.Count(role => role != CombatCatalog.TirId) > FixedRosterProfile.CompanionCount)
             return WaitFor("the active party has more than five companion roles", required);
         var next = previous.Reconcile(slots.Keys);
-        if (_fixedStarted && ReferenceEquals(next, previous) && FixedResidentsAreCurrent(slots))
-            return true;
 
         // Capture all incoming, outgoing, and starting records before touching any live data.
         var needed = new HashSet<int>(previous.Assignments.Keys);
@@ -182,12 +179,14 @@ internal sealed partial class AvatarRuntime
         if (!_fixedStarted && !_fixedResume) needed.UnionWith(profile.CompanionIds);
         var bases = ReadyBaseIndex(needed);
         if (bases.Count != needed.Count) return WaitFor("waiting for fixed roster live bases", required);
+        if (_fixedStarted && ReferenceEquals(next, previous) && FixedResidentsAreCurrent(slots, bases))
+            return true;
         if (JoiningEquipmentPolicy == JoiningEquipmentPolicy.MatchRole && !JoiningEquipmentNative.Ready)
             return WaitFor("waiting for native joining equipment definitions", required);
         int? tirWeaponReference = JoiningWeaponPolicy == JoiningWeaponPolicy.TirVariance ? bases[CombatCatalog.TirId].buki_data.level : null;
         if (tirWeaponReference is < 1 or > 16) return WaitFor("waiting for the current canonical Tir weapon level", required);
         foreach (var entry in slots)
-            if (!ResidentBound(entry.Value, entry.Key, bases))
+            if (!ResidentBound(entry.Value, entry.Key, bases, allowExistingProxy: true))
                 return WaitFor("waiting for fixed roster active slot " + entry.Value, required);
 
         var originals = new Dictionary<int, GSD1.PLAYER_DATA>(_originals);
@@ -283,6 +282,11 @@ internal sealed partial class AvatarRuntime
             var beforeCache = cacheWrites.Keys.ToDictionary(id => id, id => cache[id]);
             var beforeResidents = residentWrites.Keys.ToDictionary(i => i, i => residents[i]);
             var beforeBases = writes.Keys.ToDictionary(id => id, id => AvatarNativeData.CloneBase(bases[id]));
+            // A native resident kept for restoration may still reference the
+            // previous base after the game replaced its canonical record.
+            var oldResidentBases = departing.Select(pair => pair.Key)
+                .Where(id => nativeResidents[id].player_base?.Pointer != bases[id].Pointer)
+                .ToDictionary(id => id, id => nativeResidents[id].player_base);
             string layout = CanonicalLayoutFingerprint();
 
             try
@@ -295,11 +299,13 @@ internal sealed partial class AvatarRuntime
                     if (AvatarNativeData.Fingerprint(live) != AvatarNativeData.Fingerprint(entry.Value))
                         throw new InvalidOperationException("Fixed roster stats or equipment did not verify for role " + entry.Key + ".");
                 }
+                foreach (int id in oldResidentBases.Keys) nativeResidents[id].player_base = bases[id];
                 foreach (var entry in cacheWrites) cache[entry.Key] = entry.Value;
                 foreach (var entry in residentWrites) residents[entry.Key] = entry.Value;
                 if (CanonicalLayoutFingerprint() != layout
                     || cacheWrites.Any(entry => cache[entry.Key]?.Pointer != entry.Value.Pointer)
                     || residentWrites.Any(entry => residents[entry.Key]?.Pointer != entry.Value.Pointer)
+                    || oldResidentBases.Keys.Any(id => nativeResidents[id].player_base?.Pointer != bases[id].Pointer)
                     || projections.Any(entry => entry.Value.chara_id != entry.Key
                         || entry.Value.player_base?.Pointer != bases[entry.Key].Pointer))
                     throw new InvalidOperationException("Native fixed roster publication did not verify.");
@@ -311,6 +317,8 @@ internal sealed partial class AvatarRuntime
                     try { residents[entry.Key] = entry.Value; } catch (Exception error) { rollback.Add(error); }
                 foreach (var entry in beforeCache)
                     try { cache[entry.Key] = entry.Value; } catch (Exception error) { rollback.Add(error); }
+                foreach (var entry in oldResidentBases)
+                    try { nativeResidents[entry.Key].player_base = entry.Value; } catch (Exception error) { rollback.Add(error); }
                 foreach (var entry in beforeBases)
                     try { AvatarNativeData.CopyBase(entry.Value, bases[entry.Key]); } catch (Exception error) { rollback.Add(error); }
                 foreach (var proxy in projections.Values) _retired.Add(proxy);
@@ -347,16 +355,16 @@ internal sealed partial class AvatarRuntime
         finally { _preparing = false; }
     }
 
-    private bool FixedResidentsAreCurrent(Dictionary<int, int> slots)
+    private bool FixedResidentsAreCurrent(Dictionary<int, int> slots, Dictionary<int, GSD1.PLAYER_BASE> bases)
     {
         var game = GSD1.OldSrcBase.game_work;
         var cache = _manager?.player_cache;
         if (game is null || cache is null) return false;
         foreach (var entry in slots)
         {
+            if (!ResidentBound(entry.Value, entry.Key, bases)) return false;
             if (entry.Key == CombatCatalog.TirId) continue;
             if (!_proxies.TryGetValue(entry.Key, out var proxy)
-                || proxy.player_base?.chara_no != entry.Key
                 || game.player_data[entry.Value]?.Pointer != proxy.Pointer
                 || !cache.TryGetValue(entry.Key, out var cached) || cached?.Pointer != proxy.Pointer)
                 return false;

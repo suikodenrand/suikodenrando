@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using SuikodenRandomizer.Core.Avatars;
 using SuikodenRandomizer.Core.Suikoden2;
 
@@ -29,6 +30,21 @@ public static class SettingsCatalog
 
     public static SettingDefinition Find(string id) => All.FirstOrDefault(setting => setting.Id == id)
         ?? throw new ArgumentException("Unknown launcher setting " + id, nameof(id));
+    public static SettingDefinition? Find(string file, string section, string key, StringComparison comparison = StringComparison.Ordinal) =>
+        All.FirstOrDefault(setting => setting.FileName.Equals(file, StringComparison.OrdinalIgnoreCase)
+            && setting.Section.Equals(section, comparison) && setting.Key.Equals(key, comparison));
+
+    // BepInEx 6 build 697 preserves unescaped drive paths and decodes these
+    // escapes in other strings. Its own writer escapes quotes but keeps backslashes.
+    internal static string DecodeSeed(string raw)
+    {
+        if (!raw.Contains('\\') || Regex.IsMatch(raw, @"^""?\w:\\(?!\\)(?!.+\\\\)")) return raw;
+        return Regex.Replace(raw, @"\\([0abtnvfr'""\\])", match => match.Value[1] switch
+        {
+            '0' => "\0", 'a' => "\a", 'b' => "\b", 't' => "\t", 'n' => "\n",
+            'v' => "\v", 'f' => "\f", 'r' => "\r", var literal => literal.ToString()
+        });
+    }
 
     public static string Normalize(SettingDefinition setting, string value)
     {
@@ -40,9 +56,13 @@ public static class SettingsCatalog
                 if (!bool.TryParse(trimmed, out bool flag)) throw Invalid(setting);
                 return flag ? "true" : "false";
             case SettingKind.Seed:
-                if (value.Length > 128) throw Invalid(setting);
+                if (value.Length > 128 || value.Any(char.IsControl)) throw Invalid(setting);
+                if (setting.FileName == S2File) return Gsd2AvatarProfile.NormalizeSeed(value);
                 string seed = trimmed.Normalize(NormalizationForm.FormC);
-                if (seed.Length is 0 or > 128 || seed.Any(char.IsControl)) throw Invalid(setting);
+                if (seed.Length is 0 or > 128) throw Invalid(setting);
+                string nativeValue = seed.Replace("'", @"\'").Replace("\"", "\\\"");
+                if (DecodeSeed(nativeValue) != seed)
+                    throw new ArgumentException("This seed contains an escape sequence the game changes when saving its settings.");
                 return seed;
             case SettingKind.Choice:
                 return setting.Choices!.FirstOrDefault(choice => string.Equals(choice, trimmed, StringComparison.OrdinalIgnoreCase))
@@ -76,7 +96,11 @@ public static class SettingsCatalog
         {
             if (setting.Kind == SettingKind.Companions && !documents[setting.FileName].Get("Shuffle", "Mode", "Shuffle")
                 .Equals("FixedChosen", StringComparison.OrdinalIgnoreCase)) continue;
-            try { _ = Normalize(setting, documents[setting.FileName].Get(setting.Section, setting.Key, setting.DefaultValue)); }
+            try
+            {
+                string raw = documents[setting.FileName].Get(setting.Section, setting.Key, setting.DefaultValue);
+                _ = Normalize(setting, setting.Kind == SettingKind.Seed ? DecodeSeed(raw) : raw);
+            }
             catch (ArgumentException exception) { errors.Add(setting.Id + ": " + exception.Message); }
             catch (InvalidOperationException exception) { errors.Add(setting.Id + ": " + exception.Message); }
         }

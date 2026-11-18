@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 """Package the self-contained Windows launcher; never install, launch or publish.
 
-Build the launcher from the recorded source commit first, then run the existing
-launcher ATB build-pairing tests against that publish and the reviewed ATB DLL.
-This recipe records the reviewed DLL hash; it does not execute the launcher or
-claim to replace those tests by parsing its compiled ATB guard.
+Build the launcher from the recorded source commit first. The package check
+reads the published launcher's compiled ATB guard and compares it to the DLL.
 """
 from __future__ import annotations
 
@@ -20,8 +18,8 @@ from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
-VERSION = "1.0.5"
-SUPPORTED_HOST = "0.14.4"
+VERSION = "1.0.6"
+SUPPORTED_HOST = "0.14.5"
 ROOT = "StarsOfDestiny Launcher/"
 SUPPORT = "StarsOfDestiny Launcher Package/"
 EXES = {"StarsOfDestiny.Launcher.exe", "createdump.exe"}
@@ -37,8 +35,8 @@ FORBIDDEN_DLLS = {"gameassembly.dll", "unityplayer.dll", "gsd1.dll", "gsd2.dll",
                   "winhttp.dll", "dobby.dll"}
 ZIP_TIME = (2026, 11, 15, 0, 0, 0)
 
-START_HERE = """STARS OF DESTINY LAUNCHER 1.0.5 - OPTIONAL WINDOWS DOWNLOAD
-For Stars of Destiny randomizer plug-ins 0.14.4 | Steam | Windows x64
+START_HERE = """STARS OF DESTINY LAUNCHER 1.0.6 - OPTIONAL WINDOWS DOWNLOAD
+For Stars of Destiny randomizer plug-ins 0.14.5 | Steam | Windows x64
 
 This is the launcher only. Install the randomizer plug-ins, Suikoden Fix and
 the required BepInEx 6 Unity IL2CPP Windows x64 loader separately. This ZIP
@@ -116,7 +114,7 @@ def pe_machine(data: bytes) -> int:
     return struct.unpack_from("<H", data, offset + 4)[0]
 
 
-def read_publish(folder: Path) -> dict[str, bytes]:
+def read_publish(folder: Path, reviewed_atb_sha256: str, dotnet: str) -> dict[str, bytes]:
     if not folder.is_dir():
         raise ValueError("Missing complete launcher publish folder")
     files = {}
@@ -155,7 +153,7 @@ def read_publish(folder: Path) -> dict[str, bytes]:
             or deps["libraries"][own_key].get("type") != "project"
             or own_key not in deps["targets"].get(target, {})
             or any(k.startswith("StarsOfDestiny.Launcher/") and k != own_key for k in deps["libraries"])):
-        raise ValueError("Publish dependencies must identify StarsOfDestiny.Launcher/1.0.5 for win-x64")
+        raise ValueError("Publish dependencies must identify StarsOfDestiny.Launcher/1.0.6 for win-x64")
     declared_assets = set()
     for library in deps["targets"][target].values():
         for asset_type in ("runtime", "native", "resources"):
@@ -172,6 +170,10 @@ def read_publish(folder: Path) -> dict[str, bytes]:
             or any(not frameworks.get(n, "").startswith("10.")
                    for n in ("Microsoft.NETCore.App", "Microsoft.WindowsDesktop.App"))):
         raise ValueError("Launcher must include its private .NET 10 Core and Windows Desktop runtime")
+    check = subprocess.run([dotnet, "run", "--file", str(HERE / "CheckLauncherPair.cs"), "--", reviewed_atb_sha256],
+                           input=files["StarsOfDestiny.Launcher.Core.dll"], capture_output=True, timeout=120)
+    if check.returncode:
+        raise ValueError("Launcher/ATB pairing check failed: " + (check.stdout + check.stderr).decode(errors="replace"))
     return files
 
 
@@ -194,7 +196,7 @@ def add(files: dict[str, bytes], name: str, data: bytes):
     files[name] = data
 
 
-def package(launcher_dir: Path, atb_dll: Path, output: Path, source_commit: str):
+def package(launcher_dir: Path, atb_dll: Path, output: Path, source_commit: str, dotnet: str = "dotnet"):
     if re.fullmatch(r"[0-9a-fA-F]{40}", source_commit) is None:
         raise ValueError("--source-commit requires a full 40-character Git commit SHA")
     check_source_commit(source_commit)
@@ -206,11 +208,11 @@ def package(launcher_dir: Path, atb_dll: Path, output: Path, source_commit: str)
     if not atb_dll.is_file() or atb_dll.name != "SuikodenRandomizer.S1BattlePreview.dll":
         raise ValueError("--atb-dll must identify the reviewed SuikodenRandomizer.S1BattlePreview.dll")
     atb_hash = digest(atb_dll.read_bytes())
-    publish = read_publish(launcher_dir)
-    notes = REPO / "docs/launcher-1.0.5.md"
+    publish = read_publish(launcher_dir, atb_hash, dotnet)
+    notes = REPO / "docs/launcher-1.0.6.md"
     license_file = REPO / "LICENSE"
     if not notes.is_file() or not notes.read_text(encoding="utf-8").strip():
-        raise ValueError("Missing docs/launcher-1.0.5.md release notes")
+        raise ValueError("Missing docs/launcher-1.0.6.md release notes")
     if not license_file.is_file() or not license_file.read_bytes():
         raise ValueError("Missing project MIT LICENSE")
     files = {ROOT + name: data for name, data in publish.items()}
@@ -232,7 +234,7 @@ def package(launcher_dir: Path, atb_dll: Path, output: Path, source_commit: str)
         "sourceCommit": source_commit.lower(),
         "sourceUrl": "https://github.com/suikodenrand/suikodenrando/tree/" + source_commit.lower(),
         "reviewedAtbSha256": atb_hash, "atbDllIncluded": False,
-        "compiledAtbGuardVerification": "Run StarsOfDestiny.Launcher.AtbBuild.Tests separately against this publish and reviewed ATB DLL.",
+        "compiledAtbGuardVerification": "Matched the published launcher assembly metadata to the reviewed ATB DLL.",
         "recipeSha256": digest(Path(__file__).read_bytes()), "selfContainedRuntime": True,
         "gameAndLoaderAndPluginsIncluded": False, "files": records,
     }
@@ -262,10 +264,10 @@ def package(launcher_dir: Path, atb_dll: Path, output: Path, source_commit: str)
         "bytes": archive_path.stat().st_size, "files": len(files), "status": "passed",
         "launcherVersion": VERSION, "supportedRandomizerHostVersion": SUPPORTED_HOST,
         "sourceCommit": source_commit.lower(), "reviewedAtbSha256": atb_hash,
-        "checks": ["Complete self-contained win-x64 launcher 1.0.5", "Private runtime license notices preserved",
+        "checks": ["Complete self-contained win-x64 launcher 1.0.6", "Private runtime license notices preserved",
                    "No personal preferences, scripts, nested archives, links or unexpected executable files",
                    "Every ZIP member and CRC checked against original input bytes"],
-        "claim": "Packaging checks only; no install, launch, native gameplay, compiled ATB guard check or publication performed.",
+        "claim": "Packaging checks only; no install, launch, native gameplay or publication performed.",
     }
     archive_path.with_name(archive_path.name + ".sha256").write_text(
         result["sha256"] + "  " + archive_path.name + "\n", encoding="ascii")
@@ -279,8 +281,9 @@ def main():
     parser.add_argument("--atb-dll", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--source-commit", required=True)
+    parser.add_argument("--dotnet", default="dotnet", help="Path to the .NET 10 SDK host for metadata verification")
     args = parser.parse_args()
-    print(json.dumps(package(args.launcher_dir, args.atb_dll, args.output, args.source_commit), indent=2))
+    print(json.dumps(package(args.launcher_dir, args.atb_dll, args.output, args.source_commit, args.dotnet), indent=2))
 
 
 if __name__ == "__main__":

@@ -17,8 +17,19 @@ internal static class AvatarSavePreparationPatch
         if (runtime is not null && !runtime.OwnsExecution) return true;
         try
         {
+            if (runtime is not null && runtime.TryPrepareUnboundNativeSave())
+            {
+                // Mask any outer bound save while this native-only nested call
+                // runs. Capture/storage hooks must not inherit its obligations.
+                __state = new AvatarSaveCall { Previous = AvatarSaveCall.Current, Runtime = runtime,
+                    ExecutionEpoch = runtime.ExecutionEpoch, NativePassthrough = true, BindingFailed = false };
+                AvatarSaveCall.Current = __state;
+                runtime.Trace("NATIVE SAVE PASSTHROUGH: clean unbound campaign; no randomizer binding written.");
+                return true;
+            }
             if (runtime is null || !runtime.IsAdmitted || runtime.FaultReason is not null)
-                throw new InvalidOperationException(runtime?.FaultReason ?? "This shuffle saves only its own New Game/bound campaign; pilot/older saves are read-only.");
+                throw new InvalidOperationException(runtime?.FaultReason ?? "Randomizer save admission is incomplete or suspended; finish loading a native campaign or restore its valid campaign binding.");
+            SuikodenRandomizer.Integration.RejectedSaveMirrorGuard.Ensure(AvatarStorageGuardPatch.AllowMirrorWrite);
             if (!runtime.EnsureProxy("save preparation", false, force: true))
                 throw new InvalidOperationException("Complete shuffle roster is not ready; save again after native initialization completes.");
             runtime.VerifyFinalParty("save preparation");
@@ -55,18 +66,19 @@ internal static class AvatarSaveCapturePatch
     private static void Postfix(GSD1.SaveDataManager.SaveData save_data, bool __result)
     {
         var call = AvatarSaveCall.Current;
-        if (call is null) return;
+        if (call is null || call.NativePassthrough) return;
         try
         {
             var runtime = call.Runtime;
             if (!runtime.MatchesExecution(call.ExecutionEpoch)) return;
             if (!__result || !runtime.IsActive) throw new InvalidOperationException("Native snapshot/active pilot unavailable.");
-            string identity = runtime.WriteCampaignBinding(save_data);
-            runtime.WriteTreasureBinding(save_data);
-            runtime.WriteJoiningWeaponBinding(save_data);
-            runtime.WriteJoiningEquipmentBinding(save_data);
+            string identity = AvatarSaveIdentity.Compute(save_data);
+            string campaignIdentity = runtime.WriteCampaignBinding(save_data, identity);
+            runtime.WriteTreasureBinding(identity);
+            runtime.WriteJoiningWeaponBinding(identity);
+            runtime.WriteJoiningEquipmentBinding(identity);
             call.BindingFailed = false;
-            runtime.Trace("SAVE BOUND: canonical native snapshot=" + identity + "; profile=" + runtime.CampaignFingerprint);
+            runtime.Trace("SAVE BOUND: canonical native snapshot=" + campaignIdentity + "; profile=" + runtime.CampaignFingerprint);
         }
         catch (Exception exception) { call.BindingFailed = true; call.Failure = exception.Message; }
     }
@@ -98,6 +110,7 @@ internal static class AvatarSaveRestorePatch
         runtime.CompleteFixedLoad();
         if (!__result) runtime.Fail("Native save restoration failed.");
         else if (runtime.IsAdmitted) runtime.EnsureProxy("bound save restore (no donor stats copied)", false, force: true);
+        else runtime.CompleteUnboundNativeLoad();
     }
     [HarmonyFinalizer]
     private static Exception? Finalizer(Exception? __exception, LoadCall? __state)

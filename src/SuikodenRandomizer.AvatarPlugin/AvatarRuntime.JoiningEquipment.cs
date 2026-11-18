@@ -31,10 +31,10 @@ internal sealed partial class AvatarRuntime
         _joiningEquipmentPrepared = true;
         Trace("JOINING EQUIPMENT NEW GAME: policy=" + JoiningEquipmentPolicy + "; complete role inventory; weapon/rune policy separate.");
     }
-    private void RestoreJoiningEquipment(GSD1.SaveDataManager.SaveData save)
+    private void RestoreJoiningEquipment(GSD1.SaveDataManager.SaveData save, string identity)
     {
         if (!CanExecute || (_fixedProfile is null && State.Origin == Core.Avatars.RoleAvatarCampaignOrigin.UnboundSave)) return;
-        var binding = JoiningEquipmentBindingStore.Read(AvatarSaveIdentity.Compute(save), CampaignFingerprint, JoiningWeaponSeed);
+        var binding = JoiningEquipmentBindingStore.Read(identity, CampaignFingerprint, JoiningWeaponSeed);
         JoiningEquipmentPolicy = binding?.Policy ?? JoiningEquipmentPolicy.Donor;
         _joiningEquipmentFighters = new(binding?.InitializedFighters ?? Array.Empty<int>());
         _joiningEquipmentRoles = new(binding?.InitializedRoles ?? Array.Empty<int>());
@@ -65,12 +65,11 @@ internal sealed partial class AvatarRuntime
             + (binding is null ? "; legacy inventory retained; no retroactive equipment reset." : "; saved equipment policy retained."));
     }
 
-    private bool ObserveJoinedShuffleEquipment(bool required)
+    private bool ObserveJoinedShuffleEquipment(IReadOnlyList<int> slots, bool required)
     {
-        if (!IsActive || IsFixedRoster || JoiningEquipmentPolicy != JoiningEquipmentPolicy.MatchRole) return true;
         var game = GSD1.OldSrcBase.game_work ?? throw new InvalidOperationException("Joining equipment game state is unavailable.");
         var pending = new Dictionary<int, int>();
-        foreach (int slot in ActiveResidentSlots())
+        foreach (int slot in slots)
         {
             int role = game.party_data.chara_code[slot];
             if (Profile.IsRole(role) && !Profile.KeepsCanonicalLoadout(role) && !_joiningEquipmentRoles.Contains(role)) pending.Add(role, slot);
@@ -131,7 +130,7 @@ internal sealed partial class AvatarRuntime
         if (!_joiningEquipmentPrepared) throw new InvalidOperationException("Joining equipment policy is not ready for saving.");
         JoiningEquipmentBindingStore.CheckWritable();
     }
-    internal void WriteJoiningEquipmentBinding(GSD1.SaveDataManager.SaveData save)
+    internal void WriteJoiningEquipmentBinding(string identity)
     {
         if (!IsActive || !_joiningEquipmentPrepared) throw new InvalidOperationException("Joining equipment policy is not ready for this snapshot.");
         if (!IsFixedRoster && JoiningEquipmentPolicy == JoiningEquipmentPolicy.MatchRole)
@@ -141,7 +140,7 @@ internal sealed partial class AvatarRuntime
                 && !_joiningEquipmentRoles.Contains(codes[slot])))
                 throw new InvalidOperationException("Active joining equipment must initialize before capturing the native snapshot.");
         }
-        JoiningEquipmentBindingStore.Write(AvatarSaveIdentity.Compute(save), CampaignFingerprint, JoiningWeaponSeed,
+        JoiningEquipmentBindingStore.Write(identity, CampaignFingerprint, JoiningWeaponSeed,
             new JoiningEquipmentBinding(JoiningEquipmentPolicy, _joiningEquipmentFighters, _joiningEquipmentRoles, _canonicalJoiningInventories));
     }
 }

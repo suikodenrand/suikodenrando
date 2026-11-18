@@ -144,7 +144,7 @@ internal static class JoiningWeaponBindingStore
             throw new InvalidDataException("Native snapshot already belongs to a different joining weapon policy or fighter history.");
     }
 
-    private static string PathFor(string identity)
+    internal static string PathFor(string identity)
     {
         if (identity.Length != 64 || identity.Any(value => !(value >= '0' && value <= '9') && !(value >= 'a' && value <= 'f')))
             throw new InvalidDataException("Invalid native save digest.");

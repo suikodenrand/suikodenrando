@@ -102,7 +102,7 @@ public sealed class GameUiCoordinator
         if (!Select(token, out var backend) || CurrentFailure(token) is not null) return false;
         try
         {
-            if ((backend.GetStatus(token).IsFaulted && !allowFaultedStatus) || !_router.IsCurrent(token)) return false;
+            if ((!allowFaultedStatus && backend.GetStatus(token).IsFaulted) || !_router.IsCurrent(token)) return false;
             action(backend, token);
             return true;
         }

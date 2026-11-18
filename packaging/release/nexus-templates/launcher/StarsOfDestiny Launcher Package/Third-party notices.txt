@@ -1,7 +1,7 @@
-THIRD-PARTY SOFTWARE - OPTIONAL STARS OF DESTINY LAUNCHER 1.0.4
+THIRD-PARTY SOFTWARE - OPTIONAL STARS OF DESTINY LAUNCHER 1.0.6
 
 The project's launcher is MIT licensed. See Stars-of-Destiny-MIT-LICENSE.txt.
-Source/build: https://github.com/suikodenrand/suikodenrando/tree/v0.14.4
+Source/build: https://github.com/suikodenrand/suikodenrando/tree/v0.14.5
 
 Microsoft .NET 10.0.14 Windows x64
 The self-contained launcher redistributes Microsoft's runtime and Windows

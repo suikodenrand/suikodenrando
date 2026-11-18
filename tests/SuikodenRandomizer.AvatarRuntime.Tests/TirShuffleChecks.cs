@@ -41,7 +41,7 @@ internal static partial class Program
                 "Canonical membership or chosen hero name changed.");
 
             var save = new GSD1.SaveDataManager.SaveData { Identity = new string('d', 64) };
-            world.Runtime.WriteCampaignBinding(save);
+            world.Runtime.WriteCampaignBinding(save, save.Identity);
             AvatarPlugin.ConfiguredIncludeTir = false;
             world.Runtime.PrepareLoad(save);
             world.Ready();
@@ -56,7 +56,7 @@ internal static partial class Program
             var world = new World();
             world.Ready();
             var save = new GSD1.SaveDataManager.SaveData { Identity = new string('e', 64) };
-            world.Runtime.WriteCampaignBinding(save);
+            world.Runtime.WriteCampaignBinding(save, save.Identity);
             AvatarPlugin.ConfiguredIncludeTir = true;
             world.Runtime.PrepareLoad(save);
             world.Ready();

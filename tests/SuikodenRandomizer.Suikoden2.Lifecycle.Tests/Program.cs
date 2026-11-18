@@ -40,7 +40,13 @@ void Storage(string json)
 }
 int CandidateCount() => Directory.Exists(Gsd2Plugin.NativeCheckpointExportDirectory)
     ? Directory.GetFiles(Gsd2Plugin.NativeCheckpointExportDirectory, "*.json").Count(path => !path.EndsWith(".receipt.json")) : 0;
-const string nativeJson = "{\r\n \"native\":\"Riou テスト\", \"flags\":[0,255] }\n";
+const string nativeJson = "{\r\n \"native\":\"Riou ãƒ†ã‚¹ãƒˆ\", \"flags\":[0,255] }\n";
+
+var recruitRuntime = new Gsd2Runtime();
+Gsd2Runtime.Current = recruitRuntime;
+Call(typeof(Gsd2RecruitmentEquipmentBoundaryPatch), "Postfix");
+Check(recruitRuntime.CallOrder.SequenceEqual(new[] { "tick" }), "native party insertion observes recruitment immediately");
+Gsd2Runtime.Current = null;
 
 bool manual = EnterManual();
 var ordinary = EnterSave(false);

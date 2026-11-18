@@ -21,7 +21,7 @@ internal enum PanelView { Full, Compact, Hidden }
 public sealed class UnifiedPlugin : BasePlugin
 {
     public const string PluginGuid = "agilen.starsofdestiny";
-    public const string Version = "0.14.4";
+    public const string Version = "0.14.5";
     internal static readonly ActiveGameRouter Router = new();
     internal static readonly GameUiCoordinator Ui = new(Router);
     internal static ManualLogSource HostLog = null!;

@@ -4,7 +4,10 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
+using System.Threading;
 
 namespace StarsOfDestiny.Launcher.Core;
 
@@ -58,14 +61,19 @@ public sealed class SettingsWorkspace
     public string Get(string id)
     {
         var setting = SettingsCatalog.Find(id);
-        return Documents[setting.FileName].Get(setting.Section, setting.Key, setting.DefaultValue);
+        string raw = Documents[setting.FileName].Get(setting.Section, setting.Key, setting.DefaultValue);
+        return setting.Kind == SettingKind.Seed ? SettingsCatalog.DecodeSeed(raw) : raw;
     }
     public bool GetBoolean(string id) => bool.Parse(Get(id));
     public void Set(string id, string value)
     {
         var setting = SettingsCatalog.Find(id);
-        Documents[setting.FileName].Set(setting.Section, setting.Key, SettingsCatalog.Normalize(setting, value));
+        StageValue(setting, SettingsCatalog.Normalize(setting, value));
     }
+    // Text controls can contain an unfinished value until Apply validates it.
+    public void StageValue(SettingDefinition setting, string value) =>
+        Documents[setting.FileName].Set(setting.Section, setting.Key,
+            setting.Kind == SettingKind.Seed ? value.Replace("\\", "\\\\") : value);
     public void SetBoolean(string id, bool value) => Set(id, value ? "true" : "false");
 
     /// <summary>Retires the old global pause switch when explicitly applying launcher settings.</summary>
@@ -79,19 +87,81 @@ public sealed class SettingsWorkspace
     }
 
     public IReadOnlyList<string> Validate() => SettingsCatalog.Validate(Documents);
+
+    public void StagePreset(string json)
+    {
+        using var preset = JsonDocument.Parse(json, new JsonDocumentOptions { MaxDepth = 5 });
+        if (preset.RootElement.GetProperty("schema").GetString() != "stars-of-destiny-settings-v1")
+            throw new InvalidDataException("Unsupported settings preset.");
+        var merged = new Dictionary<string, IniDocument>(_documents, StringComparer.OrdinalIgnoreCase);
+        var included = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var file in preset.RootElement.GetProperty("configFiles").EnumerateObject())
+        {
+            if (!_documents.TryGetValue(file.Name, out var current) || !included.Add(file.Name))
+                throw new InvalidDataException("The preset contains an unknown or repeated config file.");
+            var target = IniDocument.Parse(current.Render());
+            var source = IniDocument.Parse(file.Value.GetString() ?? "");
+            var keys = new HashSet<(string, string)>();
+            foreach (var entry in source.Entries())
+            {
+                var known = SettingsCatalog.Find(file.Name, entry.Section, entry.Key, StringComparison.OrdinalIgnoreCase);
+                string section = known?.Section ?? entry.Section;
+                string key = known?.Key ?? entry.Key;
+                if (!keys.Add((section, key)))
+                    throw new InvalidDataException($"Duplicate preset setting [{entry.Section}] {entry.Key}.");
+                target.Set(section, key, entry.Value);
+            }
+            merged[file.Name] = target;
+        }
+
+        var errors = SettingsCatalog.Validate(merged);
+        if (errors.Count != 0) throw new InvalidDataException(string.Join(Environment.NewLine, errors));
+        foreach (string name in included) _documents[name] = merged[name];
+    }
+
     public SettingsSaveResult Save() => SaveChanges();
 
-    public SettingsSaveResult SaveChanges()
+    public SettingsSaveResult SaveChanges() => SaveChanges(null);
+
+    public SettingsSaveResult SaveChanges(Action? refreshExternalSettings)
+    {
+        string directory = Path.TrimEndingDirectorySeparator(ConfigDirectory).ToUpperInvariant();
+        string key = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(directory)));
+        using var mutex = new Mutex(false, "StarsOfDestiny.Settings." + key);
+        try
+        {
+            if (!mutex.WaitOne(0)) throw new IOException("Another launcher is applying settings. Retry Apply when it finishes.");
+        }
+        catch (AbandonedMutexException) { /* This thread now owns the mutex. Re-read the files below. */ }
+        try { return SaveUnderLock(refreshExternalSettings); }
+        finally { mutex.ReleaseMutex(); }
+    }
+
+    private SettingsSaveResult SaveUnderLock(Action? refreshExternalSettings)
     {
         if (IsGameRunning) throw new InvalidOperationException("Close Suikoden before applying settings.");
+        string[] changed = SettingsCatalog.FileNames.Where(name => Documents[name].Render() != _snapshots[name].Text).ToArray();
+        foreach (string name in changed) RequireUnchanged(name);
+        // Validate disjoint edits against the actual settings another window wrote.
+        // Keep this window's staged documents available if the combination conflicts.
+        bool refreshed = false;
+        foreach (string name in SettingsCatalog.FileNames.Except(changed))
+        {
+            var current = Read(Path.Combine(ConfigDirectory, name));
+            if (_snapshots[name].Text != current.Text)
+            {
+                _documents[name] = IniDocument.Parse(current.Text);
+                refreshed = true;
+            }
+            _snapshots[name] = current;
+        }
+        if (refreshed) refreshExternalSettings?.Invoke();
         var errors = Validate();
         if (errors.Count > 0) throw new InvalidOperationException(string.Join(Environment.NewLine, errors));
-        string[] changed = SettingsCatalog.FileNames.Where(name => Documents[name].Render() != _snapshots[name].Text).ToArray();
         if (changed.Length == 0) return new SettingsSaveResult(null, Array.Empty<string>());
         bool changesS2 = changed.Contains(SettingsCatalog.S2File, StringComparer.OrdinalIgnoreCase);
         if (changesS2) GameInstallation.RequireRiouJoiningWeaponSupport(GameFolder, Get("s2.joiningWeaponLevel"));
         RequireJoiningEquipmentSupport(changed);
-        foreach (string name in changed) RequireUnchanged(name);
         Directory.CreateDirectory(ConfigDirectory);
         string transaction = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fffffff", System.Globalization.CultureInfo.InvariantCulture)
             + "-" + Guid.NewGuid().ToString("N");
@@ -116,6 +186,7 @@ public sealed class SettingsWorkspace
             if (IsGameRunning) throw new InvalidOperationException("Suikoden started while settings were being prepared. Close it and try again.");
             if (changesS2) GameInstallation.RequireRiouJoiningWeaponSupport(GameFolder, Get("s2.joiningWeaponLevel"));
             RequireJoiningEquipmentSupport(changed);
+            foreach (string name in SettingsCatalog.FileNames) RequireUnchanged(name);
             foreach (var file in pending)
             {
                 RequireUnchanged(file.Name);

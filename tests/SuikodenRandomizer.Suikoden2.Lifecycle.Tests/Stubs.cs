@@ -73,6 +73,7 @@ namespace SuikodenRandomizer.Suikoden2Plugin
             if (ThrowCompletion) throw new InvalidOperationException("injected new-game completion failure");
             if (PendingNewGame) { PendingNewGame = false; Initializations++; }
         }
+        internal void Tick() => CallOrder.Add("tick");
         internal void ObserveNativeDataset() { }
         internal void Fail(string message) => FaultReason = message;
         internal void BeginSave()

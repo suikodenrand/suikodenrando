@@ -1,5 +1,3 @@
-extern alias GSD1;
-
 using SuikodenRandomizer.Core.Avatars;
 using SuikodenRandomizer.Core.Treasure;
 using System;
@@ -27,10 +25,9 @@ internal sealed partial class AvatarRuntime
             Trace("TREASURE NEW GAME: seed=" + TreasureProfile.Seed + "; mapping=" + TreasureProfile.Fingerprint);
     }
 
-    private void RestoreTreasureCampaign(GSD1.SaveDataManager.SaveData save)
+    private void RestoreTreasureCampaign(string identity)
     {
         if (!CanExecute || (_fixedProfile is null && State.Origin == RoleAvatarCampaignOrigin.UnboundSave)) return;
-        string identity = AvatarSaveIdentity.Compute(save);
         var binding = TreasureBindingStore.Read(identity, CampaignFingerprint, TreasureSeed);
         if (binding is not null)
         {
@@ -53,10 +50,10 @@ internal sealed partial class AvatarRuntime
         TreasureBindingStore.CheckWritable();
     }
 
-    internal void WriteTreasureBinding(GSD1.SaveDataManager.SaveData save)
+    internal void WriteTreasureBinding(string identity)
     {
         if (!IsActive || !_treasurePrepared)
             throw new InvalidOperationException("Treasure campaign policy is not ready for this native snapshot.");
-        TreasureBindingStore.Write(AvatarSaveIdentity.Compute(save), CampaignFingerprint, TreasureSeed, TreasureProfile);
+        TreasureBindingStore.Write(identity, CampaignFingerprint, TreasureSeed, TreasureProfile);
     }
 }

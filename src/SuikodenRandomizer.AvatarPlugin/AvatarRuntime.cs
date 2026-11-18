@@ -10,7 +10,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
-using UnityEngine.SceneManagement;
 
 namespace SuikodenRandomizer.AvatarPlugin;
 
@@ -28,13 +27,15 @@ internal sealed partial class AvatarRuntime
         : IsActive && IsFixedRoster ? "Fixed roster test | Tir + five companions"
         : IsActive ? Profile.RoleIds.Count + " combat roles | seed: " + Profile.Seed + " | story IDs retained"
         : IsAdmitted ? "Waiting for native roster and a bound story resident: " + _waiting
-        : "Shuffle inactive: start a NEW GAME. Pilot/older saves are read-only.";
+        : _nativeUnboundLoadCompleted ? "Shuffle inactive: unbound native campaign; native saves remain unrandomized."
+        : "Shuffle inactive: waiting for native campaign loading or a New Game.";
 
     private Dictionary<int, GSD1.PLAYER_DATA> _originals = new Dictionary<int, GSD1.PLAYER_DATA>();
     private Dictionary<int, GSD1.PLAYER_DATA> _proxies = new Dictionary<int, GSD1.PLAYER_DATA>();
     private GSD1.PlayerManager? _manager;
     private IntPtr _game;
     private bool _preparing, _wasTitle;
+    private bool _nativeUnboundLoadCompleted;
     private readonly Func<long> _timestamp;
     private bool _automaticCheckScheduled;
     private long _nextAutomaticCheck;
@@ -79,12 +80,14 @@ internal sealed partial class AvatarRuntime
     internal void SuspendExecution()
     {
         _executionSuspended = true;
+        _nativeUnboundLoadCompleted = false;
         _automaticCheckScheduled = false;
         ViktorStart.Cancel();
     }
     private void AcceptExecutionBoundary()
     {
         if (!OwnsExecution) throw new InvalidOperationException("Suikoden I does not own execution.");
+        _nativeUnboundLoadCompleted = false;
         RestoreCache();
         _admittedEpoch = ExecutionEpoch;
         _executionSuspended = false;
@@ -159,17 +162,66 @@ internal sealed partial class AvatarRuntime
             AvatarPresentation.Reset();
             string identity = AvatarSaveIdentity.Compute(save);
             var regular = AvatarBindingStore.Read(identity);
-            if (regular is null && TryLoadFixedRoster(save)) { RestoreTreasureCampaign(save); RestoreJoiningWeapons(save); RestoreJoiningEquipment(save); return; }
-            State = regular ?? AvatarShuffleCampaignState.CreateUnbound();
-            if (!IsAdmitted)
-                Trace("Unbound save: no 0.8 shuffle mapping found. No pilot/older campaign conversion; saving read-only.");
-            else Trace("BOUND SHUFFLE RESTORED before native reconstruction; seed=" + Profile.Seed
-                + "; mapping=" + Profile.Fingerprint + "; configured seed ignored for this save.");
-            RestoreTreasureCampaign(save);
-            RestoreJoiningWeapons(save);
-            RestoreJoiningEquipment(save);
+            if (regular is not null)
+            {
+                State = regular;
+                Trace("BOUND SHUFFLE RESTORED before native reconstruction; seed=" + Profile.Seed
+                    + "; mapping=" + Profile.Fingerprint + "; configured seed ignored for this save.");
+            }
+            else if (!TryLoadFixedRoster(save, identity))
+            {
+                RequireNoOrphanedPolicyBindings(identity);
+                Trace("Unbound save: no 0.8 shuffle mapping found. Native loading continues without randomizer conversion or binding.");
+                return;
+            }
+            RestoreTreasureCampaign(identity);
+            RestoreJoiningWeapons(save, identity);
+            RestoreJoiningEquipment(save, identity);
         }
         catch (Exception exception) { Fail("Shuffle save binding rejected: " + exception.Message); }
+    }
+
+    private static void RequireNoOrphanedPolicyBindings(string identity)
+    {
+        foreach (string path in new[] { TreasureBindingStore.PathFor(identity), JoiningWeaponBindingStore.PathFor(identity),
+            JoiningEquipmentBindingStore.PathFor(identity) })
+        {
+            // Only definite absence permits native passthrough. Read errors go
+            // through the same save-admission failure path as malformed bindings.
+            try { File.GetAttributes(path); }
+            catch (FileNotFoundException) { continue; }
+            catch (DirectoryNotFoundException) { continue; }
+            throw new InvalidDataException("This snapshot has randomizer policy data but no campaign binding. Restore its campaign binding before saving.");
+        }
+    }
+
+    // Native campaigns have no randomizer save transaction. Only an explicitly
+    // completed unbound load may use that path; a pending/faulted shuffle must
+    // never be downgraded to native passthrough just because IsAdmitted is false.
+    internal void CompleteUnboundNativeLoad()
+    {
+        if (!CanExecute || FaultReason is not null || State.Origin != RoleAvatarCampaignOrigin.UnboundSave
+            || State.Profile is not null || _fixedProfile is not null || _preparing) return;
+        try
+        {
+            RestorePendingCaches(GSD1.GlobalWork.Instance?.player_manager);
+            _nativeUnboundLoadCompleted = true;
+        }
+        catch (Exception exception) { Fail("Unbound native-load cleanup failed: " + exception.Message); }
+    }
+
+    internal bool TryPrepareUnboundNativeSave()
+    {
+        if (!CanExecute || !_nativeUnboundLoadCompleted || FaultReason is not null
+            || State.Origin != RoleAvatarCampaignOrigin.UnboundSave || State.Profile is not null
+            || State.IsApplying || State.IsFailed || _fixedProfile is not null || _fixedLoading || _preparing
+            || _proxies.Count != 0 || _originals.Count != 0 || _manager is not null || _game != IntPtr.Zero) return false;
+        var manager = GSD1.GlobalWork.Instance?.player_manager;
+        // Retired publications for another manager are safe to retain. A reused
+        // current manager must first regain its exact original cache entries.
+        RestorePendingCaches(manager);
+        return manager is null ? _pendingCacheRestorations.Count == 0
+            : !_pendingCacheRestorations.Any(publication => publication.Manager.Pointer == manager.Pointer);
     }
 
     internal bool EnsureProxy(string reason, bool required, bool force = false)
@@ -188,7 +240,7 @@ internal sealed partial class AvatarRuntime
             _automaticCheckScheduled = true;
             _nextAutomaticCheck = now + AutomaticCheckInterval;
             bool ready = IsFixedRoster ? EnsureFixedRoster(reason, required) : EnsureProxiesCore(reason, required);
-            return ready && ObserveJoinedShuffleWeapons(required) && ObserveJoinedShuffleEquipment(required);
+            return ready && ObserveJoinedShuffleLoadouts(required);
         }
         catch (Exception exception) { Fail("Shuffle preparation failed: " + exception.Message); return false; }
     }
@@ -393,6 +445,20 @@ internal sealed partial class AvatarRuntime
         return AvatarPartyLayout.GetActiveResidentSlots(codes, order, party.player_kazu);
     }
 
+    private bool ObserveJoinedShuffleLoadouts(bool required)
+    {
+        if (!IsActive || IsFixedRoster) return true;
+        bool weapons = JoiningWeaponPolicy == JoiningWeaponPolicy.TirVariance;
+        bool equipment = JoiningEquipmentPolicy == JoiningEquipmentPolicy.MatchRole;
+        if (!weapons && !equipment) return true;
+
+        IReadOnlyList<int> slots;
+        try { slots = ActiveResidentSlots(); }
+        catch (InvalidOperationException exception) { return WaitFor("active party layout pending: " + exception.Message, required); }
+        return (!weapons || ObserveJoinedShuffleWeapons(slots, required))
+            && (!equipment || ObserveJoinedShuffleEquipment(slots, required));
+    }
+
     private bool ResidentBound(int slot, int id, IReadOnlyDictionary<int, GSD1.PLAYER_BASE> bases,
         bool allowExistingProxy = false)
     {
@@ -570,7 +636,6 @@ internal sealed partial class AvatarRuntime
         if (!OwnsExecution) return;
         try
         {
-            if (SceneManager.GetActiveScene().name != "GSD1") return;
             bool title = GSD1.ChapterManager.GR1Instance?.activeChapter?.TryCast<GSD1.TitleChapter>() is not null;
             if (title && (!_wasTitle || !CanExecute))
             {
@@ -580,7 +645,7 @@ internal sealed partial class AvatarRuntime
             _wasTitle = title;
             if (!title && IsAdmitted && (IsFixedRoster || !IsActive || _game != GSD1.OldSrcBase.game_work?.Pointer))
                 EnsureProxy("native initialization observation", false);
-            if (!title && IsActive && ObserveJoinedShuffleWeapons(false)) ObserveJoinedShuffleEquipment(false);
+            else if (!title) ObserveJoinedShuffleLoadouts(false);
         }
         catch (Exception exception) { Fail("Shuffle lifecycle observation failed: " + exception.Message); }
     }

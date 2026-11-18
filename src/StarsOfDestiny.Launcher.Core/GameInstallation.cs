@@ -151,11 +151,7 @@ public static class GameInstallation
     {
         string root = RequireGameFolder(gameFolder);
         if (IsGameRunning(root)) throw new InvalidOperationException("Suikoden is already running.");
-        try { Process.Start(new ProcessStartInfo("steam://rungameid/1932640") { UseShellExecute = true }); }
-        catch (Win32Exception)
-        {
-            Process.Start(new ProcessStartInfo(Path.Combine(root, GameExeName)) { UseShellExecute = true, WorkingDirectory = root });
-        }
+        Process.Start(new ProcessStartInfo(Path.Combine(root, GameExeName)) { UseShellExecute = true, WorkingDirectory = root });
     }
 
     private static string RequireGameFolder(string gameFolder)

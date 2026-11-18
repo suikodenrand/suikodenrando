@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -16,21 +15,8 @@ internal sealed partial class MainForm
         foreach (DataGridViewRow row in _advanced.Rows)
         {
             var field = ((string File, string Section, string Key))row.Tag!;
-            var definition = SettingsCatalog.All.FirstOrDefault(setting => setting.FileName == field.File && setting.Section == field.Section && setting.Key == field.Key);
-            row.Cells[3].Value = _workspace.Documents[field.File].Get(field.Section, field.Key, definition?.DefaultValue ?? "");
-        }
-    }
-
-    private static IEnumerable<(string Section, string Key, string Value)> Entries(string text)
-    {
-        string section = "";
-        foreach (string line in text.Split('\n'))
-        {
-            string trimmed = line.Trim();
-            if (trimmed.StartsWith('[') && trimmed.EndsWith(']')) { section = trimmed[1..^1]; continue; }
-            if (trimmed.StartsWith('#') || trimmed.StartsWith(';')) continue;
-            int equals = trimmed.IndexOf('=');
-            if (equals > 0) yield return (section, trimmed[..equals].Trim(), trimmed[(equals + 1)..].Trim());
+            var definition = SettingsCatalog.Find(field.File, field.Section, field.Key);
+            row.Cells[3].Value = definition is null ? _workspace.Documents[field.File].Get(field.Section, field.Key) : _workspace.Get(definition.Id);
         }
     }
 
@@ -49,9 +35,9 @@ internal sealed partial class MainForm
         _advanced.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Value", FillWeight = 22 });
         foreach (var document in _workspace!.Documents)
         {
-            var values = Entries(document.Value.Render()).ToDictionary(entry => (entry.Section, entry.Key), entry => entry.Value);
+            var values = document.Value.Entries().ToDictionary(entry => (entry.Section, entry.Key), entry => entry.Value);
             foreach (var definition in SettingsCatalog.All.Where(definition => definition.FileName == document.Key))
-                values.TryAdd((definition.Section, definition.Key), definition.DefaultValue);
+                values[(definition.Section, definition.Key)] = _workspace.Get(definition.Id);
             foreach (var entry in values.OrderBy(pair => pair.Key.Section, StringComparer.Ordinal).ThenBy(pair => pair.Key.Key, StringComparer.Ordinal))
             {
                 if (document.Key.Equals(SettingsCatalog.S1File, StringComparison.OrdinalIgnoreCase)
@@ -67,7 +53,10 @@ internal sealed partial class MainForm
             if (e.RowIndex < 0 || _loading) return;
             var row = _advanced.Rows[e.RowIndex];
             var field = ((string File, string Section, string Key))row.Tag!;
-            _workspace.Documents[field.File].Set(field.Section, field.Key, row.Cells[3].Value?.ToString() ?? "");
+            var definition = SettingsCatalog.Find(field.File, field.Section, field.Key);
+            string value = row.Cells[3].Value?.ToString() ?? "";
+            if (definition is null) _workspace.Documents[field.File].Set(field.Section, field.Key, value);
+            else _workspace.StageValue(definition, value);
             _status.Text = "Advanced settings changed. Apply settings to save them.";
             RefreshStatus();
         };
@@ -100,19 +89,7 @@ internal sealed partial class MainForm
         try
         {
             if (new FileInfo(dialog.FileName).Length > 1024 * 1024) throw new InvalidDataException("The settings preset is too large.");
-            using var json = JsonDocument.Parse(File.ReadAllText(dialog.FileName), new JsonDocumentOptions { MaxDepth = 5 });
-            if (json.RootElement.GetProperty("schema").GetString() != "stars-of-destiny-settings-v1") throw new InvalidDataException("Unsupported settings preset.");
-            var staged = new Dictionary<string, IniDocument>(StringComparer.OrdinalIgnoreCase);
-            foreach (var file in json.RootElement.GetProperty("configFiles").EnumerateObject())
-            {
-                if (!_workspace.Documents.ContainsKey(file.Name) || !staged.TryAdd(file.Name, IniDocument.Parse(file.Value.GetString() ?? "")))
-                    throw new InvalidDataException("The preset contains an unknown or repeated config file.");
-            }
-            var validation = _workspace.Documents.ToDictionary(pair => pair.Key, pair => staged.TryGetValue(pair.Key, out var imported) ? imported : pair.Value);
-            var errors = SettingsCatalog.Validate(validation);
-            if (errors.Count != 0) throw new InvalidDataException(string.Join(Environment.NewLine, errors));
-            foreach (var file in staged)
-                foreach (var entry in Entries(file.Value.Render())) _workspace.Documents[file.Key].Set(entry.Section, entry.Key, entry.Value);
+            _workspace.StagePreset(File.ReadAllText(dialog.FileName));
             RebuildPages();
             _status.Text = "Preset loaded into the launcher. Apply settings to write it to the game.";
         }

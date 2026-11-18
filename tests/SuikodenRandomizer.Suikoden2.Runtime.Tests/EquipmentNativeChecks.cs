@@ -111,6 +111,45 @@ internal static partial class Program
                 && game.party_data.party_item.Take(3).Select(item => item.item_no).SequenceEqual(new byte[] { 10, 11, 12 }), "Deferred normalization did not resume safely when shared inventory space became available");
         });
 
+        yield return ("S2 bag contention delays only recruits who need more room", () =>
+        {
+            Gsd2Plugin.Mode = "Shuffle"; Gsd2Plugin.Seed = "bag-contention"; Gsd2Plugin.JoiningEquipment = "MatchRole";
+            var game = Fixture(1); OldSrcBase.game_work = game;
+            var runtime = new Gsd2Runtime(); runtime.BeginNewGame();
+            var pairs = runtime.Profile.Assignments.Where(pair => pair.Key > 1 && pair.Value > 1
+                && pair.Key != pair.Value && pair.Key != 26 && pair.Value != 26);
+            var blocked = pairs.First();
+            var ready = pairs.First(pair => pair.Key != blocked.Key && pair.Key != blocked.Value && pair.Value != blocked.Key);
+            var native = game.chara_data;
+            native.c_kotei_dat[blocked.Value].soubi_kanou = 0;
+            for (int index = 0; index < 3; index++)
+            {
+                native.c_varia_dat[blocked.Key].bogu_eqp[index] = (byte)(10 + index);
+                native.c_varia_dat[ready.Key].bogu_eqp[index] = 0;
+            }
+            native.c_varia_dat[ready.Key].item_eqp[0].item_no = 1;
+            native.c_varia_dat[ready.Key].item_eqp[0].use_cnt = 6;
+            foreach (var item in game.party_data.party_item) { item.item_no = 7; item.use_cnt = 5; }
+
+            runtime.ObserveNativeDataset(); runtime.CompleteNativeNewGame();
+            SetParty(game, 1, (byte)blocked.Key, (byte)ready.Key);
+            runtime.Tick();
+            var fighter = game.chara_data.c_varia_dat[ready.Key];
+            Check(fighter.item_eqp[0].item_no == 1 && fighter.item_eqp[0].use_cnt == 6,
+                "A recruit with no bag transfers missed starting medicine while another waited");
+            runtime.BeginSave(); runtime.BindSnapshot("bag-contention"); runtime.EndSave();
+            var binding = JsonNode.Parse(File.ReadAllText(BindingFile("bag-contention")))!;
+            Check(binding["JoiningEquipmentInitializedDonors"]!.AsArray().Single()!.GetValue<int>() == ready.Value
+                && binding["PendingJoiningEquipment"]![blocked.Value.ToString()] is not null, "Save lost the independent recruit states");
+
+            fighter.item_eqp[2].item_no = 44;
+            foreach (var item in game.party_data.party_item.Take(3)) { item.item_no = 0; item.use_cnt = 0; }
+            runtime.Tick(); runtime.Tick();
+            Check(runtime.FaultReason is null && fighter.item_eqp[2].item_no == 44
+                && game.party_data.party_item.Take(3).Select(item => item.item_no).SequenceEqual(new byte[] { 10, 11, 12 }),
+                "Deferred recruit transfer failed to preserve previously initialized equipment");
+        });
+
         yield return ("S2 deferred first-join equipment never erases items earned while the shared bag is full", () =>
         {
             var setup = UnwearableJoin("Shuffle", true); var game = setup.Game; var runtime = setup.Runtime;

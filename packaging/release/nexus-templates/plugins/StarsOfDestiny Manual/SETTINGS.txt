@@ -1,10 +1,10 @@
-STARS OF DESTINY 0.14.4 - MANUAL SETTINGS
+STARS OF DESTINY 0.14.5 - MANUAL SETTINGS
 
 Close the game and launcher before editing CFG files in BepInEx/config.
 Keep each key under its named [Section]; do not add duplicate keys. Use true
 or false for toggles. Save as plain text with the existing .cfg extension.
 Back up Save and the entire config folder together. Do not edit campaign
-binding/sidecar files. Launcher 1.0.4 is an optional graphical editor.
+binding/sidecar files. Launcher 1.0.6 is an optional graphical editor.
 
 PER-GAME FILES
 S1: agilen.suikoden.recruitment_randomizer.cfg
@@ -107,4 +107,4 @@ rather than guessing character IDs. Suikoden Fix settings are independent
 in d3xMachina.suikoden_fix.cfg; supplied gameplay multipliers are normal.
 
 Source and build instructions:
-https://github.com/suikodenrand/suikodenrando/tree/v0.14.4
+https://github.com/suikodenrand/suikodenrando/tree/v0.14.5

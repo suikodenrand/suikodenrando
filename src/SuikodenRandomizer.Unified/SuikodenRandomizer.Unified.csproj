@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>SuikodenRandomizer</AssemblyName>
-    <Version>0.14.4</Version>
+    <Version>0.14.5</Version>
     <RootNamespace>SuikodenRandomizer.Unified</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -13,6 +13,7 @@
     <ProjectReference Include="../SuikodenRandomizer.Suikoden2.Core/SuikodenRandomizer.Suikoden2.Core.csproj" />
     <ProjectReference Include="../SuikodenRandomizer.Shared/SuikodenRandomizer.Shared.csproj" />
     <!-- The standalone bootstraps/UI are deliberately excluded: exactly one host patches and drives both engines. -->
+    <Compile Include="../Shared/RejectedSaveMirrorGuard.cs" Link="Integration/RejectedSaveMirrorGuard.cs" />
     <Compile Include="../SuikodenRandomizer.AvatarPlugin/*.cs" Exclude="../SuikodenRandomizer.AvatarPlugin/AvatarPlugin.cs;../SuikodenRandomizer.AvatarPlugin/AvatarOverlay.cs" Link="Engines/Gsd1/%(Filename)%(Extension)" />
     <Compile Include="../SuikodenRandomizer.Suikoden2Plugin/*.cs" Exclude="../SuikodenRandomizer.Suikoden2Plugin/Gsd2Plugin.cs" Link="Engines/Gsd2/%(Filename)%(Extension)" />
     <Compile Include="../SuikodenRandomizer.Plugin/Runtime/BuildCompatibility.cs" Link="BuildCompatibility.cs" />

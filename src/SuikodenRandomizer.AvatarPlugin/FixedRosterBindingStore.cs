@@ -50,13 +50,13 @@ internal static class FixedRosterBindingStore
     /// must distinguish snapshots even when the legacy snapshot digest stays the same.
     /// Empty records are included as-is because the native save has uninitialized members.
     /// </summary>
-    internal static string ComputeIdentity(GSD1.SaveDataManager.SaveData save)
+    internal static string ComputeIdentity(GSD1.SaveDataManager.SaveData save, string baseIdentity)
     {
         using var stream = new MemoryStream();
         using (var writer = new BinaryWriter(stream, Encoding.UTF8, true))
         {
             writer.Write("srr-fixed-roster-save-v1");
-            writer.Write(AvatarSaveIdentity.Compute(save));
+            writer.Write(baseIdentity);
             var bases = save.player_base ?? throw new InvalidDataException("Save has no player bases.");
             writer.Write(bases.Count);
             for (int i = 0; i < bases.Count; i++)

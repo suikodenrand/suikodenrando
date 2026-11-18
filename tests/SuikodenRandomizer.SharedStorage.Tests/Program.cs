@@ -17,7 +17,8 @@ internal static class Program
 
     // Evaluate the actual production prefixes in either order, with both strict
     // stop-on-veto and adversarial continue-after-veto composition. No native call.
-    private static Result Store(bool firstS1, bool stopOnVeto, string json = "exact native JSON", bool throwingCallback = false)
+    private static Result Store(bool firstS1, bool stopOnVeto, string json = "exact native JSON", bool throwingCallback = false,
+        bool nativeSucceeded = true)
     {
         bool result = true, runOriginal = true; var callbacks = new List<bool>();
         Il2CppSystem.Action<bool> callback = success => { callbacks.Add(success); if (throwingCallback) throw new InvalidOperationException("consumer callback"); };
@@ -28,10 +29,11 @@ internal static class Program
             bool allowed = (bool)(isS1 ? S1 : S2).Invoke(null, args)!;
             result = (bool)args[^1]!; runOriginal &= allowed;
         }
-        if (runOriginal) { result = true; callback(true); }
+        if (runOriginal) { result = nativeSucceeded; callback(result); }
         // Harmony runs postfixes even after a prefix veto. Compose the actual
         // predicate installed on the verified Fix managed mirror writer too.
-        bool mirror = Gsd2RejectedSaveMirrorGuard.AllowMirrorWrite();
+        typeof(AvatarStorageGuardPatch).GetMethod("Postfix", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, new object[] { result });
+        bool mirror = SuikodenRandomizer.Integration.RejectedSaveMirrorGuard.AllowMirrorWrite();
         return new Result(runOriginal, result, callbacks.ToArray(), mirror);
     }
     private static (AvatarRuntime One, Gsd2Runtime Two) Setup(string owner = "GSD1", long epoch = 1)
@@ -54,6 +56,8 @@ internal static class Program
 
     private static void Main()
     {
+        SuikodenRandomizer.Integration.RejectedSaveMirrorGuard.Ensure(AvatarStorageGuardPatch.AllowMirrorWrite);
+        Gsd2RejectedSaveMirrorGuard.Ensure();
         foreach (bool firstS1 in new[] { false, true }) foreach (bool stop in new[] { false, true })
         {
             var (one, two) = Setup();
@@ -62,9 +66,15 @@ internal static class Program
 
             AvatarSaveCall.Current = new AvatarSaveCall { Runtime = one, ExecutionEpoch = 1, BindingFailed = false };
             Saved(Store(firstS1, stop), "Ready S1 save was blocked by S2");
+            var failedNative = Store(firstS1, stop, nativeSucceeded: false);
+            Check(failedNative.Native && !failedNative.Value && !failedNative.Mirror && failedNative.Callbacks.SequenceEqual(new[] { false }),
+                "A rejected native S1 write reached the Fix mirror");
+            Saved(Store(firstS1, stop), "A successful native retry retained the prior mirror veto");
             Check(two.Bindings.IsEmpty, "S1 save generated S2 campaign binding");
             AvatarSaveCall.Current.BindingFailed = true;
-            Refused(Store(firstS1, stop), "Failed S1 binding was not refused exactly once");
+            var failedBinding = Store(firstS1, stop);
+            Refused(failedBinding, "Failed S1 binding was not refused exactly once");
+            Check(!failedBinding.Mirror, "A rejected S1 binding reached the Fix mirror");
             Check(two.Bindings.IsEmpty, "Failed S1 save entered S2 binding");
             Refused(Store(firstS1, stop, throwingCallback: true), "Throwing S1 failure callback escaped or double-fired");
 

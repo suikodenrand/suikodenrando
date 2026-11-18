@@ -298,6 +298,16 @@ function Get-InstallPlan($Manifest, [string]$Root) {
     $plan | Sort-Object { $_.Target -in @("$pluginFolder\SuikodenRandomizer.dll", "BepInEx\plugins\$atbDll", "$launcherFolder\$launcherExe") }
 }
 
+function Write-TransactionRecord([string]$Path, $Record) {
+    # Readers see the previous intact receipt or the new one, even across an interruption.
+    $pending = $Path + '.' + [Guid]::NewGuid().ToString('N') + '.tmp'
+    $bytes = [Text.Encoding]::UTF8.GetBytes(($Record | ConvertTo-Json -Depth 6))
+    $file = [IO.File]::Open($pending, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
+    try { $file.Write($bytes, 0, $bytes.Length); $file.Flush($true) } finally { $file.Dispose() }
+    if ([IO.File]::Exists($Path)) { [IO.File]::Replace($pending, $Path, [NullString]::Value) }
+    else { [IO.File]::Move($pending, $Path) }
+}
+
 function Install-Plan([object[]]$Plan, [string]$Root, [string]$ExpectedBuildHash) {
     $backupRoot = Join-Path $Root 'SRR-Backups'
     $null = Assert-PlainPath $backupRoot $true
@@ -345,6 +355,9 @@ function Install-Plan([object[]]$Plan, [string]$Root, [string]$ExpectedBuildHash
             [IO.File]::WriteAllLines($stagedChanges, [string[]]$changes)
         }
         $null = [IO.Directory]::CreateDirectory($transaction)
+        # The installed restore scripts may themselves be part of an interrupted move.
+        $recoveryScript = Join-Path $transaction 'Recover.ps1'
+        [IO.File]::Copy($PSCommandPath, $recoveryScript)
         $record = [ordered]@{
             schema = 'stars-of-destiny-full-install-v1'; gamePath = $Root
             gameAssemblySha256 = $ExpectedBuildHash; status = 'applying'
@@ -354,7 +367,9 @@ function Install-Plan([object[]]$Plan, [string]$Root, [string]$ExpectedBuildHash
                 }
             )
         }
-        [IO.File]::WriteAllText($recordPath, ($record | ConvertTo-Json -Depth 6), [Text.UTF8Encoding]::new($false))
+        Write-TransactionRecord $recordPath $record
+        Write-Host "If this operation is interrupted, run Restore.cmd with -TransactionPath `"$transaction`"."
+        Write-Host "Standalone recovery: powershell -ExecutionPolicy Bypass -File `"$recoveryScript`" -GamePath `"$Root`" -RestoreTransaction `"$transaction`""
         foreach ($entry in $Plan) {
             $target = Join-Path $Root $entry.Target
             $backup = Join-Path $original $entry.Target
@@ -380,7 +395,7 @@ function Install-Plan([object[]]$Plan, [string]$Root, [string]$ExpectedBuildHash
         }
         if ($changes.Count -gt 0) { [IO.File]::Move($stagedChanges, $changesFile) }
         $record.status = 'complete'
-        [IO.File]::WriteAllText($recordPath, ($record | ConvertTo-Json -Depth 6), [Text.UTF8Encoding]::new($false))
+        Write-TransactionRecord $recordPath $record
     } catch {
         $failure = $_
         $restoreFailed = $false
@@ -401,7 +416,7 @@ function Install-Plan([object[]]$Plan, [string]$Root, [string]$ExpectedBuildHash
         if ($restoreFailed) { throw "Setup stopped and some recovery files still need to be restored from $original. $failure" }
         if ($null -ne $record) {
             $record.status = 'rolled-back'
-            try { [IO.File]::WriteAllText($recordPath, ($record | ConvertTo-Json -Depth 6), [Text.UTF8Encoding]::new($false)) }
+            try { Write-TransactionRecord $recordPath $record }
             catch { Write-Warning 'Could not update the rollback receipt. The previous files were restored.' }
         }
         throw $failure
@@ -431,7 +446,7 @@ function Install-Plan([object[]]$Plan, [string]$Root, [string]$ExpectedBuildHash
     return $transaction
 }
 
-function Get-RestorePlan([string]$Transaction, [string]$Root) {
+function Get-RestorePlan([string]$Transaction, [string]$Root, [string]$CurrentGameHash) {
     $transaction = [IO.Path]::GetFullPath($Transaction.Trim().Trim('"'))
     $backupRoot = [IO.Path]::GetFullPath((Join-Path $Root 'SRR-Backups'))
     if ([IO.Path]::GetDirectoryName($transaction) -ine $backupRoot -or
@@ -443,23 +458,31 @@ function Get-RestorePlan([string]$Transaction, [string]$Root) {
     if ($null -eq (Assert-PlainPath $path $false)) { throw 'The selected backup has no transaction record.' }
     if ((Get-Item -LiteralPath $path).Length -gt 4194304) { throw 'The transaction record exceeds its supported size.' }
     $record = [IO.File]::ReadAllText($path) | ConvertFrom-Json
-    if ($record.schema -ne 'stars-of-destiny-full-install-v1' -or $record.status -ne 'complete' -or
+    if ($record.schema -ne 'stars-of-destiny-full-install-v1' -or $record.status -notin @('complete', 'applying') -or
         $record.gamePath -ine $Root -or $record.gameAssemblySha256 -notmatch '^[0-9a-fA-F]{64}$' -or -not $record.operations) {
-        throw 'This transaction is incomplete or belongs to a different game folder.'
+        throw 'This transaction is invalid, already rolled back, or belongs to a different game folder.'
     }
-    Assert-GameBuild (Join-Path $Root 'GameAssembly.dll') $record.gameAssemblySha256
+    $changedBuild = $CurrentGameHash -ine $record.gameAssemblySha256
     $plan = New-Object 'System.Collections.Generic.List[object]'
     $seen = @{}
     foreach ($entry in $record.operations) {
         $target = [string]$entry.target
         if ($target -ne "$pluginFolder\$legacyDll") { Assert-TargetName $target }
-        if ($seen.ContainsKey($target) -or ($null -ne $entry.originalHash -and $entry.originalHash -notmatch '^[0-9a-fA-F]{64}$') -or
+        if ($seen.ContainsKey($target) -or $entry.originalHash -eq $entry.newHash -or
+            ($null -ne $entry.originalHash -and $entry.originalHash -notmatch '^[0-9a-fA-F]{64}$') -or
             ($null -ne $entry.newHash -and $entry.newHash -notmatch '^[0-9a-fA-F]{64}$')) { throw 'The transaction contains an invalid operation.' }
         $seen[$target] = $true
         $current = Join-Path $Root $target
         $item = Assert-PlainPath $current $false
-        if (($null -eq $item) -ne ($null -eq $entry.newHash) -or
-            ($null -ne $item -and (Get-Hash $current) -ine $entry.newHash)) {
+        $currentHash = if ($null -ne $item) { Get-Hash $current }
+        # An interrupted operation may still be untouched, already rolled back, or
+        # between the rename into Original and the rename out of New.
+        if ($currentHash -eq $entry.originalHash) { continue }
+        $keepBackup = $changedBuild -and $null -ne $entry.originalHash -and
+            ($target -match '^(?:BepInEx\\(?:plugins|core)|dotnet)\\' -or
+             $target -in @('winhttp.dll', 'doorstop_config.ini', '.doorstop_version'))
+        $betweenMoves = $record.status -eq 'applying' -and $null -eq $item -and $null -ne $entry.originalHash
+        if ($currentHash -ne $entry.newHash -and -not $betweenMoves -and -not ($keepBackup -and $null -eq $item)) {
             throw "A file changed after installation. Restore stopped without changing files. $current"
         }
         $source = $null
@@ -469,9 +492,16 @@ function Get-RestorePlan([string]$Transaction, [string]$Root) {
                 throw "A previous file is missing or changed in the backup. $target"
             }
         }
-        $plan.Add([pscustomobject]@{ Target = $target; Source = $source; Hash = $entry.originalHash; OriginalHash = $entry.newHash })
+        $restoreHash = $entry.originalHash
+        if ($keepBackup) {
+            Write-Warning "Game build changed. Keeping the previous loader or plugin in its backup: $source"
+            if ($null -eq $item) { continue }
+            $source = $null
+            $restoreHash = $null
+        }
+        $plan.Add([pscustomobject]@{ Target = $target; Source = $source; Hash = $restoreHash; OriginalHash = $currentHash })
     }
-    $plan
+    [pscustomobject]@{ Plan = $plan.ToArray(); GameAssemblySha256 = $record.gameAssemblySha256 }
 }
 
 $lock = $null
@@ -489,8 +519,10 @@ try {
     Write-Host "Game folder $folder"
     Assert-NoDuplicatePlugins $folder
     if ($RestoreTransaction) {
-        $plan = @(Get-RestorePlan $RestoreTransaction $folder)
         $expectedGameHash = Get-Hash $assembly
+        $restore = Get-RestorePlan $RestoreTransaction $folder $expectedGameHash
+        $plan = $restore.Plan
+        $receiptGameHash = $restore.GameAssemblySha256
         Write-Host 'Restore previous installation files from the selected verified transaction.'
     } else {
         $manifestPath = Join-Path $PSScriptRoot 'payload-manifest.json'
@@ -498,14 +530,15 @@ try {
             throw 'The package manifest is missing or invalid. Extract the complete ZIP again.'
         }
         $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-        if ($manifest.schema -ne 'stars-full-package-v1' -or $manifest.packageVersion -ne '0.14.4' -or
+        if ($manifest.schema -ne 'stars-full-package-v1' -or $manifest.packageVersion -ne '0.14.5' -or
             $manifest.gameAssemblySha256 -notmatch '^[0-9a-fA-F]{64}$' -or -not $manifest.files) {
             throw 'The package manifest is missing or invalid. Extract the complete ZIP again.'
         }
         $expectedGameHash = [string]$manifest.gameAssemblySha256
+        $receiptGameHash = $expectedGameHash
         Assert-GameBuild $assembly $expectedGameHash
         $plan = @(Get-InstallPlan $manifest $folder)
-        Write-Host 'Required components: BepInEx, combined randomizer 0.14.4, launcher, and Suikoden Fix.'
+        Write-Host 'Required components: BepInEx, combined randomizer 0.14.5, launcher, and Suikoden Fix.'
         if ($IncludeAtb) { Write-Host 'Optional S1 ATB selected. Its fresh configuration is disabled.' }
         else { Write-Host 'Optional S1 ATB not selected. Any existing ATB files are preserved.' }
         Write-Host 'Existing settings are preserved. Fresh settings start with chest shuffle and ATB disabled.'
@@ -526,7 +559,7 @@ try {
         exit 0
     }
     if ($plan.Count -eq 0) {
-        Write-Host 'The complete preview package is already installed.'
+        Write-Host 'No file changes are required.'
     } else {
         if (-not $NonInteractive -and (Read-Host 'Install into this game folder? [y/N]').Trim() -notmatch '^(y|yes)$') {
             Write-Host 'Setup cancelled.'
@@ -540,9 +573,11 @@ try {
         Assert-GameClosed
         Assert-GameBuild $assembly $expectedGameHash
         Assert-NoDuplicatePlugins $folder
-        $transaction = Install-Plan $plan $folder $expectedGameHash
-        if ($RestoreTransaction) { Write-Host 'Previous installation files restored.' }
-        else { Write-Host 'Stars of Destiny Full Preview 0.14.4 installed.' }
+        $transaction = Install-Plan $plan $folder $receiptGameHash
+        if ($RestoreTransaction -and $expectedGameHash -ine $receiptGameHash) {
+            Write-Host 'Recovery complete. Previous loader and plugin binaries for the old game build remain in their backups.'
+        } elseif ($RestoreTransaction) { Write-Host 'Previous installation files restored.' }
+        else { Write-Host 'Stars of Destiny Full Preview 0.14.5 installed.' }
         Write-Host "Undo this transaction using StarsOfDestiny Setup\Restore.cmd -TransactionPath `"$transaction`""
     }
     if (-not [IO.File]::Exists((Join-Path $folder 'BepInEx\interop\GSD1.dll')) -or

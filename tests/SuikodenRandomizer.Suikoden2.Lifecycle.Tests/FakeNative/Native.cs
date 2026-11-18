@@ -1,4 +1,5 @@
 // Compile-only API shapes. Every fake native method throws if accidentally run.
+public static class G2_SYS { public static int G2_pamem_in(int role, int party, int slot) => throw new NotSupportedException(); }
 public sealed class GRChapterManager { public void Update() => throw new NotSupportedException(); }
 public sealed class TitleChapter
 {

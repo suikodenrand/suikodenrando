@@ -50,8 +50,13 @@ Case("Inactive, preparing, fixed-loading and save-scope states do not admit text
     var runtime = World(); runtime.Active = false; Check(DialogueS1.Capture() is null, "Inactive admitted");
     runtime = World(); runtime.Change("preparing"); Check(DialogueS1.Capture() is null, "Preparing admitted");
     runtime = World(); runtime.Change("loading"); Check(DialogueS1.Capture() is null, "Fixed loading admitted");
-    runtime = World(); AvatarSaveCall.Current = new AvatarSaveCall { Runtime = runtime, ExecutionEpoch = runtime.Epoch, Previous = null };
-    Check(DialogueS1.Capture() is null, "Saving admitted"); AvatarSaveCall.Current = null;
+    runtime = World();
+    foreach (bool nativePassthrough in new[] { false, true })
+    {
+        AvatarSaveCall.Current = new AvatarSaveCall { Runtime = runtime, ExecutionEpoch = runtime.Epoch, Previous = null, NativePassthrough = nativePassthrough };
+        Check(DialogueS1.Capture() is null, "Saving admitted");
+    }
+    AvatarSaveCall.Current = null;
 });
 Case("Publication captures exact runtime and campaign and rejects every replaced identity", () =>
 {

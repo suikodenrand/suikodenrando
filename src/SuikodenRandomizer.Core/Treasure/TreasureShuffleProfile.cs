@@ -53,50 +53,12 @@ public sealed class TreasureShuffleProfile
 
         var eligible = S1TreasureCatalog.Chests.Where(chest => chest.IsShuffleEligible).ToArray();
         int[] rewards = eligible.Select(chest => chest.OriginalItemId).ToArray();
-        var random = new StableRandom(normalized);
-        for (int index = rewards.Length - 1; index > 0; index--)
-        {
-            int other = random.Next(index + 1);
-            int value = rewards[index];
-            rewards[index] = rewards[other];
-            rewards[other] = value;
-        }
+        var random = new SeededShuffle(AlgorithmId, normalized);
+        random.Shuffle(rewards);
 
         var assignments = new Dictionary<string, int>(StringComparer.Ordinal);
         foreach (var chest in S1TreasureCatalog.Chests) assignments.Add(chest.LocationId, chest.OriginalItemId);
         for (int index = 0; index < eligible.Length; index++) assignments[eligible[index].LocationId] = rewards[index];
         return new TreasureShuffleProfile(normalized, assignments);
-    }
-
-    // A separate seed domain makes treasure independent of character-shuffle draws.
-    private sealed class StableRandom
-    {
-        private ulong _state;
-        internal StableRandom(string seed)
-        {
-            using var sha = SHA256.Create();
-            byte[] hash = sha.ComputeHash(Encoding.UTF8.GetBytes(AlgorithmId + "\n" + seed));
-            for (int index = 0; index < 8; index++) _state |= (ulong)hash[index] << (8 * index);
-        }
-
-        private ulong NextUInt64()
-        {
-            unchecked
-            {
-                ulong value = (_state += 0x9e3779b97f4a7c15UL);
-                value = (value ^ (value >> 30)) * 0xbf58476d1ce4e5b9UL;
-                value = (value ^ (value >> 27)) * 0x94d049bb133111ebUL;
-                return value ^ (value >> 31);
-            }
-        }
-
-        internal int Next(int exclusiveMaximum)
-        {
-            ulong bound = (ulong)exclusiveMaximum;
-            ulong threshold = unchecked(0UL - bound) % bound;
-            ulong value;
-            do { value = NextUInt64(); } while (value < threshold);
-            return (int)(value % bound);
-        }
     }
 }

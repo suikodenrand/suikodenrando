@@ -22,8 +22,8 @@ class DistributionRevisionChecks(unittest.TestCase):
         revised = SimpleNamespace(package_revision='r2')
         for suffix in ('Setup.exe', 'Mod-Only-Windows.zip'):
             with self.subTest(suffix=suffix):
-                self.assertEqual('Stars-of-Destiny-0.14.4-' + suffix, release.artifact_name(base, suffix))
-                self.assertEqual('Stars-of-Destiny-0.14.4-r2-' + suffix, release.artifact_name(revised, suffix))
+                self.assertEqual('Stars-of-Destiny-0.14.5-' + suffix, release.artifact_name(base, suffix))
+                self.assertEqual('Stars-of-Destiny-0.14.5-r2-' + suffix, release.artifact_name(revised, suffix))
                 self.assertNotEqual(release.artifact_name(base, suffix), release.artifact_name(revised, suffix))
 
     def test_revisions_reject_unsafe_or_ambiguous_values(self):
@@ -40,7 +40,7 @@ class DistributionRevisionChecks(unittest.TestCase):
                                launcher_source_commit='B' * 40)
         metadata = release.distribution_metadata(args)
         self.assertEqual({'runtime': 'a' * 40, 'launcher': 'b' * 40}, metadata['binarySourceCommits'])
-        self.assertEqual('0.14.4-r2', metadata['distributionVersion'])
+        self.assertEqual('0.14.5-r2', metadata['distributionVersion'])
 
     def test_manual_archive_records_revision_and_keeps_runtime_version(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -49,7 +49,7 @@ class DistributionRevisionChecks(unittest.TestCase):
             atb.write_bytes(b'Fixture only; never loaded')
             args = SimpleNamespace(output=base / 'packages', package_revision='r2',
                 runtime_source_commit='a' * 40, launcher_source_commit='b' * 40,
-                atb_dll=atb, reviewed_atb_sha256=release.sha(atb))
+                atb_payload=atb.read_bytes(), reviewed_atb_sha256=release.sha(atb))
             args.output.mkdir()
 
             def fixture_common(stage, unused_args, *, setup):
@@ -58,17 +58,17 @@ class DistributionRevisionChecks(unittest.TestCase):
 
             with patch.object(release, 'common', fixture_common):
                 result = release.manual(args)
-            self.assertEqual('Stars-of-Destiny-0.14.4-r2-Mod-Only-Windows.zip', result['name'])
-            self.assertFalse((args.output / 'Stars-of-Destiny-0.14.4-Mod-Only-Windows.zip').exists())
+            self.assertEqual('Stars-of-Destiny-0.14.5-r2-Mod-Only-Windows.zip', result['name'])
+            self.assertFalse((args.output / 'Stars-of-Destiny-0.14.5-Mod-Only-Windows.zip').exists())
             with ZipFile(args.output / result['name']) as archive:
                 manifest = json.loads(archive.read('StarsOfDestiny Manual/payload-manifest.json'))
                 verification = json.loads(archive.read('StarsOfDestiny Manual/Verification.json'))
                 for document in (manifest, verification):
-                    self.assertEqual('0.14.4', document['packageVersion'])
+                    self.assertEqual('0.14.5', document['packageVersion'])
                     self.assertEqual('r2', document['packageRevision'])
-                    self.assertEqual('0.14.4-r2', document['distributionVersion'])
+                    self.assertEqual('0.14.5-r2', document['distributionVersion'])
                     self.assertEqual({'runtime': 'a' * 40, 'launcher': 'b' * 40}, document['binarySourceCommits'])
-                self.assertEqual('1.0.5', manifest['launcherVersion'])
+                self.assertEqual('1.0.6', manifest['launcherVersion'])
             sidecar = args.output / (result['name'] + '.sha256')
             self.assertEqual(result['sha256'] + '  ' + result['name'] + '\n', sidecar.read_text(encoding='ascii'))
 
@@ -89,10 +89,10 @@ class DistributionRevisionChecks(unittest.TestCase):
                     patch.object(release, 'compile_setup', return_value=None):
                 result = release.setup(args)
             manifest = json.loads((Path(result['stage']) / 'payload-manifest.json').read_text(encoding='utf-8'))
-            self.assertEqual('0.14.4', manifest['packageVersion'])
+            self.assertEqual('0.14.5', manifest['packageVersion'])
             self.assertEqual('r2', manifest['packageRevision'])
-            self.assertEqual('0.14.4-r2', manifest['distributionVersion'])
-            self.assertEqual('1.0.5', manifest['launcherVersion'])
+            self.assertEqual('0.14.5-r2', manifest['distributionVersion'])
+            self.assertEqual('1.0.6', manifest['launcherVersion'])
             relative = 'Game Files/StarsOfDestiny Setup/Build information.txt'
             self.assertIn(relative, {entry['path'] for entry in manifest['files']})
             self.assertEqual((release.HERE / 'docs/setup/Build information.txt').read_bytes(),

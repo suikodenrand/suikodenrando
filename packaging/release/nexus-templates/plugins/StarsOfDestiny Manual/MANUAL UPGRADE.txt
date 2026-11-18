@@ -1,4 +1,4 @@
-STARS OF DESTINY 0.14.4 - PLUGINS-ONLY MANUAL UPGRADE / REMOVAL
+STARS OF DESTINY 0.14.5 - PLUGINS-ONLY MANUAL UPGRADE / REMOVAL
 
 1. Close the game and launcher. Back up Save and BepInEx/config TOGETHER
    outside the game folder, along with existing mod files you will replace.

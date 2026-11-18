@@ -268,7 +268,7 @@ internal static class Program
             // catches a misspelled nested type even if its outer type exists.
             string[] typeContexts = {
                 @"(?:typeof\s*\(\s*|new\s+|<\s*)GSD1\.(?<type>[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)",
-                @"\bGSD1\.(?<type>[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)\s*(?:\?|\[\])*\s+\w+\s*[,;)=\{]"
+                @"\bGSD1\.(?<type>[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)\s*(?:\?|\[\])*\s+(?!(?:is|switch|with)\b)\w+\s*[,;)=\{]"
             };
             foreach (string pattern in typeContexts)
                 foreach (Match match in Regex.Matches(source, pattern))

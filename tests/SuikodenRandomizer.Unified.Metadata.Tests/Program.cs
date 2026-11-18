@@ -44,15 +44,15 @@ const string s1Namespace = "SuikodenRandomizer.AvatarPlugin";
 const string s2Namespace = "SuikodenRandomizer.Suikoden2Plugin";
 const string bootstrap = unifiedNamespace + ".UnifiedPlugin";
 Version assemblyVersion = md.GetAssemblyDefinition().Version;
-Require("combined assembly version 0.14.4", assemblyVersion == new Version(0, 14, 4, 0));
+Require("combined assembly version 0.14.5", assemblyVersion == new Version(0, 14, 5, 0));
 var plugins = Attributed("BepInEx.BepInPlugin");
 Require("exactly one BepInEx bootstrap", plugins.SequenceEqual(new[] { bootstrap }));
 var pluginAttribute = types[bootstrap].GetCustomAttributes().Single(h => AttributeType(h) == "BepInEx.BepInPlugin");
 var pluginArguments = md.GetBlobReader(md.GetCustomAttribute(pluginAttribute).Value);
-Require("BepInEx bootstrap retains GUID and version 0.14.4", pluginArguments.ReadUInt16() == 1
+Require("BepInEx bootstrap retains GUID and version 0.14.5", pluginArguments.ReadUInt16() == 1
     && pluginArguments.ReadSerializedString() == "agilen.starsofdestiny"
     && !string.IsNullOrEmpty(pluginArguments.ReadSerializedString())
-    && pluginArguments.ReadSerializedString() == "0.14.4");
+    && pluginArguments.ReadSerializedString() == "0.14.5");
 Require("exactly one BasePlugin subclass", types.Count(p => TypeName(p.Value.BaseType) == "BepInEx.Unity.IL2CPP.BasePlugin") == 1);
 Require("exactly one Unity frame/UI component", types.Where(p => TypeName(p.Value.BaseType) == "UnityEngine.MonoBehaviour").Select(p => p.Key).SequenceEqual(new[] { "SuikodenRandomizer.Unified.UnifiedOverlay" }));
 Require("standalone UI drivers excluded", !types.ContainsKey("SuikodenRandomizer.AvatarPlugin.AvatarOverlay") && !types.ContainsKey("SuikodenRandomizer.Suikoden2Plugin.Gsd2Driver"));
@@ -92,9 +92,9 @@ string Sha256(byte[] bytes) => Convert.ToHexString(SHA256.HashData(bytes)).ToLow
 var catalogSources = new[]
 {
     (Name: "StarsOfDestiny.Dialogue.GSD1.en.json", Path: args.Length == 4 ? args[2] : null,
-        PinnedHash: "2173a8c93274ace217bb6f67242fc12cb025e9627df9ab1f5b9312409f4808af"),
+        PinnedHash: "f09ecb0938e3ba3bc579f7bef5716caad2f7a8a3b9630af5a2f779002baa5980"),
     (Name: "StarsOfDestiny.Dialogue.GSD2.en.json", Path: args.Length == 4 ? args[3] : null,
-        PinnedHash: "3035772bda11419d851373d65b0a26438013d5ed4fe5b794f18139258062467e")
+        PinnedHash: "21b5248a3d59ba0e21601bdd8773038dfc435572fbc451cb89a93e42d4d9a7df")
 };
 var embedded = md.ManifestResources.Select(md.GetManifestResource)
     .ToDictionary(resource => md.GetString(resource.Name), StringComparer.Ordinal);

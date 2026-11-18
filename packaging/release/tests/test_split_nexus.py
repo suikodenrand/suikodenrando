@@ -102,13 +102,39 @@ class SplitDistributionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / "unreviewed.zip"
             path.write_bytes(b"different package")
-            with self.assertRaisesRegex(ValueError, "exact published"):
-                split.read_source(path)
+            with self.assertRaisesRegex(ValueError, "verified manual ZIP"):
+                split.read_source(path, "a" * 64)
+
+    def test_matching_external_hash_still_requires_current_manifest_and_correct_payload(self):
+        source = fixture()
+        records = [{"path": name, "bytes": len(data), "sha256": split.digest(data)} for name, data in source.items()]
+        manifest = dict(schema="stars-of-destiny-mod-only-manual-v1", packageVersion=split.VERSION,
+                        launcherVersion="1.0.6", optionalAtbDormant=True, bepInExFilesIncluded=False, files=records)
+        source[split.PLUGIN_SUPPORT + "Verification.json"] = split.json_bytes(dict(status="passed",
+            packageVersion=split.VERSION, reviewedAtbSha256=split.digest(source["BepInEx/" + split.ATB_NAME])))
+        for name in ["FILES.txt", "SHA256SUMS.txt"]:
+            source[split.PLUGIN_SUPPORT + name] = b"fixture"
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "manual.zip"
+            def read():
+                source[split.PLUGIN_SUPPORT + "payload-manifest.json"] = split.json_bytes(manifest)
+                with ZipFile(path, "w") as archive:
+                    for name, data in source.items():
+                        archive.writestr(name, data)
+                return split.read_source(path, split.digest(path.read_bytes()))
+            self.assertEqual(source, read())
+            manifest["packageVersion"] = "older"
+            with self.assertRaisesRegex(ValueError, "current manual release"):
+                read()
+            manifest["packageVersion"] = split.VERSION
+            records[0]["sha256"] = "0" * 64
+            with self.assertRaisesRegex(ValueError, "manifest hash mismatch"):
+                read()
 
     def test_reproducible_zip_and_complete_checksum_list(self):
         files = {"START HERE.txt": b"instructions", "BepInEx/plugins/example.dll": b"original bytes",
                  "BepInEx/" + split.ATB_NAME: b"reviewed dormant ATB"}
-        split.add_metadata(files, "plugins", "a" * 64)
+        split.add_metadata(files, "plugins", "a" * 64, "b" * 64)
         with tempfile.TemporaryDirectory() as folder:
             first, second = Path(folder) / "first.zip", Path(folder) / "second.zip"
             split.write_zip(first, files)
@@ -123,7 +149,7 @@ class SplitDistributionTests(unittest.TestCase):
             listing = final[split.PLUGIN_SUPPORT + "FILES.txt"].decode().splitlines()[1:]
             self.assertEqual(sorted(final), listing)
             manifest = json.loads(final[split.PLUGIN_SUPPORT + "payload-manifest.json"])
-            self.assertEqual(split.SOURCE_SHA256, manifest["sourceManualZipSha256"])
+            self.assertEqual("b" * 64, manifest["sourceManualZipSha256"])
 
 
 if __name__ == "__main__":

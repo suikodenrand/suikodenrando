@@ -108,10 +108,7 @@ internal sealed partial class MainForm
             {
                 try
                 {
-                    _workspace.SaveChanges();
-                    string path = GameInstallation.ActivateAtb(_workspace.GameFolder);
-                    RebuildPages();
-                    _status.Text = "ATB preview activated at " + path;
+                    ActivateAtbPreview();
                 }
                 catch (Exception error) { ShowError(error); }
             };
@@ -150,6 +147,13 @@ internal sealed partial class MainForm
         battle.Controls.Add(battleStack);
         page.Controls.Add(battle, 1, 2);
         return page;
+    }
+
+    private void ActivateAtbPreview()
+    {
+        string path = GameInstallation.ActivateAtb(_workspace!.GameFolder);
+        RebuildPages();
+        _status.Text = "ATB preview activated at " + path;
     }
 
     private Control BuildQualityOfLife()

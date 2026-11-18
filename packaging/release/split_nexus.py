@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Split the exact published 0.14.4 manual ZIP without rebuilding its binaries.
+"""Split the exact published 0.14.5 manual ZIP without rebuilding its binaries.
 
 Creates a plugins/configuration/manual-instructions ZIP and a separate optional
 self-contained launcher ZIP. Never installs, executes, downloads or publishes.
@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import configparser
 from hashlib import sha256
+from io import BytesIO
 import json
 from pathlib import Path, PurePosixPath
 import re
@@ -16,9 +17,8 @@ import stat
 from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED, ZIP_STORED
 
 HERE = Path(__file__).resolve().parent
-VERSION = "0.14.4"
-SOURCE_SHA256 = "cdfdd33b8ceb2cc5c2304f4879700e26306b73ceec3fb5b18d87a6fd198f17b5"
-SOURCE_TAG = "https://github.com/suikodenrand/suikodenrando/tree/v0.14.4"
+VERSION = "0.14.5"
+SOURCE_TAG = "https://github.com/suikodenrand/suikodenrando/tree/v0.14.5"
 ZIP_TIME = (2026, 11, 15, 0, 0, 0)
 LAUNCHER = "StarsOfDestiny Launcher/"
 PLUGIN_SUPPORT = "StarsOfDestiny Manual/"
@@ -91,15 +91,33 @@ def read_zip(path: Path) -> dict[str, bytes]:
     return result
 
 
-def read_source(path: Path) -> dict[str, bytes]:
-    if digest(path.read_bytes()) != SOURCE_SHA256:
-        raise ValueError("Input must be the exact published 0.14.4 manual ZIP (SHA-256 " + SOURCE_SHA256 + ")")
-    files = read_zip(path)
-    if len(files) != 301 or {n for n in files if n.startswith("BepInEx/")} != PLUGIN_PATHS:
+def read_source(path: Path, expected_hash: str) -> dict[str, bytes]:
+    contents = path.read_bytes()
+    if not re.fullmatch(r"[a-fA-F0-9]{64}", expected_hash) or digest(contents) != expected_hash.lower():
+        raise ValueError("Input must match the SHA-256 of the verified manual ZIP")
+    files = read_zip(BytesIO(contents))
+    if {n for n in files if n.startswith("BepInEx/")} != PLUGIN_PATHS:
         raise ValueError("Published package member set differs from the reviewed source")
     if any(not (n.startswith(("BepInEx/", LAUNCHER, PLUGIN_SUPPORT))
                     or n in {"START HERE.txt", "REQUIREMENTS.txt"}) for n in files):
         raise ValueError("Unexpected published-package file")
+    metadata = {PLUGIN_SUPPORT + name for name in ("payload-manifest.json", "Verification.json", "FILES.txt", "SHA256SUMS.txt")}
+    manifest = json.loads(files[PLUGIN_SUPPORT + "payload-manifest.json"])
+    receipt = json.loads(files[PLUGIN_SUPPORT + "Verification.json"])
+    if (manifest.get("schema") != "stars-of-destiny-mod-only-manual-v1"
+            or manifest.get("packageVersion") != VERSION or manifest.get("launcherVersion") != "1.0.6"
+            or manifest.get("optionalAtbDormant") is not True or manifest.get("bepInExFilesIncluded") is not False
+            or receipt.get("status") != "passed" or receipt.get("packageVersion") != VERSION
+            or receipt.get("reviewedAtbSha256") != digest(files["BepInEx/" + ATB_NAME])):
+        raise ValueError("Expected the verified current manual release and matching optional ATB")
+    records = manifest["files"]
+    if (len(records) != len(files) - len(metadata)
+            or {entry["path"] for entry in records} != set(files) - metadata):
+        raise ValueError("Manual release manifest membership differs from the input archive")
+    for entry in records:
+        data = files[entry["path"]]
+        if entry["bytes"] != len(data) or entry["sha256"] != digest(data):
+            raise ValueError("Manual release manifest hash mismatch: " + entry["path"])
     return files
 
 
@@ -185,14 +203,14 @@ def verify_payload(files: dict[str, bytes], source: dict[str, bytes], kind: str)
         raise ValueError("Unknown distribution")
 
 
-def add_metadata(files: dict[str, bytes], kind: str, recipe_sha256: str):
+def add_metadata(files: dict[str, bytes], kind: str, recipe_sha256: str, source_hash: str):
     support = PLUGIN_SUPPORT if kind == "plugins" else LAUNCHER_SUPPORT
     records = [{"path": name, "sha256": digest(data), "bytes": len(data)} for name, data in sorted(files.items())]
     manifest = {
         "schema": "stars-of-destiny-split-distribution-v1", "packageVersion": VERSION,
         "distribution": "plugins-only-nexus" if kind == "plugins" else "optional-launcher-windows",
-        "launcherVersion": "1.0.4" if kind == "launcher" else None,
-        "binarySource": SOURCE_TAG, "sourceManualZipSha256": SOURCE_SHA256,
+        "launcherVersion": "1.0.6" if kind == "launcher" else None,
+        "binarySource": SOURCE_TAG, "sourceManualZipSha256": source_hash,
         "packagingRecipeSha256": recipe_sha256,
         "bepInExFilesIncluded": False, "files": records,
         "optionalAtbDormant": kind == "plugins",
@@ -223,7 +241,7 @@ def write_zip(path: Path, files: dict[str, bytes]):
     return {"name": path.name, "sha256": checksum, "bytes": path.stat().st_size, "files": len(files)}
 
 
-def build(manual_zip: Path, output: Path, template_root: Path):
+def build(manual_zip: Path, output: Path, template_root: Path, source_hash: str):
     raw_output = output.absolute()
     for ancestor in (raw_output, *raw_output.parents):
         if (ancestor.is_symlink() or ancestor.is_junction()
@@ -232,7 +250,8 @@ def build(manual_zip: Path, output: Path, template_root: Path):
     manual_zip, output, template_root = manual_zip.resolve(), raw_output.resolve(), template_root.resolve()
     if output.exists():
         raise ValueError("Choose a fresh output directory: " + str(output))
-    source = read_source(manual_zip)
+    source_hash = source_hash.lower()
+    source = read_source(manual_zip, source_hash)
     plugin_files = {n: data for n, data in source.items() if n.startswith("BepInEx/")}
     launcher_files = {n: data for n, data in source.items() if n.startswith(LAUNCHER)}
     add(plugin_files, PLUGIN_SUPPORT + "Licenses/Stars-of-Destiny-MIT-LICENSE.txt",
@@ -252,14 +271,14 @@ def build(manual_zip: Path, output: Path, template_root: Path):
         if support + "Third-party notices.txt" not in files:
             raise ValueError("Distribution-specific third-party notices missing: " + kind)
         verify_payload(files, source, kind)
-        add_metadata(files, kind, digest(Path(__file__).read_bytes()))
+        add_metadata(files, kind, digest(Path(__file__).read_bytes()), source_hash)
         verify_payload(files, source, kind)
     output.mkdir(parents=True)
     artifacts = [write_zip(output / f"Stars-of-Destiny-{VERSION}-Plugins-Only-Nexus.zip", plugin_files),
                  write_zip(output / f"Stars-of-Destiny-{VERSION}-Optional-Launcher-Windows.zip", launcher_files)]
     report = {
         "schema": "stars-of-destiny-split-build-verification-v1", "packageVersion": VERSION,
-        "sourceManualZipSha256": SOURCE_SHA256, "binarySource": SOURCE_TAG,
+        "sourceManualZipSha256": source_hash, "binarySource": SOURCE_TAG,
         "status": "passed", "artifacts": artifacts,
         "checks": ["Pinned source ZIP SHA-256", "Safe paths and no duplicate, linked, encrypted or nested archive members",
                    "Exact released binary/configuration bytes", "No EXE or scripts in Nexus plugins ZIP",
@@ -268,7 +287,7 @@ def build(manual_zip: Path, output: Path, template_root: Path):
         "claim": "Packaging checks only; no installation, game execution, native playtesting or platform approval claimed.",
     }
     (output / "build-verification.json").write_bytes(json_bytes(report))
-    (output / "SHA256SUMS-Split-0.14.4.txt").write_text(
+    (output / "SHA256SUMS-Split-0.14.5.txt").write_text(
         "".join(f"{x['sha256']}  {x['name']}\n" for x in artifacts), encoding="ascii")
     return report
 
@@ -276,10 +295,11 @@ def build(manual_zip: Path, output: Path, template_root: Path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manual-zip", type=Path, required=True)
+    parser.add_argument("--manual-sha256", required=True, help="SHA-256 from the verified manual release build")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--templates", type=Path, default=HERE / "nexus-templates")
     args = parser.parse_args()
-    print(json.dumps(build(args.manual_zip, args.output, args.templates), indent=2))
+    print(json.dumps(build(args.manual_zip, args.output, args.templates, args.manual_sha256), indent=2))
 
 
 if __name__ == "__main__":

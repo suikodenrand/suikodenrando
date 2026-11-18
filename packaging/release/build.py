@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Portable 0.14.4 release assembler. It never installs into a game folder."""
+"""Portable 0.14.5 release assembler. It never installs into a game folder."""
 from __future__ import annotations
 
 import argparse
@@ -10,6 +10,7 @@ from pathlib import Path, PurePosixPath
 import re
 import shutil
 import stat
+import struct
 import subprocess
 import tempfile
 import urllib.request
@@ -17,8 +18,8 @@ from zipfile import ZipFile, ZIP_DEFLATED
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
-VERSION = '0.14.4'
-LAUNCHER_VERSION = '1.0.5'
+VERSION = '0.14.5'
+LAUNCHER_VERSION = '1.0.6'
 FRESH_DEFAULTS = dict(characterShuffle=True, dialogue=True, shuffledUnites=True, s1Atb=False,
     s1AtbInstalled=False, s1Treasure=False, f6View='Hidden',
     s1JoiningWeaponLevel='TirVariance', s2JoiningWeaponLevel='RiouVariance',
@@ -30,6 +31,7 @@ FIX_DLL_HASH = '4b1a38e7512e4a91cbd86f94d9f233749f83dbb0584979242f8062faf6132f46
 RUNTIME_NAMES = ('SuikodenRandomizer.dll', 'SuikodenRandomizer.Core.dll',
                  'SuikodenRandomizer.Suikoden2.Core.dll', 'SuikodenRandomizer.Shared.dll')
 ATB = 'SuikodenRandomizer.S1BattlePreview.dll'
+PUBLIC_ATB_VERSION = '0.10.1'
 ARCHIVE_SUFFIXES = {'.zip', '.7z', '.rar', '.tar', '.gz', '.tgz', '.cab', '.nupkg'}
 FORBIDDEN = {'gameassembly.dll', 'unityplayer.dll', 'gsd1.dll', 'gsd2.dll',
              'logoutput.log', 'launcher-preferences.json', 'install.cmd'}
@@ -41,6 +43,80 @@ def digest(data: bytes) -> str:
 
 def sha(path: Path) -> str:
     return digest(path.read_bytes())
+
+
+def pe_file_version(data: bytes) -> str:
+    """Read the numeric file version from a PE32/PE32+ DLL's RT_VERSION resource."""
+    try:
+        pe, = struct.unpack_from('<I', data, 0x3c)
+        if data[:2] != b'MZ' or data[pe:pe + 4] != b'PE\0\0':
+            raise ValueError
+        section_count, = struct.unpack_from('<H', data, pe + 6)
+        optional_size, flags = struct.unpack_from('<HH', data, pe + 20)
+        optional = pe + 24
+        magic, = struct.unpack_from('<H', data, optional)
+        directories = {0x10b: 96, 0x20b: 112}[magic]
+        directory_count, = struct.unpack_from('<I', data, optional + directories - 4)
+        if not (flags & 0x2000) or directory_count < 3 or optional_size < directories + 24:
+            raise ValueError
+        resource_rva, resource_size = struct.unpack_from('<II', data, optional + directories + 16)
+
+        def rva_bytes(rva: int, size: int) -> bytes:
+            for index in range(section_count):
+                section = optional + optional_size + 40 * index
+                start, raw_size, raw_offset = struct.unpack_from('<III', data, section + 12)
+                offset = rva - start
+                if 0 <= offset and offset + size <= raw_size and raw_offset + offset + size <= len(data):
+                    return data[raw_offset + offset:raw_offset + offset + size]
+            raise ValueError
+
+        resources = rva_bytes(resource_rva, resource_size)
+
+        def entries(offset: int):
+            named, numbered = struct.unpack_from('<HH', resources, offset + 12)
+            for index in range(named + numbered):
+                yield struct.unpack_from('<II', resources, offset + 16 + 8 * index)
+
+        def child_directory(offset: int, resource_id: int) -> int:
+            for identifier, child in entries(offset):
+                if identifier == resource_id and child & 0x80000000:
+                    return child & 0x7fffffff
+            raise ValueError
+
+        # Type RT_VERSION (16), name VS_VERSION_INFO (1), then language.
+        languages = child_directory(child_directory(0, 16), 1)
+        versions = set()
+        key = 'VS_VERSION_INFO\0'.encode('utf-16-le')
+        fixed = (6 + len(key) + 3) & ~3
+        for _, leaf in entries(languages):
+            rva, size = struct.unpack_from('<II', resources, leaf)
+            info = rva_bytes(rva, size)
+            length, value_size, kind = struct.unpack_from('<HHH', info)
+            if info[6:6 + len(key)] != key or value_size != 52 or kind != 0:
+                raise ValueError
+            if not fixed + value_size <= length <= len(info):
+                raise ValueError
+            signature, _, high, low = struct.unpack_from('<IIII', info, fixed)
+            if signature != 0xfeef04bd:
+                raise ValueError
+            versions.add(f'{high >> 16}.{high & 0xffff}.{low >> 16}.{low & 0xffff}')
+        if len(versions) != 1:
+            raise ValueError
+        return versions.pop()
+    except (ValueError, KeyError, struct.error) as error:
+        raise ValueError('Battle preview DLL has no readable, consistent PE file version.') from error
+
+
+def public_atb_payload(path: Path, expected_hash: str) -> bytes:
+    data = path.read_bytes()
+    if re.fullmatch(r'[0-9A-Fa-f]{64}', expected_hash) is None or digest(data) != expected_hash.lower():
+        raise ValueError('ATB DLL differs from the hash reviewed by this launcher source. Review your rebuilt ATB, '
+                         'publish the launcher with -p:ReviewedAtbSha256=<hash>, and pass that same hash through '
+                         '--reviewed-atb-sha256. Do not disable the hash check. See BUILDING.md.')
+    version = pe_file_version(data)
+    if version != PUBLIC_ATB_VERSION + '.0':
+        raise ValueError(f'Public packages require battle preview {PUBLIC_ATB_VERSION}.0, but the supplied DLL is {version}.')
+    return data
 
 
 def package_revision(value: str) -> str:
@@ -192,24 +268,14 @@ def common(stage, args, *, setup):
     for name in RUNTIME_NAMES:
         stage.copy(prefix + 'BepInEx/plugins/SuikodenRandomizer/' + name, args.runtime_dir / name)
     atb_path = 'BepInEx/plugins/' + ATB if setup else 'BepInEx/' + ATB
-    stage.copy(prefix + atb_path, args.atb_dll, 'atb' if setup else 'dormant-atb')
+    stage.add(prefix + atb_path, args.atb_payload, 'atb' if setup else 'dormant-atb')
     with ZipFile(args.dependencies / FIX) as z:
         data = z.read('Suikoden_Fix.dll')
         if digest(data) != FIX_DLL_HASH:
             raise ValueError('Suikoden Fix DLL checksum mismatch')
         stage.add(prefix + 'BepInEx/plugins/Suikoden_Fix.dll', data)
-    for p in regular_files(args.launcher_dir):
-        name = p.relative_to(args.launcher_dir).as_posix()
-        allowed_json = {'StarsOfDestiny.Launcher.deps.json', 'StarsOfDestiny.Launcher.runtimeconfig.json'}
-        allowed_text = {'dotnet10-Core-LICENSE.txt', 'dotnet10-Core-THIRD-PARTY-NOTICES.txt',
-                        'dotnet10-WindowsDesktop-LICENSE.txt'}
-        if (p.suffix.lower() not in {'.dll', '.exe', '.json', '.txt', '.pdb'} or
-                (p.suffix.lower() == '.json' and name not in allowed_json) or
-                (p.suffix.lower() == '.txt' and name not in allowed_text) or
-                (p.suffix.lower() == '.exe' and name not in {'StarsOfDestiny.Launcher.exe', 'createdump.exe'})):
-            raise ValueError('Unexpected file in launcher publish directory: ' + name)
-        if p.suffix.lower() != '.pdb':
-            stage.copy(prefix + 'StarsOfDestiny Launcher/' + name, p)
+    for name, data in args.launcher_files.items():
+        stage.add(prefix + 'StarsOfDestiny Launcher/' + name, data)
     for p in sorted((HERE / 'defaults').glob('*.cfg')):
         role = 'atb' if setup and p.name == 'agilen.suikoden1.battle-preview.cfg' else 'required'
         stage.copy(prefix + 'BepInEx/config/' + p.name, p, role)
@@ -265,7 +331,7 @@ def setup(args):
     payload = [entry for entry in stage.files if entry['path'].startswith('Game Files/')]
     manifest = dict(schema='stars-full-package-v1', packageVersion=VERSION, kind='full-release',
         **distribution_metadata(args),
-        launcherVersion=LAUNCHER_VERSION, atbVersion='0.10.1', bepInExVersion='6.0.0-be.697',
+        launcherVersion=LAUNCHER_VERSION, atbVersion=PUBLIC_ATB_VERSION, bepInExVersion='6.0.0-be.697',
         suikodenFixRelease='1.5.2b', gameAssemblySha256=GAME_HASH,
         freshDefaults=FRESH_DEFAULTS,
         sourcePackaging='extracted-folders', supportPackaging='single-installed-copy',
@@ -297,7 +363,7 @@ def manual(args):
         status='passed', packageChecks=['Input dependencies matched pinned archive SHA-256 values.',
             'The launcher publish includes its private runtime and required notices.',
             'Every staged file was recorded by SHA-256; the resulting ZIP is checked byte-for-byte.'],
-        reviewedAtbSha256=sha(args.atb_dll), launcherReviewedAtbHashDeclaration=args.reviewed_atb_sha256,
+        reviewedAtbSha256=digest(args.atb_payload), launcherReviewedAtbHashDeclaration=args.reviewed_atb_sha256,
         bepInExFilesIncluded=False, nativeGameBootTested=False, platformApprovalClaimed=False,
         limitation='These are packaging checks for this local rebuild, not the historical published-binary test receipt.')
     stage.add(support + 'Verification.json', (json.dumps(verification, indent=2) + '\n').encode())
@@ -338,6 +404,7 @@ def main():
                         help='Declared reviewed source commit for the launcher publish; bytes must be verified separately')
     parser.add_argument('--makensis', type=Path)
     parser.add_argument('--reviewed-atb-sha256', help='Same reviewed hash passed as ReviewedAtbSha256 when publishing a custom launcher')
+    parser.add_argument('--dotnet', default='dotnet', help='Path to the .NET 10 SDK host for metadata verification')
     parser.add_argument('--download-dependencies', action='store_true')
     parser.add_argument('--stage-only', action='store_true', help='For all mode, qualify the setup stage without invoking NSIS')
     args = parser.parse_args()
@@ -351,20 +418,12 @@ def main():
     for name in RUNTIME_NAMES:
         if not (args.runtime_dir / name).is_file():
             raise ValueError('Missing runtime DLL: ' + name)
-    config = json.loads((args.launcher_dir / 'StarsOfDestiny.Launcher.runtimeconfig.json').read_text())
-    if 'includedFrameworks' not in config['runtimeOptions'] or not (args.launcher_dir / 'coreclr.dll').is_file():
-        raise ValueError('Launcher publish must be self-contained')
-    for name in ('dotnet10-Core-LICENSE.txt', 'dotnet10-Core-THIRD-PARTY-NOTICES.txt',
-                 'dotnet10-WindowsDesktop-LICENSE.txt'):
-        if not (args.launcher_dir / name).is_file() or (args.launcher_dir / name).stat().st_size == 0:
-            raise ValueError('Launcher runtime notice is missing: ' + name + '; see BUILDING.md')
     source = REPO / 'src/StarsOfDestiny.Launcher.Core/GameInstallation.cs'
     reviewed = re.search(r'ReviewedAtbHash\s*=\s*"([0-9A-Fa-f]{64})"', source.read_text())
     expected_atb = args.reviewed_atb_sha256 or (reviewed.group(1) if reviewed else '')
-    if re.fullmatch(r'[0-9A-Fa-f]{64}', expected_atb) is None or sha(args.atb_dll).lower() != expected_atb.lower():
-        raise ValueError('ATB DLL differs from the hash reviewed by this launcher source. Review your rebuilt ATB, '
-                         'publish the launcher with -p:ReviewedAtbSha256=<hash>, and pass that same hash through '
-                         '--reviewed-atb-sha256. Do not disable the hash check. See BUILDING.md.')
+    args.atb_payload = public_atb_payload(args.atb_dll, expected_atb)
+    from package_launcher import read_publish
+    args.launcher_files = read_publish(args.launcher_dir, digest(args.atb_payload), args.dotnet)
     dependencies(args)
     args.output.mkdir(parents=True, exist_ok=True)
     result = dict(packageVersion=VERSION, builtUtc=datetime.now(timezone.utc).isoformat(),

@@ -1,4 +1,4 @@
-STARS OF DESTINY 0.14.4 - PLUGINS-ONLY NEXUS PACKAGE
+STARS OF DESTINY 0.14.5 - PLUGINS-ONLY NEXUS PACKAGE
 Suikoden I & II HD Remaster | Steam | Windows x64
 
 This is a manual-install package. The launcher is OPTIONAL and downloaded
@@ -48,8 +48,8 @@ and optional ATB are off. See Features and defaults.txt in the support folder.
 
 OPTIONAL LAUNCHER
 For a graphical settings editor, download
-Stars-of-Destiny-0.14.4-Optional-Launcher-Windows.zip from:
-https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.4
+Stars-of-Destiny-Launcher-1.0.6-Windows.zip from:
+https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.5
 Extract it beside the game EXE after installing this plugins package. Keep
 the complete StarsOfDestiny Launcher folder together. No separate .NET SDK
 or runtime install is required for that optional self-contained launcher.
@@ -63,6 +63,5 @@ Do not delete the entire BepInEx folder or campaign sidecars to remove mods.
 Third-party and project licenses are in StarsOfDestiny Manual/Licenses.
 Source/build instructions: https://github.com/suikodenrand/suikodenrando
 
-This is a distribution split of existing 0.14.4 binaries, not a gameplay
-update. Native playtesting remains limited; ATB and S1 chest shuffle are
+This package contains the 0.14.5 gameplay update. Native playtesting remains limited; ATB and S1 chest shuffle are
 experimental. Packaging checks do not guarantee Nexus or antivirus approval.

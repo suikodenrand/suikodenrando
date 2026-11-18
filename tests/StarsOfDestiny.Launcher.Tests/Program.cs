@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using StarsOfDestiny.Launcher.Core;
 
 int passed = 0;
@@ -43,13 +45,13 @@ try
         string text = "# settings\r\n[Shuffle]\r\nSeed = test\nUnknown = literal # text\r\n; trailing";
         var ini = IniDocument.Parse(text);
         Check(ini.Render() == text, "Read changed the original INI.");
-        Check(ini.Get("shuffle", "seed") == "test", "INI key lookup should be case insensitive.");
+        Check(ini.Get("Shuffle", "Seed") == "test" && ini.Get("shuffle", "seed") == "", "INI key lookup must match BepInEx casing.");
     });
 
     Case("Updating a setting retains original spacing, case, comments and section boundaries", () =>
     {
         var ini = IniDocument.Parse("# untouched\r\n[Shuffle]\r\n  Seed  =   old  \r\nOther = keep\r\n\r\n[Start]\r\nPoint = Opening\r\n");
-        ini.Set("shuffle", "Seed", "new");
+        ini.Set("Shuffle", "Seed", "new");
         Check(ini.Render() == "# untouched\r\n[Shuffle]\r\n  Seed  =   new  \r\nOther = keep\r\n\r\n[Start]\r\nPoint = Opening\r\n", "Setting update changed unrelated bytes.");
         ini.Set("Shuffle", "Mode", "Shuffle");
         Check(ini.Render().Contains("Other = keep\r\nMode = Shuffle\r\n\r\n[Start]", StringComparison.Ordinal), "Missing key was inserted into the wrong section.");
@@ -59,11 +61,96 @@ try
 
     Case("INI rejects duplicate settings and value injection", () =>
     {
-        var duplicate = IniDocument.Parse("[Shuffle]\nSeed=a\nseed=b\n");
+        var duplicate = IniDocument.Parse("[Shuffle]\nSeed=a\nSeed=b\n");
         Reject(() => duplicate.Get("Shuffle", "Seed"));
         Reject(() => duplicate.Set("Shuffle", "Seed", "one"));
         Reject(() => IniDocument.Parse("").Set("Shuffle", "Seed", "a\n[Cheat]\nMoneyMultiplier=100"));
         Reject(() => IniDocument.Parse("").Set("Bad]", "Key", "x"));
+    });
+
+    Case("Repeated sections and case-sensitive keys match the game's lookup", () =>
+    {
+        var ini = IniDocument.Parse("[Shuffle]\nseed=unused\n[Start]\nPoint=Opening\n[Shuffle]\nSeed=old\n");
+        ini.Set("Shuffle", "Seed", "new");
+        Check(ini.Render().EndsWith("[Shuffle]\nSeed=new\n", StringComparison.Ordinal)
+            && ini.Get("Shuffle", "seed") == "unused" && ini.Get("Shuffle", "Seed") == "new",
+            "An edit created a duplicate in an earlier section or changed a different key.");
+    });
+
+    Case("Known preset keys are canonicalized and unknown keys retain their exact case", () =>
+    {
+        string game = NewGame();
+        var workspace = SettingsWorkspace.Load(game, () => false);
+        string Preset(string text) => System.Text.Json.JsonSerializer.Serialize(new {
+            schema = "stars-of-destiny-settings-v1",
+            configFiles = new System.Collections.Generic.Dictionary<string, string> { [SettingsCatalog.S1File] = text }
+        });
+        workspace.StagePreset(Preset("[shuffle]\nseed=literal\n[Custom]\nX=1\nx=2"));
+        var doc = workspace.Documents[SettingsCatalog.S1File];
+        Check(workspace.Get("s1.seed") == "literal" && doc.Get("shuffle", "seed") == ""
+            && doc.Get("Custom", "X") == "1" && doc.Get("Custom", "x") == "2", "Incorrect preset casing.");
+        try { workspace.StagePreset(Preset("[Shuffle]\nSeed=a\nseed=b")); throw new Exception("Duplicate aliases accepted."); }
+        catch (InvalidDataException) { }
+        Check(workspace.Get("s1.seed") == "literal", "Rejected preset changed a staged seed.");
+    });
+
+    Case("Launcher seeds match the BepInEx string reader and survive its next config save", () =>
+    {
+        string game = NewGame();
+        var workspace = SettingsWorkspace.Load(game, () => false);
+        foreach (string seed in new[] { @"a\question", @"C:\test", "Viktor's \"rune\"", @"end\" })
+        {
+            workspace.Set("s1.seed", seed);
+            workspace.Save();
+            Check(workspace.Get("s1.seed") == seed, "Raw escape spelling changed the effective seed.");
+        }
+        foreach (string seed in new[] { @"a\nb", @"a\\b", @"a\t", "tab\t" })
+            Reject(() => workspace.Set("s1.seed", seed));
+        Reject(() => workspace.Set("s2.seed", @"star\moon"));
+        var def = SettingsCatalog.Find("s1.seed");
+        workspace.StageValue(def, @"literal\n");
+        Reject(() => workspace.Save());
+        Check(workspace.Get("s1.seed") == @"literal\n" && workspace.IsDirty, "Rejected seed edit was lost.");
+        workspace.Reload();
+        File.WriteAllText(Config(game, SettingsCatalog.S1File), "[Shuffle]\nSeed = Viktor\\'s rune\n");
+        workspace.Reload();
+        Check(workspace.Get("s1.seed") == "Viktor's rune" && workspace.Validate().Count == 0,
+            "An existing BepInEx-serialized seed did not retain its meaning.");
+    });
+
+    Case("Two launcher windows validate disjoint changes against the committed settings", () =>
+    {
+        string game = NewGame();
+        using var staging = new ManualResetEventSlim();
+        using var finish = new ManualResetEventSlim();
+        int checks = 0;
+        var first = SettingsWorkspace.Load(game, () =>
+        {
+            if (++checks == 2)
+            {
+                staging.Set();
+                if (!finish.Wait(TimeSpan.FromSeconds(15))) throw new TimeoutException();
+            }
+            return false;
+        });
+        var second = SettingsWorkspace.Load(game, () => false);
+        first.SetBoolean("s1.unites", true);
+        second.SetBoolean("atb.Enabled", true);
+        second.SetBoolean("atb.ActiveAtb", true);
+        var saving = Task.Run(() => first.Save());
+        try
+        {
+            Check(staging.Wait(TimeSpan.FromSeconds(15)), "First window failed to stage its change.");
+            Reject(() => second.Save());
+        }
+        finally { finish.Set(); saving.GetAwaiter().GetResult(); }
+        Reject(() => second.Save());
+        Check(!File.Exists(Config(game, SettingsCatalog.AtbFile)) && second.IsDirty && second.GetBoolean("atb.ActiveAtb")
+            && second.GetBoolean("s1.unites"), "Concurrent saves committed a conflict or discarded staged edits.");
+        second.SetBoolean("s1.unites", false);
+        second.Save();
+        Check(second.Validate().Count == 0 && !second.GetBoolean("s1.unites") && second.GetBoolean("atb.ActiveAtb"),
+            "The user could not resolve the conflict and retry.");
     });
 
     Case("Workspace load and no-op save never create default configuration files", () =>
@@ -395,20 +482,46 @@ try
         workspace.Documents[SettingsCatalog.S1File].Set("Custom", "Unrelated", "preserved");
         string preset = System.Text.Json.JsonSerializer.Serialize(new { schema = "stars-of-destiny-settings-v1",
             configFiles = workspace.Documents.ToDictionary(pair => pair.Key, pair => pair.Value.Render()) });
-        using var json = System.Text.Json.JsonDocument.Parse(preset);
         string target = NewGame();
         var imported = SettingsWorkspace.Load(target, () => false);
-        foreach (var file in json.RootElement.GetProperty("configFiles").EnumerateObject())
-        {
-            var ini = IniDocument.Parse(file.Value.GetString()!);
-            foreach (var definition in SettingsCatalog.All.Where(setting => setting.FileName == file.Name))
-                imported.Documents[file.Name].Set(definition.Section, definition.Key, ini.Get(definition.Section, definition.Key, definition.DefaultValue));
-        }
+        imported.StagePreset(preset);
         imported.Save();
         Check(imported.Get("s1.joiningEquipment") == "Donor" && imported.Get("s2.joiningEquipment") == "MatchRole",
             "Preset serialization or generic document application discarded recruitment gear choices.");
-        Check(json.RootElement.GetProperty("configFiles").GetProperty(SettingsCatalog.S1File).GetString()!.Contains("Unrelated = preserved", StringComparison.Ordinal),
-            "Preset serialization discarded unknown config fields.");
+        Check(imported.Documents[SettingsCatalog.S1File].Get("Custom", "Unrelated") == "preserved",
+            "Import discarded an unknown config field.");
+    });
+
+    Case("Partial presets validate the combined settings and stage every file together", () =>
+    {
+        string game = NewGame();
+        var workspace = SettingsWorkspace.Load(game, () => false);
+        workspace.Set("s1.seed", "unsaved-edit");
+        workspace.SetBoolean("atb.Enabled", true);
+        workspace.SetBoolean("s1.unites", true);
+        workspace.SetBoolean("atb.ActiveAtb", false);
+        string Preset(string battleText) => System.Text.Json.JsonSerializer.Serialize(new {
+            schema = "stars-of-destiny-settings-v1",
+            configFiles = new System.Collections.Generic.Dictionary<string, string> {
+                [SettingsCatalog.S1File] = "[Shuffle]\nSeed=preset-edit",
+                [SettingsCatalog.AtbFile] = battleText
+            }
+        });
+        var before = SettingsCatalog.FileNames.Select(name => workspace.Documents[name].Render()).ToArray();
+        try
+        {
+            workspace.StagePreset(Preset("[Preview]\nActiveAtb=true"));
+            throw new Exception("Preset would enable active ATB for a campaign with shuffled Unite attacks.");
+        }
+        catch (InvalidDataException error) when (error.Message.Contains("require standard turn-based combat", StringComparison.Ordinal)) { }
+        Check(SettingsCatalog.FileNames.Select(name => workspace.Documents[name].Render()).SequenceEqual(before),
+            "Rejected preset lost a pending edit or partially imported an earlier file.");
+        workspace.StagePreset(Preset("[Preview]\rActiveAtb=false\rOpeningCharge=true"));
+        Check(workspace.Get("s1.seed") == "preset-edit" && workspace.GetBoolean("atb.Enabled")
+            && workspace.GetBoolean("s1.unites") && !workspace.GetBoolean("atb.ActiveAtb") && workspace.GetBoolean("atb.OpeningCharge"),
+            "Partial import lost an inherited setting or missed an imported value.");
+        Check(!File.Exists(Config(game, SettingsCatalog.S1File)) && !File.Exists(Config(game, SettingsCatalog.AtbFile)),
+            "Staging a preset wrote a config before Apply.");
     });
 
     Case("Host changes during staging reject original-role equipment before committing", () =>

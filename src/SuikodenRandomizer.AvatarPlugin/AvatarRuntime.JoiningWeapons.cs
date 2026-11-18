@@ -40,10 +40,10 @@ internal sealed partial class AvatarRuntime
         Trace("JOINING WEAPON NEW GAME: policy=" + JoiningWeaponPolicy + "; story-protected loadouts retain native handling.");
     }
 
-    private void RestoreJoiningWeapons(GSD1.SaveDataManager.SaveData save)
+    private void RestoreJoiningWeapons(GSD1.SaveDataManager.SaveData save, string identity)
     {
         if (!CanExecute || (_fixedProfile is null && State.Origin == RoleAvatarCampaignOrigin.UnboundSave)) return;
-        var binding = JoiningWeaponBindingStore.Read(AvatarSaveIdentity.Compute(save), CampaignFingerprint, JoiningWeaponSeed);
+        var binding = JoiningWeaponBindingStore.Read(identity, CampaignFingerprint, JoiningWeaponSeed);
         JoiningWeaponPolicy = binding?.Policy ?? JoiningWeaponPolicy.Donor;
         _joiningWeaponFighters = new HashSet<int>(binding?.InitializedFighters ?? Array.Empty<int>());
         _joiningWeaponRoles = new HashSet<int>(binding?.InitializedRoles ?? Array.Empty<int>());
@@ -107,12 +107,11 @@ internal sealed partial class AvatarRuntime
         }
     }
 
-    private bool ObserveJoinedShuffleWeapons(bool required)
+    private bool ObserveJoinedShuffleWeapons(IReadOnlyList<int> slots, bool required)
     {
-        if (!IsActive || IsFixedRoster || JoiningWeaponPolicy != JoiningWeaponPolicy.TirVariance) return true;
         var game = GSD1.OldSrcBase.game_work ?? throw new InvalidOperationException("Joining weapon game state is unavailable.");
         var pending = new Dictionary<int, int>();
-        foreach (int slot in ActiveResidentSlots())
+        foreach (int slot in slots)
         {
             int role = game.party_data.chara_code[slot];
             if (Profile.IsRole(role) && !Profile.KeepsCanonicalLoadout(role) && !_joiningWeaponRoles.Contains(role)) pending.Add(role, slot);
@@ -169,7 +168,7 @@ internal sealed partial class AvatarRuntime
         JoiningWeaponBindingStore.CheckWritable();
     }
 
-    internal void WriteJoiningWeaponBinding(GSD1.SaveDataManager.SaveData save)
+    internal void WriteJoiningWeaponBinding(string identity)
     {
         if (!IsActive || !_joiningWeaponsPrepared)
             throw new InvalidOperationException("Joining weapon policy is not ready for this native snapshot.");
@@ -180,7 +179,7 @@ internal sealed partial class AvatarRuntime
                     && !_joiningWeaponRoles.Contains(codes[slot])))
                 throw new InvalidOperationException("Active joining weapon levels must be initialized before capturing the native snapshot.");
         }
-        JoiningWeaponBindingStore.Write(AvatarSaveIdentity.Compute(save), CampaignFingerprint, JoiningWeaponSeed,
+        JoiningWeaponBindingStore.Write(identity, CampaignFingerprint, JoiningWeaponSeed,
             new JoiningWeaponBinding(JoiningWeaponPolicy, _joiningWeaponFighters, _joiningWeaponRoles));
     }
 }

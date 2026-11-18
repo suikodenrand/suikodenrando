@@ -171,7 +171,7 @@ internal static class TreasureBindingStore
         if (fields.Count != 0) throw new InvalidDataException("Treasure binding fields are incomplete.");
     }
 
-    private static string PathFor(string identity)
+    internal static string PathFor(string identity)
     {
         if (identity.Length != 64 || identity.Any(value => !(value >= '0' && value <= '9') && !(value >= 'a' && value <= 'f')))
             throw new InvalidDataException("Invalid native save digest.");

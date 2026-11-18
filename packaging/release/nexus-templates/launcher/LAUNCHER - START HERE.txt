@@ -1,10 +1,10 @@
-STARS OF DESTINY 0.14.4 - OPTIONAL WINDOWS LAUNCHER 1.0.4
+STARS OF DESTINY 0.14.5 - OPTIONAL WINDOWS LAUNCHER 1.0.6
 
 This download contains ONLY the optional settings launcher and its complete
 self-contained Microsoft .NET 10.0.14 Windows x64 runtime. It does not install
 the randomizer plugins, Suikoden Fix, ATB or BepInEx. Get the plugins-only
-0.14.4 ZIP and install its external BepInEx requirement first.
-https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.4
+0.14.5 ZIP and install its external BepInEx requirement first.
+https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.5
 
 INSTALL / RUN
 1. Close the game and launcher. Back up an existing launcher folder and its
@@ -49,5 +49,5 @@ does not undo settings already applied. Keep any prior installer recovery.
 NOTICES / SOURCE
 Microsoft runtime notices remain inside StarsOfDestiny Launcher. Project MIT
 and download details are in StarsOfDestiny Launcher Package. Source/build:
-https://github.com/suikodenrand/suikodenrando/tree/v0.14.4
-These are the unchanged launcher 1.0.4 bytes from the 0.14.4 release.
+https://github.com/suikodenrand/suikodenrando/tree/v0.14.5
+The launcher files match the 1.0.6 publish used in the full release.

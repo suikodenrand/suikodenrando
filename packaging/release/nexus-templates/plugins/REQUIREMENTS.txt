@@ -1,4 +1,4 @@
-STARS OF DESTINY 0.14.4 - EXTERNAL REQUIREMENTS
+STARS OF DESTINY 0.14.5 - EXTERNAL REQUIREMENTS
 
 Required: the Windows x64 Steam version of Suikoden I & II HD Remaster.
 Required separately: BepInEx 6 Unity IL2CPP Windows x64, tested build below.
@@ -28,6 +28,6 @@ needed. Its plugin reports version 1.5.2. Keep only one active Fix copy.
 
 The launcher is OPTIONAL and NOT included. No .NET SDK, compiler or separate
 launcher-runtime installation is needed to use this plugins-only package.
-Optional launcher: https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.4
+Optional launcher: https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.5
 
 Existing users: read StarsOfDestiny Manual/MANUAL UPGRADE.txt before copying.

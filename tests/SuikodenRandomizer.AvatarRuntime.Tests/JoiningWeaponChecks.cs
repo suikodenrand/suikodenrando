@@ -84,7 +84,7 @@ internal static partial class Program
             w.Base(2).buki_data.level = 8;
             byte weapon = w.Base(2).buki_data.buki_id;
             var save = WeaponSave('6');
-            w.Runtime.WriteCampaignBinding(save); w.Runtime.WriteJoiningWeaponBinding(save);
+            w.Runtime.WriteCampaignBinding(save, save.Identity); w.Runtime.WriteJoiningWeaponBinding(save.Identity);
             AvatarPlugin.ConfiguredJoiningWeaponLevel = "Level1";
             w.Runtime.PrepareLoad(save); w.Ready();
             Check(w.Runtime.JoiningWeaponPolicy == JoiningWeaponPolicy.MatchRole
@@ -97,12 +97,12 @@ internal static partial class Program
         Case("Legacy shuffle saves missing policy bindings retain their existing weapons", () =>
         {
             var w = new World(); w.Ready(); w.Base(2).buki_data.level = 13;
-            var save = WeaponSave('7'); w.Runtime.WriteCampaignBinding(save);
+            var save = WeaponSave('7'); w.Runtime.WriteCampaignBinding(save, save.Identity);
             AvatarPlugin.ConfiguredJoiningWeaponLevel = "Level1";
             w.Runtime.PrepareLoad(save); w.Ready();
             Check(w.Runtime.JoiningWeaponPolicy == JoiningWeaponPolicy.Donor && w.Base(2).buki_data.level == 13,
                 "Existing campaign was retroactively lowered");
-            w.Runtime.WriteJoiningWeaponBinding(save);
+            w.Runtime.WriteJoiningWeaponBinding(save.Identity);
             var saved = JoiningWeaponBindingStore.Read(save.Identity, w.Runtime.CampaignFingerprint, w.Runtime.Profile.Seed);
             Check(saved?.Policy == JoiningWeaponPolicy.Donor, "Legacy policy was not explicitly preserved on next save");
         });
@@ -114,7 +114,7 @@ internal static partial class Program
             Check(w.Runtime.MapDisplayId(2) == 16 && w.Base(2).buki_data.level == 2 && w.Base(2).buki_data.buki_id == 16,
                 "Kasim did not adopt Gremio's joining weapon level");
             w.Base(2).buki_data.level = 8;
-            var save = WeaponSave('8'); w.Runtime.WriteCampaignBinding(save); w.Runtime.WriteJoiningWeaponBinding(save);
+            var save = WeaponSave('8'); w.Runtime.WriteCampaignBinding(save, save.Identity); w.Runtime.WriteJoiningWeaponBinding(save.Identity);
             AvatarPlugin.ConfiguredJoiningWeaponLevel = "Level1";
             w.Runtime.PrepareLoad(save); w.Game.player_data[1] = w.Originals[2]; w.Runtime.CompleteFixedLoad(); w.Ready();
             Check(w.Runtime.JoiningWeaponPolicy == JoiningWeaponPolicy.MatchRole && w.Base(2).buki_data.level == 8,
@@ -140,7 +140,7 @@ internal static partial class Program
         Case("Fixed legacy saves retain earned weapons through later story role changes", () =>
         {
             var w = FixedWeaponWorld("MatchRole"); ActivateWeaponRole(w, 1); w.Ready(); w.Base(2).buki_data.level = 13;
-            var save = WeaponSave('9'); w.Runtime.WriteCampaignBinding(save);
+            var save = WeaponSave('9'); w.Runtime.WriteCampaignBinding(save, save.Identity);
             AvatarPlugin.ConfiguredJoiningWeaponLevel = "Level1";
             w.Runtime.PrepareLoad(save); w.Game.player_data[1] = w.Originals[2]; w.Runtime.CompleteFixedLoad(); w.Ready();
             ActivateWeaponRole(w, 2); w.Ready();
@@ -166,7 +166,7 @@ internal static partial class Program
         Case("Joining policy sidecars are immutable and reject changed campaign identity", () =>
         {
             var w = new World(); w.Ready(); var save = WeaponSave('a');
-            w.Runtime.WriteJoiningWeaponBinding(save); w.Runtime.WriteJoiningWeaponBinding(save);
+            w.Runtime.WriteJoiningWeaponBinding(save.Identity); w.Runtime.WriteJoiningWeaponBinding(save.Identity);
             bool changed = false;
             try { JoiningWeaponBindingStore.Write(save.Identity, w.Runtime.CampaignFingerprint, w.Runtime.Profile.Seed,
                 new JoiningWeaponBinding(JoiningWeaponPolicy.Level1, Array.Empty<int>())); }
@@ -181,7 +181,7 @@ internal static partial class Program
         Case("Malformed joining policy bindings stop load without changing native weapons", () =>
         {
             var w = new World(); w.Ready(); w.Base(2).buki_data.level = 8;
-            var save = WeaponSave('b'); w.Runtime.WriteCampaignBinding(save); w.Runtime.WriteJoiningWeaponBinding(save);
+            var save = WeaponSave('b'); w.Runtime.WriteCampaignBinding(save, save.Identity); w.Runtime.WriteJoiningWeaponBinding(save.Identity);
             string path = Path.Combine(AvatarRuntime.Folder, "joining-weapon-save-bindings", save.Identity + ".json");
             File.WriteAllText(path, File.ReadAllText(path).Replace("\"MatchRole\"", "\"Unknown\""));
             w.Runtime.PrepareLoad(save);
@@ -192,7 +192,7 @@ internal static partial class Program
         Case("Fixed saved initialization history must include active fighters and only chosen donors", () =>
         {
             var w = FixedWeaponWorld("MatchRole"); ActivateWeaponRole(w, 1); w.Ready();
-            var save = WeaponSave('c'); w.Runtime.WriteCampaignBinding(save);
+            var save = WeaponSave('c'); w.Runtime.WriteCampaignBinding(save, save.Identity);
             JoiningWeaponBindingStore.Write(save.Identity, w.Runtime.CampaignFingerprint, "agilen-080",
                 new JoiningWeaponBinding(JoiningWeaponPolicy.MatchRole, Array.Empty<int>()));
             w.Runtime.PrepareLoad(save);

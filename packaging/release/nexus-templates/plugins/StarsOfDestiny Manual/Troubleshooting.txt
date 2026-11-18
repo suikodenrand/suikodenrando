@@ -1,8 +1,8 @@
-STARS OF DESTINY 0.14.4 - PLUGINS-ONLY TROUBLESHOOTING
+STARS OF DESTINY 0.14.5 - PLUGINS-ONLY TROUBLESHOOTING
 
 NO MOD / NO F6 PANEL
 F6 starts hidden. Press F6 at the relevant game title or campaign. Verify
-BepInEx/LogOutput.log exists and reports the combined Stars of Destiny 0.14.4
+BepInEx/LogOutput.log exists and reports the combined Stars of Destiny 0.14.5
 plugin. Check agilen.starsofdestiny.cfg [General]Enabled=true. If no BepInEx
 log exists, check the external loader installation: IL2CPP Windows x64 build
 697 and root files beside the game EXE, not inside an extra folder.
@@ -20,7 +20,7 @@ restore their saved mapping and policies. Configure a NEW campaign to test
 new-campaign options; back up saves first because New Game may replace the
 autosave. Never delete campaign sidecars to force a new policy onto old saves.
 Old campaigns without joining-equipment metadata keep Donor behavior.
-The 0.14.4 runtime supports MatchRole without requiring any launcher.
+The 0.14.5 runtime supports MatchRole without requiring any launcher.
 
 CHEST RANDOMIZATION IS STILL ACTIVE
 In S1's CFG, set [Treasure]Enabled=false with the game closed. A campaign can
@@ -43,7 +43,7 @@ one active ATB DLL. Turn ATB off before re-enabling shuffled Unites. S2 ATB
 is not included. These experimental features need wider encounter testing.
 
 OPTIONAL LAUNCHER FAILS TO OPEN / CANNOT FIND GAME
-Download the separate optional launcher ZIP from the 0.14.4 GitHub release.
+Download the separate optional launcher ZIP from the 0.14.5 GitHub release.
 Extract the entire StarsOfDestiny Launcher folder beside the game EXE; do not
 copy just its EXE. Keep its private .NET runtime and notices together. No
 separate .NET SDK is required. The launcher does not install BepInEx or the

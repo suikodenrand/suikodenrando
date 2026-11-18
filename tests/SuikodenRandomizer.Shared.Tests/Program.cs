@@ -151,7 +151,9 @@ internal static class Program
     private static void ReentrantStatus()
     {
         var x = Setup(); x.Router.ObserveScene("GSD1"); x.One.OnStatus = () => x.Router.ObserveScene("GSD2");
-        True(!x.Host.Tick()); Eq(0, x.One.Ticks); Eq(0, x.Two.Ticks); True(x.Host.Tick()); Eq(1, x.Two.Ticks);
+        True(x.Host.Tick()); Eq(1, x.One.Ticks); Eq(0, x.One.StatusCalls);
+        True(!x.Host.DispatchF6(1, true, true)); Eq(0, x.One.F6); Eq(0, x.Two.F6);
+        True(x.Host.Tick()); Eq(1, x.Two.Ticks);
         x.Router.ObserveScene("GSD1"); var snapshot = x.Host.SelectUi(); True(!snapshot.HasBackend); Eq(ActiveGame.Gsd2, snapshot.Game);
     }
     private static void LateFault()

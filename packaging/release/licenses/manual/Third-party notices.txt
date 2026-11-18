@@ -1,4 +1,4 @@
-THIRD-PARTY SOFTWARE IN STARS OF DESTINY 0.14.4 MOD-ONLY PACKAGE
+THIRD-PARTY SOFTWARE IN STARS OF DESTINY 0.14.5 MOD-ONLY PACKAGE
 
 Suikoden Fix 1.5.2b by d3xMachina
 The unchanged Suikoden_Fix.dll is included under its MIT license.

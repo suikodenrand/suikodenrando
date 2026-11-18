@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.5](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.5) — 2026-11-18
+
+- Fix S1 save admission, editable save mirrors, fixed-roster battle entry and joining loadout updates.
+- Process S2 recruitment equipment per recruit, refresh graphics after loading, and preserve an existing campaign binding when multiple saves have the same native contents.
+- Include launcher 1.0.6 with fixes for preset import, seeds, concurrent edits, optional ATB activation and launch folder selection.
+- Recover interrupted installations, verify launcher contents and check the packaged public ATB against the launcher's reviewed hash. [Release notes](docs/release-0.14.5.md)
+
 ## Launcher 1.0.5 — 2026-11-15
 
 - Include launcher 1.0.5 in package revision **0.14.4-r2**, both full setup and manual mod ZIP. Gameplay DLLs, Fix, optional ATB and defaults retain their original 0.14.4 bytes. Nexus plugins-only distribution stays separate.

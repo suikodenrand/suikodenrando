@@ -65,7 +65,7 @@ internal static partial class Program
    Check(w.Cache[1]!.Pointer==w.Originals[1].Pointer,"Reused manager lost original restoration ledger");
   });
   Case("Owned bound load accepts the new epoch without copying donor starts again",()=>{
-   var w=new World();w.Ready();var save=new GSD1.SaveDataManager.SaveData();w.Runtime.WriteCampaignBinding(save);
+   var w=new World();w.Ready();var save=new GSD1.SaveDataManager.SaveData();w.Runtime.WriteCampaignBinding(save, save.Identity);
    int copies=AvatarNativeData.CopyCalls;string fingerprint=w.Runtime.CampaignFingerprint;
    w.Base(1).exp=799;w.Base(1).hp=6;bool owns=true;long epoch=0;w.Runtime.SetExecutionOwnership(()=>owns,()=>epoch);
    owns=false;epoch++;w.Runtime.SuspendExecution();owns=true;AvatarPlugin.ConfiguredSeed="other game";
@@ -107,7 +107,7 @@ internal static partial class Program
    ExitSave(null);Check(AvatarSaveCall.Current==outer,"Unrelated finalizer popped outer scope");ExitSave(outer);
   });
   Case("Stale load completion and exception cannot fault or republish the next game",()=>{
-   var w=new World();w.Ready();var save=new GSD1.SaveDataManager.SaveData();w.Runtime.WriteCampaignBinding(save);
+   var w=new World();w.Ready();var save=new GSD1.SaveDataManager.SaveData();w.Runtime.WriteCampaignBinding(save, save.Identity);
    bool owns=true;long epoch=0;w.Runtime.SetExecutionOwnership(()=>owns,()=>epoch);
    object?[] args={save,null};InvokePatch(typeof(AvatarSaveRestorePatch),"Prefix",args);var scope=args[1];
    owns=false;epoch++;w.Runtime.SuspendExecution();ResetNativeReads();

@@ -1,4 +1,4 @@
-STARS OF DESTINY 0.14.4 - MOD-ONLY MANUAL UPGRADE
+STARS OF DESTINY 0.14.5 - MOD-ONLY MANUAL UPGRADE
 
 Read this before copying into any game folder with existing mods or saves.
 This ZIP does not run conflict checks, back up replaced files or merge CFGs.
@@ -52,7 +52,7 @@ BepInEx is an external prerequisite; see REQUIREMENTS.txt at the game root.
    mapping, weapon or joining-inventory policy. Existing settings may retain their old values;
    choose Riou's weapon level +/-3 for new S2 campaigns if desired.
 
-LAUNCHER 1.0.5 CHEST SETTINGS
+LAUNCHER 1.0.6 CHEST SETTINGS
 The updated Treasure page has one new-campaign checkbox and retains the
 saved-policy list/reset controls. Existing stored policies stay intact.
 Applying settings clears the legacy Treasure/Enabled=false global pause,

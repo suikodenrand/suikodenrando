@@ -1,9 +1,9 @@
 # Stars of Destiny
 Disclaimer: to those that it matters. This was vibecoded by me with AI. I came up with all the features and tested and iterated on them, but AI took care of the Technical groundwork and making it happen.
 
-A seeded character randomizer for the Windows Steam release of **Suikoden I & II HD Remaster**. Both games share one plugin host and interface, with separate settings and saved campaign mappings. The current randomizer release is **0.14.4**; the latest separate optional launcher is **1.0.5**.
+A seeded character randomizer for the Windows Steam release of **Suikoden I & II HD Remaster**. Both games share one plugin host and interface, with separate settings and saved campaign mappings. Release **0.14.5** includes launcher **1.0.6**.
 
-Download the [0.14.4 release](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.4). Developers and reviewers can build the source using [BUILDING.md](BUILDING.md); see [CHANGELOG.md](CHANGELOG.md) for release history. The earlier [0.14.3 release](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.3) remains available with its original source and assets.
+[Download 0.14.5](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.5) · [Release notes](docs/release-0.14.5.md) · [Build instructions](BUILDING.md) · [Changelog](CHANGELOG.md)
 
 ## Features
 
@@ -23,21 +23,12 @@ Suikoden II ATB and chest shuffle, Nuzlocke, shared-inventory changes and extra 
 
 | Asset | Installation | BepInEx |
 | --- | --- | --- |
-| `Stars-of-Destiny-0.14.4-r2-Setup.exe` | Current full package with launcher 1.0.5, optional ATB and transaction recovery | Included |
-| `Stars-of-Destiny-0.14.4-r2-Mod-Only-Windows.zip` | Current manual package with launcher 1.0.5 | Required separately |
-| `Stars-of-Destiny-0.14.4-Plugins-Only-Nexus.zip` | Manual plugins/configs/docs; no EXEs, scripts or launcher runtime | Required separately |
-| `Stars-of-Destiny-Launcher-1.0.5-Windows.zip` | Latest optional settings launcher; install plugins separately | Required for the mod, not bundled |
-| `Stars-of-Destiny-0.14.4-Optional-Launcher-Windows.zip` | Original launcher 1.0.4, retained for reference | Required for the mod, not bundled |
-| `Stars-of-Destiny-0.14.4-Setup.exe` | Guided full installation, optional ATB component and transaction recovery | Included |
-| `Stars-of-Destiny-0.14.4-Mod-Only-Windows.zip` | Manual extraction into the game folder | Required separately |
+| `Stars-of-Destiny-0.14.5-Setup.exe` | Guided full install, including the launcher and transaction recovery | Included |
+| `Stars-of-Destiny-0.14.5-Mod-Only-Windows.zip` | Manual install, including the launcher | Required separately |
+| `Stars-of-Destiny-0.14.5-Plugins-Only-Nexus.zip` | Plugins, settings and manual instructions | Required separately |
+| `Stars-of-Destiny-Launcher-1.0.6-Windows.zip` | Standalone settings launcher for an existing installation | Install separately for the game plugins |
 
-For Nexus, use the **Plugins-Only-Nexus** ZIP. It includes the combined randomizer, Suikoden Fix, configs, manual instructions and dormant optional S1 ATB. Install BepInEx separately. Edit CFG files by hand, or add the separate optional launcher from GitHub. The launcher-only download does not install the plugins or loader. It retains its complete private .NET runtime; players do not need a separate .NET SDK or runtime installation.
-
-Launcher **1.0.5** replaces the two S1 treasure switches with **Enable chest shuffle for new campaigns** and retains the saved-policy list/reset controls. On explicit Apply, it clears the legacy global pause so existing saved shuffles can use their own policies. Read the [launcher update notes](docs/launcher-1.0.5.md) before upgrading. Its ZIP has a matching `.zip.sha256` checksum file.
-
-Package revision **0.14.4-r2** includes launcher 1.0.5 in both the full setup and manual mod ZIP, with the original 0.14.4 gameplay DLLs, Fix, ATB and defaults. `SHA256SUMS-0.14.4-r2.txt` covers these updated packages. The Nexus plugins-only ZIP stays separate from the optional launcher.
-
-The original setup and Mod-Only-Windows assets remain available with launcher 1.0.4 and unchanged plugin bytes. The earlier split downloads also retain their released bytes. `SHA256SUMS-Split-0.14.4.txt` covers those two original split ZIPs; the original `SHA256SUMS.txt` covers the original setup/manual assets. Existing users should read the upgrade instructions before replacing files. Compiled code may still require host review; no Nexus or antivirus approval is claimed.
+Use `SHA256SUMS.txt` on the release to verify the download. For a Nexus-style installation, use the plugins-only ZIP. It includes the combined randomizer, Suikoden Fix, configuration, instructions and the dormant optional S1 ATB preview. The standalone launcher includes its .NET runtime. [Launcher changes](docs/launcher-1.0.6.md)
 
 ### Full setup
 
@@ -57,7 +48,7 @@ For an existing modded installation, first back up `Save` and `BepInEx/config` t
 
 ## Defaults and optional features
 
-Fresh 0.14.4 installations use character Shuffle, the original role's starting inventory, normal openings, English dialogue replacement and shuffled Unites. Protagonist shuffle and chest shuffle are off. F6 starts Hidden and cycles Full, Compact and Hidden text views for the current session.
+Fresh 0.14.5 installations use character Shuffle, the original role's starting inventory, normal openings, English dialogue replacement and shuffled Unites. Protagonist shuffle and chest shuffle are off. F6 starts Hidden and cycles Full, Compact and Hidden text views for the current session.
 
 In Characters, **Joining inventory & equipment** defaults to **Original role's starting inventory** (`Shuffle/JoiningEquipment=MatchRole`). At first join, replacements receive the original role's inventory and equipped items; incompatible armor and accessories use comparable equipment they can wear. The replacement's own weapon identity and rune setup remain intact. **Replacement's starting inventory** (`Donor`) keeps the previous behavior. The choice applies to new campaigns in all three modes, independently of the joining-weapon-level option. Later rejoining and reloading retain acquired items and equipment changes.
 
@@ -75,6 +66,6 @@ The project's own code and documentation are under the [MIT License](LICENSE). D
 
 ## Testing status and support
 
-Representative shuffled parties, save/load transitions, dialogue, Unite attacks and F6 behavior from earlier builds have been tested in-game; every campaign, recipe and scripted encounter has not been played through. S1 chest shuffle and ATB remain experimental. For the new joining-inventory policy, a native S1 run verified Meg joining in Viktor's role with Fur Robe, Boots and weapon level 1, and inspection confirmed that loadout in the new save. Reloading that save was not observed. Wider native recruitment, compatibility and save/rejoin checks remain useful in both games; see the recorded coverage and remaining checklist in [BUILDING.md](BUILDING.md).
+The 0.14.5 update was checked with managed game fixtures, the installed game's interop assemblies, launcher checks and installer recovery tests. It has no new native playtest. S1 chest shuffle and ATB remain experimental. [Release notes](docs/release-0.14.5.md)
 
 Report the game, version, seed/mode, scene and steps that reproduce a problem. Include relevant `BepInEx/LogOutput.log` lines and screenshots after reviewing them for personal paths or other private data. Keep saves and their configuration sidecars paired when backing up or sharing a campaign.

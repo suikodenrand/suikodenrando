@@ -22,6 +22,8 @@ namespace UnityEngine.SceneManagement
 }
 namespace HarmonyLib
 {
+ [AttributeUsage(AttributeTargets.Method)] internal sealed class HarmonyPriority : Attribute { public HarmonyPriority(int value) { } }
+ internal static class Priority { public const int First = 800; }
  [AttributeUsage(AttributeTargets.Class)]
  internal sealed class HarmonyPatch : Attribute
  {
@@ -37,6 +39,13 @@ namespace HarmonyLib
  {
   internal static System.Reflection.MethodInfo? Method(Type type,string name,Type[]? args=null) =>
    args is null ? type.GetMethod(name) : type.GetMethod(name,args);
+ }
+}
+namespace SuikodenRandomizer.Integration
+{
+ internal static class RejectedSaveMirrorGuard
+ {
+  internal static void Ensure(Func<bool> allowMirrorWrite) { }
  }
 }
 namespace Il2CppSystem
@@ -79,7 +88,8 @@ namespace SuikodenRandomizer.AvatarPlugin
  }
  internal static class AvatarSaveIdentity
  {
-  internal static string Compute(GSD1.SaveDataManager.SaveData save) => save.Identity;
+  internal static int Computes;
+  internal static string Compute(GSD1.SaveDataManager.SaveData save) { Computes++; return save.Identity; }
   internal static string Hash(byte[] bytes) => Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
  }
  internal static class AvatarBindingStore
@@ -99,6 +109,7 @@ namespace SuikodenRandomizer.AvatarPlugin
  internal static class TreasureBindingStore
  {
   internal static Dictionary<string, TreasureBinding> Bindings { get; } = new();
+  internal static string PathFor(string identity) => Path.Combine(AvatarRuntime.Folder, "treasure-save-bindings", identity + ".json");
   internal static void CheckWritable() { }
   internal static TreasureBinding? Read(string identity, string campaignFingerprint, string seed) =>
    Bindings.TryGetValue(identity, out var binding) ? binding : null;
@@ -133,7 +144,8 @@ namespace SuikodenRandomizer.AvatarPlugin
   internal static Dictionary<string, FixedRosterBinding> Bindings { get; } = new();
   internal static bool HasBindings => Bindings.Count != 0;
   internal static void CheckWritable() { }
-  internal static string ComputeIdentity(GSD1.SaveDataManager.SaveData save) => save.Identity;
+  internal static string ComputeIdentity(GSD1.SaveDataManager.SaveData save, string baseIdentity) =>
+   baseIdentity == save.Identity ? "fixed-" + baseIdentity : throw new InvalidDataException("Incorrect base snapshot identity");
   internal static FixedRosterBinding? Read(string identity) =>
    Bindings.TryGetValue(identity, out var binding) ? Clone(binding) : null;
   internal static void Write(string identity, FixedRosterBinding binding) => Bindings.Add(identity, Clone(binding));

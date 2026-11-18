@@ -14,8 +14,10 @@ internal sealed class Gsd2Runtime
     internal bool IsAdmitted => OwnsExecution && Bound;
     internal bool TablesReady => IsAdmitted && HasTables;
     internal bool IsActive => TablesReady && Gsd2Graphics.IsReady;
-    internal readonly Dictionary<int, int> Map = new();
-    internal bool IsRole(int id) => IsAdmitted && Map.ContainsKey(id);
+    internal Dictionary<int, int> Map = new();
+    internal IReadOnlyDictionary<int, int> Assignments => Map;
+    internal int RoleLookups;
+    internal bool IsRole(int id) { RoleLookups++; return IsAdmitted && Map.ContainsKey(id); }
     internal int MapDisplayId(int id) => TablesReady && Map.TryGetValue(id, out int donor) ? donor : id;
     internal readonly List<string> Failures = new(), Traces = new();
     internal void Fail(string message) => Failures.Add(message);

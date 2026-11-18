@@ -19,8 +19,8 @@ internal static partial class Program
             Check(!world.Runtime.TreasureActive && world.Runtime.TreasureProfile.Fingerprint == fingerprint,
                 "Pausing treasure discarded or applied the saved mapping");
             var save = new GSD1.SaveDataManager.SaveData { Identity = new string('5', 64) };
-            world.Runtime.WriteCampaignBinding(save);
-            world.Runtime.WriteTreasureBinding(save);
+            world.Runtime.WriteCampaignBinding(save, save.Identity);
+            world.Runtime.WriteTreasureBinding(save.Identity);
             world.Runtime.PrepareLoad(save);
             world.Ready();
             Check(!world.Runtime.TreasureActive && world.Runtime.TreasureProfile?.Fingerprint == fingerprint,
@@ -38,8 +38,8 @@ internal static partial class Program
             world.Ready();
             string fingerprint = world.Runtime.TreasureProfile!.Fingerprint;
             var save = new GSD1.SaveDataManager.SaveData { Identity = new string('1', 64) };
-            world.Runtime.WriteCampaignBinding(save);
-            world.Runtime.WriteTreasureBinding(save);
+            world.Runtime.WriteCampaignBinding(save, save.Identity);
+            world.Runtime.WriteTreasureBinding(save.Identity);
             AvatarPlugin.ConfiguredTreasureShuffle = false;
             AvatarPlugin.ConfiguredSeed = "another campaign";
             world.Runtime.PrepareLoad(save);
@@ -54,7 +54,7 @@ internal static partial class Program
             world.Ready();
             string savedSeed = world.Runtime.Profile.Seed;
             var save = new GSD1.SaveDataManager.SaveData { Identity = new string('2', 64) };
-            world.Runtime.WriteCampaignBinding(save);
+            world.Runtime.WriteCampaignBinding(save, save.Identity);
             AvatarPlugin.ConfiguredSeed = "future seed";
             AvatarPlugin.ConfiguredTreasureShuffle = true;
             world.Runtime.PrepareLoad(save);
@@ -68,8 +68,8 @@ internal static partial class Program
             var world = new World();
             world.Ready();
             var save = new GSD1.SaveDataManager.SaveData { Identity = new string('3', 64) };
-            world.Runtime.WriteCampaignBinding(save);
-            world.Runtime.WriteTreasureBinding(save);
+            world.Runtime.WriteCampaignBinding(save, save.Identity);
+            world.Runtime.WriteTreasureBinding(save.Identity);
             AvatarPlugin.ConfiguredTreasureShuffle = true;
             world.Runtime.PrepareLoad(save);
             world.Ready();

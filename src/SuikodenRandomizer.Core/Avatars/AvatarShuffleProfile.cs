@@ -74,43 +74,10 @@ public sealed class AvatarShuffleProfile
             throw new InvalidOperationException("The reviewed avatar shuffle requires exactly 75 distinct normal combat roles.");
         if (includeTir) roles = roles.Append(CombatCatalog.TirId).OrderBy(id => id).ToArray();
         int[] donors = (int[])roles.Clone();
-        var random = new StableRandom(normalized);
-        for (int n = donors.Length - 1; n > 0; n--)
-        {
-            int other = random.Next(n + 1);
-            int value = donors[n]; donors[n] = donors[other]; donors[other] = value;
-        }
+        var random = new SeededShuffle(AlgorithmId, normalized);
+        random.Shuffle(donors);
         return new AvatarShuffleProfile(normalized, roles, donors, includeTir);
     }
 
     internal static string Hex(byte[] bytes) => string.Concat(bytes.Select(value => value.ToString("x2")));
-
-    private sealed class StableRandom
-    {
-        private ulong _state;
-        internal StableRandom(string seed)
-        {
-            using var sha = SHA256.Create();
-            byte[] hash = sha.ComputeHash(Encoding.UTF8.GetBytes(AlgorithmId + "\n" + seed));
-            for (int n = 0; n < 8; n++) _state |= (ulong)hash[n] << (8 * n);
-        }
-        private ulong NextUInt64()
-        {
-            unchecked
-            {
-                ulong value = (_state += 0x9e3779b97f4a7c15UL);
-                value = (value ^ (value >> 30)) * 0xbf58476d1ce4e5b9UL;
-                value = (value ^ (value >> 27)) * 0x94d049bb133111ebUL;
-                return value ^ (value >> 31);
-            }
-        }
-        internal int Next(int exclusiveMaximum)
-        {
-            ulong bound = (ulong)exclusiveMaximum;
-            ulong threshold = unchecked(0UL - bound) % bound;
-            ulong value;
-            do { value = NextUInt64(); } while (value < threshold);
-            return (int)(value % bound);
-        }
-    }
 }

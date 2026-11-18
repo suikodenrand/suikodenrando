@@ -69,10 +69,54 @@ internal static partial class Program
         Gsd2CampNativeGuard.FreshChecks=0;Gsd2CampNativeGuard.MapChecks=0;Gsd2CampNativeGuard.PlayerChecks=0;
         Gsd2RejectedSaveMirrorGuard.EnsureCalls=0;Gsd2RejectedSaveMirrorGuard.RejectEnsure=false;
     }
+    private static void SnapshotBindingConflicts()
+    {
+        const string snapshot = "identical-native-json";
+        var first = Start("FixedChosen", 1);
+        var firstGame = OldSrcBase.game_work;
+        first.BeginSave();
+        Check(first.BindSnapshot(snapshot) && first.BindSnapshot(snapshot), "An identical repeat binding was refused");
+        string path = BindingFile(snapshot);
+        var existing = JsonNode.Parse(File.ReadAllText(path))!.AsObject();
+        existing.Remove("JoiningEquipment"); // Older bindings default to the donor policy.
+        var roles = existing["CanonicalRoles"]!.AsObject();
+        string key = roles.First().Key;
+        var value = roles[key]; roles.Remove(key); roles.Add(key, value); // Equivalent dictionary with a different order.
+        File.WriteAllText(path, existing.ToJsonString(), System.Text.Encoding.Unicode);
+        var originalBytes = File.ReadAllBytes(path);
+        Check(first.BindSnapshot(snapshot), "A semantically identical legacy binding was refused");
+
+        Gsd2Plugin.JoiningWeaponLevel = "Level1";
+        var second = Start("FixedChosen", 1);
+        second.BeginSave();
+        Reject<InvalidDataException>(() => second.BindSnapshot(snapshot));
+        Check(File.ReadAllBytes(path).SequenceEqual(originalBytes), "A conflicting policy modified an existing binding");
+
+        const string race = "simultaneous-native-save";
+        var successes = new bool[2];
+        var contenders = new[] { first, second };
+        using var barrier = new System.Threading.Barrier(2);
+        System.Threading.Tasks.Parallel.For(0, 2, index =>
+        {
+            barrier.SignalAndWait();
+            try { successes[index] = contenders[index].BindSnapshot(race); }
+            catch (InvalidDataException) { }
+        });
+        Check(successes.Count(written => written) == 1, "Competing policies must produce exactly one successful binding");
+        Check(contenders[Array.IndexOf(successes, true)].BindSnapshot(race), "The winning binding could not be reused");
+        Reject<InvalidDataException>(() => contenders[Array.IndexOf(successes, false)].BindSnapshot(race));
+        second.EndSave();
+        OldSrcBase.game_work = firstGame; first.EndSave();
+        var loaded = new Gsd2Runtime();
+        loaded.PrepareLoad(snapshot);
+        Check(loaded.ActiveJoiningWeaponLevel == first.ActiveJoiningWeaponLevel, "Reload picked the colliding campaign's policy");
+    }
+
     private static void Main()
     {
         Directory.CreateDirectory(BepInEx.Paths.ConfigPath);
         var tests=new(string Name,Action Run)[] {
+            ("identical S2 saves preserve the original binding across repeat and competing writes", SnapshotBindingConflicts),
             ("shuffled weapon starts follow the native role while donor identity and earned upgrades survive reload",()=> {
                 Gsd2Plugin.Mode="Shuffle";Gsd2Plugin.Seed="role-weapon-regression";Gsd2Plugin.IncludeProtagonist=false;Gsd2Plugin.StartPoint="Opening";
                 var g=Fixture(1,80);OldSrcBase.game_work=g;var original=g.chara_data;var arms=g.arms_data;
@@ -244,6 +288,20 @@ internal static partial class Program
                 g.chara_data.c_varia_dat[12].now_hp=39;g.chara_data.c_varia_dat[12].bogu_eqp[0]=207;
                 SetParty(g,1,7,8,9,10,11);r.Tick();Check(r.MapDisplayId(1)==1&&g.chara_data.c_varia_dat[12].now_hp==39,"Hero return clobbered borrowed role progression");
                 SetParty(g,7,8,9,10,11,12);r.Tick();Check(r.MapDisplayId(12)==1&&g.chara_data.c_varia_dat[12].now_hp==39&&g.chara_data.c_varia_dat[12].bogu_eqp[0]==207,"Reborrowing reset canonical borrowed-role state");
+            }),
+            ("reordering a fixed party keeps its character table and graphics ready", () => {
+                var runtime = Start("FixedChosen", 1, 7, 8);
+                var game = OldSrcBase.game_work;
+                var characters = game.chara_data;
+                Gsd2Graphics.IsReady = true;
+                Check(!runtime.HoldNativeUpdate, "Fixture must start with an active party.");
+
+                SetParty(game, 1, 8, 7);
+                runtime.Tick();
+
+                Check(runtime.MapDisplayId(7) == 2 && runtime.MapDisplayId(8) == 3, "Reordering reassigned fighters.");
+                Check(ReferenceEquals(game.chara_data, characters), "Reordering replaced the live character table.");
+                Check(Gsd2Graphics.IsReady && !runtime.HoldNativeUpdate, "Reordering interrupted chapter updates.");
             }),
             ("departed fixed roles restore canonical growth and character metadata",()=> {
                 var r=Start("FixedChosen",1,7);var g=OldSrcBase.game_work;

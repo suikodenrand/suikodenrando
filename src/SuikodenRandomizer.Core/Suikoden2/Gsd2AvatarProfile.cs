@@ -78,17 +78,13 @@ public sealed class Gsd2AvatarProfile
     {
         string normalized = NormalizeSeed(seed);
         int[] roles = Gsd2CharacterCatalog.NormalCombatIds.Concat(includeProtagonist ? new[] { Gsd2CharacterCatalog.ProtagonistId } : Array.Empty<int>()).OrderBy(id => id).ToArray();
-        var random = new StableRandom(normalized);
+        var random = new SeededShuffle(AlgorithmId, normalized);
         var donorsByRole = new Dictionary<int, int>();
         // Preserve native two-cell formations by shuffling each footprint class independently.
         foreach (var group in roles.GroupBy(Gsd2CharacterCatalog.GetSlotCost).OrderBy(group => group.Key))
         {
             int[] groupRoles = group.ToArray(), donors = groupRoles.ToArray();
-            for (int index = donors.Length - 1; index > 0; index--)
-            {
-                int other = random.Next(index + 1);
-                int value = donors[index]; donors[index] = donors[other]; donors[other] = value;
-            }
+            random.Shuffle(donors);
             for (int index = 0; index < groupRoles.Length; index++) donorsByRole.Add(groupRoles[index], donors[index]);
         }
         return new Gsd2AvatarProfile(normalized, "Shuffle", includeProtagonist, roles, roles.Select(id => donorsByRole[id]).ToArray(), Array.Empty<int>());
@@ -124,30 +120,4 @@ public sealed class Gsd2AvatarProfile
     }
 
     private static string Hex(byte[] bytes) => string.Concat(bytes.Select(value => value.ToString("x2")));
-    private sealed class StableRandom
-    {
-        private ulong _state;
-        internal StableRandom(string seed)
-        {
-            using var sha = SHA256.Create();
-            byte[] hash = sha.ComputeHash(Encoding.UTF8.GetBytes(AlgorithmId + "\n" + seed));
-            for (int index = 0; index < 8; index++) _state |= (ulong)hash[index] << (8 * index);
-        }
-        private ulong NextUInt64()
-        {
-            unchecked
-            {
-                ulong value = (_state += 0x9e3779b97f4a7c15UL);
-                value = (value ^ (value >> 30)) * 0xbf58476d1ce4e5b9UL;
-                value = (value ^ (value >> 27)) * 0x94d049bb133111ebUL;
-                return value ^ (value >> 31);
-            }
-        }
-        internal int Next(int maximum)
-        {
-            ulong bound = (ulong)maximum, threshold = unchecked(0UL - bound) % bound, value;
-            do { value = NextUInt64(); } while (value < threshold);
-            return (int)(value % bound);
-        }
-    }
 }

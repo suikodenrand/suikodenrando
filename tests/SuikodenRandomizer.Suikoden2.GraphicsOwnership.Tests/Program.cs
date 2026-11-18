@@ -11,6 +11,9 @@ internal static class Program
     {
         var cases = new (string, Action)[] {
             ("owned loader creates a canonical graph with donor field data", FreshReady),
+            ("steady frames reuse the roster snapshot and changed assignments invalidate readiness immediately", StableRoster),
+            ("replacing either native source refreshes the projected and resident graphs", SourceReplacement),
+            ("reloading identical native sources reuses the proxy and its leases", RepeatLoads),
             ("Suspend retires references and clears publication without any native/Unity read", SuspendManagedOnly),
             ("foreign Reset performs only managed suspension and leaves residents untouched", ForeignReset),
             ("owned Reset restores canonical resident resources", OwnedReset),
@@ -71,11 +74,59 @@ internal static class Program
         True(proxy.field_data.Pointer != x.Donor.field_data.Pointer); True(proxy.battle_data.Pointer != x.Donor.battle_data.Pointer);
         Eq(2, Count("Originals")); Eq(1, Count("Proxies")); Eq(0, Count("Loading")); Eq(0, x.Runtime.Failures.Count);
     }
+    private static void StableRoster()
+    {
+        var x = Setup(); var first = Ready();
+        int lookups = x.Runtime.RoleLookups;
+        for (int frame = 0; frame < 10; frame++)
+        {
+            True(Gsd2Graphics.IsReady);
+            Gsd2Graphics.Tick();
+        }
+        Eq(lookups, x.Runtime.RoleLookups);
+        x.Runtime.Map = new() { [28] = 42 };
+        PlayerDataLoader.Assets[42] = Graph(42);
+        True(!Gsd2Graphics.IsReady);
+        var changed = Ready();
+        True(first.Pointer != changed.Pointer);
+        Eq(PlayerDataLoader.Assets[42].field_data.opd_data.Pointer, changed.field_data.opd_data.Pointer);
+    }
+    private static void SourceReplacement()
+    {
+        var x = Setup(); var first = Ready();
+        var donor = Graph(22);
+        Eq(donor.Pointer, Gsd2Graphics.Project(22, false, donor)!.Pointer);
+        var replacement = Gsd2Graphics.Project(28, false, x.Canonical)!;
+        True(first.Pointer != replacement.Pointer);
+        Eq(donor.field_data.opd_data.Pointer, replacement.field_data.opd_data.Pointer);
+        Eq(replacement.Pointer, x.Party._cha_gra_adrs_graphdata[0].Pointer);
+
+        var canonical = Graph(28);
+        var latest = Gsd2Graphics.Project(28, false, canonical)!;
+        True(latest.Pointer != replacement.Pointer);
+        Eq(donor.field_data.opd_data.Pointer, latest.field_data.opd_data.Pointer);
+        Gsd2Graphics.Reset();
+        Eq(canonical.Pointer, x.Party._cha_gra_adrs_graphdata[0].Pointer);
+        True(Gsd2Graphics.MustRetain(first) && Gsd2Graphics.MustRetain(x.Donor));
+    }
+
+    private static void RepeatLoads()
+    {
+        var x = Setup(); var first = Ready();
+        int leases = Count("LeasedGraphs"), projections = Count("CachedProxies");
+        for (int cycle = 0; cycle < 20; cycle++)
+        {
+            Gsd2Graphics.Reset();
+            Eq(x.Canonical.Pointer, x.Party._cha_gra_adrs_graphdata[0].Pointer);
+            Eq(first.Pointer, Ready().Pointer);
+        }
+        Eq(leases, Count("LeasedGraphs")); Eq(projections, Count("CachedProxies"));
+    }
     private static void SuspendManagedOnly()
     {
-        var x = Setup(); var proxy = Ready(); int generation = Generation, retired = Count("Retired");
+        var x = Setup(); var proxy = Ready(); int generation = Generation, leases = Count("LeasedGraphs");
         NativeAccess.Clear(); NativeAccess.Block = true; Gsd2Graphics.Suspend();
-        Eq(0, NativeAccess.Calls.Count); Eq(generation + 1, Generation); True(Count("Retired") >= retired + 3);
+        Eq(0, NativeAccess.Calls.Count); Eq(generation + 1, Generation); Eq(leases, Count("LeasedGraphs"));
         Eq(0, Count("Originals")); Eq(0, Count("Proxies")); Eq(0, Count("Loading"));
         Eq(proxy.Pointer, x.Party._cha_gra_adrs_graphdata[0].Pointer); True(!UnityEngine.Object.Destroyed.Contains(proxy.Pointer));
     }

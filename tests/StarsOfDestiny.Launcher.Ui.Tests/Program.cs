@@ -115,6 +115,21 @@ internal static class Program
                 "An absent optional ATB component still exposed its enable control.");
             Passed("Native Unite control stages per-game settings while absent optional ATB controls remain disabled");
 
+            string dormant = Path.Combine(game, "BepInEx", "SuikodenRandomizer.S1BattlePreview.dll");
+            File.WriteAllText(dormant, "unreviewed test fixture");
+            try
+            {
+                Call(form, "ActivateAtbPreview");
+                throw new InvalidOperationException("An unreviewed ATB fixture was activated.");
+            }
+            catch (InvalidDataException) { }
+            File.Delete(dormant);
+            Check(workspace.IsDirty && workspace.GetBoolean("s1.unites")
+                && File.ReadAllText(Path.Combine(config, SettingsCatalog.S1File)) == originalS1
+                && !Directory.Exists(Path.Combine(config, "StarsOfDestiny.Launcher", "backups")),
+                "ATB activation committed unrelated staged settings or made a config backup.");
+            Passed("Rejected ATB activation preserves unapplied edits and the original config");
+
             // Metadata-only fixture: never loaded into the game or activated as a reviewed ATB build.
             string atbFixture = Path.Combine(plugins, "SuikodenRandomizer.S1BattlePreview.dll");
             File.Copy(type.Assembly.Location, atbFixture);

@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../SuikodenRandomizer.Core/SuikodenRandomizer.Core.csproj" />
+    <Compile Include="../Shared/RejectedSaveMirrorGuard.cs" Link="Integration/RejectedSaveMirrorGuard.cs" />
     <Compile Include="../SuikodenRandomizer.Plugin/Runtime/BuildCompatibility.cs" Link="BuildCompatibility.cs" />
     <Compile Include="../Shared/AvatarShuffleBindingJson.cs" Link="Serialization/AvatarShuffleBindingJson.cs" />
   </ItemGroup>

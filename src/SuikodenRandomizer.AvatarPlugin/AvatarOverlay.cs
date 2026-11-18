@@ -2,6 +2,7 @@ using Il2CppInterop.Runtime.Attributes;
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 namespace SuikodenRandomizer.AvatarPlugin;
 
@@ -16,7 +17,10 @@ public sealed class AvatarOverlay : MonoBehaviour
     {
         var runtime = AvatarRuntime.Current;
         if (runtime is null) return;
-        runtime.Tick();
+        // The standalone overlay has no unified host to determine game ownership.
+        var root = SceneManager.GetSceneByName("GSD1");
+        if (global::SystemObject.mode == global::SystemObject.Mode.GSD1 && root.IsValid() && root.isLoaded)
+            runtime.Tick();
         if (_inputFailed || !Application.isFocused) return;
         try
         {

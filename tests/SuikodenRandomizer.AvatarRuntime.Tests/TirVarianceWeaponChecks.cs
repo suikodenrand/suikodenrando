@@ -13,6 +13,26 @@ internal static partial class Program
 {
     private static void RunTirVarianceWeaponChecks()
     {
+        Case("A partially rebuilt formation defers the first join until the next owned tick", () =>
+        {
+            var w = VarianceWorld(); w.Ready(); SetVarianceParty(w, 8, 2);
+            w.Game.party_data.narabi[1] = -1;
+            w.Runtime.Tick();
+            Check(w.Runtime.IsActive && w.Runtime.FaultReason is null && JoinedWeaponRoles(w).Count == 0,
+                "A transient formation gap consumed the join or blocked saving");
+            w.Game.party_data.narabi[1] = 1;
+            w.Runtime.SetExecutionOwnership(() => true, () => 0);
+            UnityEngine.SceneManagement.SceneManager.SceneName = "BattleOverlay";
+            try { w.Runtime.Tick(); }
+            finally { UnityEngine.SceneManagement.SceneManager.SceneName = "GSD1"; }
+            Check(JoinedWeaponRoles(w).Contains(2) && w.Base(2).buki_data.level == ExpectedVariance(w, 2, 7),
+                "The owned overlay tick did not finish the pending join");
+            var save = VarianceSave(w, '7'); w.Runtime.WriteCampaignBinding(save, save.Identity); w.Runtime.WriteJoiningWeaponBinding(save.Identity);
+
+            w.Game.party_data.narabi[1] = -1;
+            Check(!w.Runtime.EnsureProxy("battle admission", true) && w.Runtime.FaultReason is not null,
+                "A required boundary accepted the same incomplete formation");
+        });
         Case("TirVariance defers reserve and recruited-only weapons until the first actual active join", () =>
         {
             var w = VarianceWorld(); w.Ready();
@@ -82,7 +102,7 @@ internal static partial class Program
             SetVarianceParty(w, 8); w.Ready(); w.Base(8).buki_data.level = 2;
             SetVarianceParty(w, 2, 8); w.Ready();
             Check(w.Base(2).buki_data.level == 15, "Rejoin or reorder lowered a sharpened weapon");
-            var save = VarianceSave(w, '1'); w.Runtime.WriteCampaignBinding(save); w.Runtime.WriteJoiningWeaponBinding(save);
+            var save = VarianceSave(w, '1'); w.Runtime.WriteCampaignBinding(save, save.Identity); w.Runtime.WriteJoiningWeaponBinding(save.Identity);
             var json = JsonNode.Parse(File.ReadAllText(WeaponBindingPath(save)))!.AsObject();
             Check(json["joiningWeaponVersion"]!.GetValue<int>() == 2 && json["initializedRoles"]!.AsArray().Count == 1,
                 "The new binding did not persist role history in schema v2");
@@ -108,7 +128,7 @@ internal static partial class Program
             w.Game.party_data.narabi[2] = 3; w.Game.party_data.player_kazu = 3; w.Ready();
             Check(w.Runtime.MapDisplayId(1) == 11 && w.Base(1).buki_data.level == Math.Clamp(2 + w.Runtime.JoiningWeaponDelta(1, 11), 1, 16),
                 "Unused fixed donor failed to adopt the later current Tir level");
-            var save = VarianceSave(w, '2'); w.Runtime.WriteCampaignBinding(save); w.Runtime.WriteJoiningWeaponBinding(save);
+            var save = VarianceSave(w, '2'); w.Runtime.WriteCampaignBinding(save, save.Identity); w.Runtime.WriteJoiningWeaponBinding(save.Identity);
             w.Runtime.PrepareLoad(save); w.Game.player_data[2] = w.Originals[6]; w.Game.player_data[3] = w.Originals[1];
             w.Runtime.CompleteFixedLoad(); w.Ready();
             Check(w.Base(6).buki_data.level == 15, "Fixed save reload discarded initialized-donor history");
@@ -120,10 +140,10 @@ internal static partial class Program
             Check(JoinedWeaponRoles(w).Contains(2), "Regular active Tick skipped first-join observation");
             SetVarianceParty(w, 8, 2, 6);
             var save = VarianceSave(w, '3'); bool refused = false;
-            try { w.Runtime.WriteJoiningWeaponBinding(save); } catch (InvalidOperationException) { refused = true; }
+            try { w.Runtime.WriteJoiningWeaponBinding(save.Identity); } catch (InvalidOperationException) { refused = true; }
             Check(refused, "Post-snapshot binding silently accepted an uninitialized active role");
             Check(w.Runtime.EnsureProxy("save preparation", false, force: true), "Forced save preparation did not process pending joins");
-            w.Runtime.WriteJoiningWeaponBinding(save);
+            w.Runtime.WriteJoiningWeaponBinding(save.Identity);
             Check(JoinedWeaponRoles(w).SetEquals(new[] { 2, 6 }), "Save preparation did not commit all active first joins");
         });
 
@@ -157,7 +177,7 @@ internal static partial class Program
         Case("Saved active-role history is checked against the incoming snapshot before native restoration", () =>
         {
             var w = VarianceWorld(); w.Ready(); SetVarianceParty(w, 8, 2); w.Ready(); w.Base(2).buki_data.level = 15;
-            var save = VarianceSave(w, '4'); w.Runtime.WriteCampaignBinding(save); w.Runtime.WriteJoiningWeaponBinding(save);
+            var save = VarianceSave(w, '4'); w.Runtime.WriteCampaignBinding(save, save.Identity); w.Runtime.WriteJoiningWeaponBinding(save.Identity);
             var json = JsonNode.Parse(File.ReadAllText(WeaponBindingPath(save)))!.AsObject(); json["initializedRoles"] = new JsonArray();
             File.WriteAllText(WeaponBindingPath(save), json.ToJsonString());
             SetVarianceParty(w, 8); // Outgoing party omits the saved active role.
@@ -169,12 +189,12 @@ internal static partial class Program
         Case("Version-one saved MatchRole and fixed Level1 policies retain their existing behavior", () =>
         {
             var w = new World(); w.Ready(); w.Base(2).buki_data.level = 14;
-            var save = WeaponSave('5'); w.Runtime.WriteCampaignBinding(save); w.Runtime.WriteJoiningWeaponBinding(save); DowngradeWeaponBinding(save);
+            var save = WeaponSave('5'); w.Runtime.WriteCampaignBinding(save, save.Identity); w.Runtime.WriteJoiningWeaponBinding(save.Identity); DowngradeWeaponBinding(save);
             AvatarPlugin.ConfiguredJoiningWeaponLevel = "TirVariance"; w.Runtime.PrepareLoad(save); w.Ready();
             Check(w.Runtime.JoiningWeaponPolicy == JoiningWeaponPolicy.MatchRole && w.Base(2).buki_data.level == 14, "Legacy v1 MatchRole adopted the new default");
-            w.Runtime.WriteJoiningWeaponBinding(save); // Existing v1 file remains immutable and equivalent.
+            w.Runtime.WriteJoiningWeaponBinding(save.Identity); // Existing v1 file remains immutable and equivalent.
             w = FixedWeaponWorld("Level1"); ActivateWeaponRole(w, 1); w.Ready(); w.Base(2).buki_data.level = 14;
-            save = WeaponSave('6'); w.Runtime.WriteCampaignBinding(save); w.Runtime.WriteJoiningWeaponBinding(save); DowngradeWeaponBinding(save);
+            save = WeaponSave('6'); w.Runtime.WriteCampaignBinding(save, save.Identity); w.Runtime.WriteJoiningWeaponBinding(save.Identity); DowngradeWeaponBinding(save);
             AvatarPlugin.ConfiguredJoiningWeaponLevel = "TirVariance";
             w.Runtime.PrepareLoad(save); w.Game.player_data[1] = w.Originals[2]; w.Runtime.CompleteFixedLoad(); w.Ready();
             ActivateWeaponRole(w, 2); w.Ready();

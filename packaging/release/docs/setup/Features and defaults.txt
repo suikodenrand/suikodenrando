@@ -1,8 +1,8 @@
-STARS OF DESTINY 0.14.4 - FEATURES AND DEFAULTS
+STARS OF DESTINY 0.14.5 - FEATURES AND DEFAULTS
 
 COMPONENTS
-Combined randomizer       0.14.4
-Windows launcher          1.0.5, self-contained Windows x64
+Combined randomizer       0.14.5
+Windows launcher          1.0.6, self-contained Windows x64
 Suikoden I ATB Preview    0.10.1, optional and installed disabled
 Suikoden Fix              upstream release 1.5.2b (plugin reports 1.5.2)
 BepInEx                   6.0.0-be.697, Unity IL2CPP Windows x64
@@ -53,7 +53,7 @@ RiouVariance was introduced in 0.14.3. Managed tests cover the new policy; nativ
 first-join playtesting of this option is pending. Existing campaign policies
 are never silently replaced by the new default.
 
-JOINING INVENTORY AND EQUIPMENT (NEW IN 0.14.4)
+JOINING INVENTORY AND EQUIPMENT (INTRODUCED IN 0.14.4)
 Fresh default for both games: Shuffle/JoiningEquipment=MatchRole. In the
 launcher, choose Original role's starting inventory under Characters.
 At the replacement's first party join, it receives the original story role's
@@ -83,7 +83,7 @@ S1 TREASURE (EXPERIMENTAL)
 132 ordinary item locations use a deterministic campaign-seeded reward map.
 Potch, Blinking Mirror, recruitment-related Sound Orb, Window Orb and
 Illustrated War Scroll, and the special Dwarves' Vault reward stay original.
-Native item granting and open-state handling are retained. Launcher 1.0.5
+Native item granting and open-state handling are retained. Launcher 1.0.6
 has one checkbox: Enable chest shuffle for new campaigns. Existing saves
 retain their stored policy. To change one, choose the checkbox value, Apply,
 select its snapshot and reset its chest settings, then load that save.
