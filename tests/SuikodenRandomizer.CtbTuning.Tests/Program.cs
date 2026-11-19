@@ -21,6 +21,11 @@ Check(stars.Count(s => s.BaseSpd.HasValue) == 76 && stars.Single(s => s.Id == 8)
     stars.Single(s => s.Name == "Mathiu").BaseSpd is null, "Unexpected playable roster.");
 Check(enemies.Count == 136 && enemies.Select(e => e.SourceId).Distinct().Count() == 136 &&
     enemies.Select(e => e.Name).Distinct().Count() == 96, "Lost enemy definitions or variants.");
+var preset = CtbTuningProfile.Load(Path.Combine(AppContext.BaseDirectory, "Examples", CtbTuningProfile.FileName));
+Check(preset.SoloBossBlendEnabled && preset.NormalEnemyScalingEnabled && preset.SoloBossPartyWeightPercent == 75
+    && preset.SoloBossVariationPercent == 0 && preset.SoloBossBreakPercent == 25 && preset.OtherBreakPercent == 50
+    && preset.SoloBossSpdBonusPercent == 0 && !preset.HasStarOverrides && !preset.HasEnemyOverrides,
+    "The public adaptive example must reproduce the tested balance without individual overrides.");
 var dragon = enemies.Single(e => e.Name == "Zombie Dragon");
 var shell = enemies.Single(e => e.Name == "Venus Shell");
 Check((dragon.Level, dragon.BaseSpd, dragon.Hp) == (30, 65, 3700), "Zombie Dragon data mismatch.");

@@ -7,5 +7,6 @@
   <ItemGroup>
     <Compile Include="../../src/Shared/CtbTuning*.cs" Link="%(Filename)%(Extension)" />
     <Compile Include="../../src/StarsOfDestiny.CtbEditor/Data/CtbTuningCatalog.Data.cs" Link="CtbTuningCatalog.Data.cs" />
+    <None Include="../../packaging/ctb/examples/s1-ctb-tuning.json" Link="Examples/s1-ctb-tuning.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
