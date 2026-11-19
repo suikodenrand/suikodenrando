@@ -1,6 +1,7 @@
 STARS OF DESTINY 0.14.6 - FULL WINDOWS RELEASE
 Suikoden I & II HD Remaster | Steam | Windows x64
-Launcher 1.0.7
+Launcher 1.0.8
+Choose Discord in the launcher to open the community server invite.
 
 INSTALL
 1. Close the game and the Stars of Destiny launcher. Keep a paired backup
@@ -31,7 +32,7 @@ WHAT IS INCLUDED
 - Supported English dialogue-name replacement in both games.
 - Native shuffled-character Unite previews for both games.
 - Suikoden I seeded chest shuffle, off until you enable it.
-- Windows launcher 1.0.7, preset import/export and configuration backups.
+- Windows launcher 1.0.8, preset import/export and configuration backups.
 - BepInEx 6 IL2CPP x64 build 697 and its private loader runtime.
 - Suikoden Fix 1.5.2b and its launcher settings.
 - Optional separate Suikoden I ATB Preview 0.15.2, installed disabled.
@@ -85,7 +86,7 @@ before starting a new game. Existing saves keep their stored chest policy.
 To change one, choose checked (shuffled) or unchecked (original), Apply,
 select its saved snapshot and use Reset selected save's chest settings.
 The next load adopts that policy. The manager keeps a backup; acquired items
-and opened chest flags stay put. On Apply, launcher 1.0.7 clears the older
+and opened chest flags stay put. On Apply, launcher 1.0.8 clears the older
 global pause and resumes saved shuffles. Unticking the new-campaign option
 does not pause an existing shuffled policy. S2 chest shuffle is unavailable.
 
@@ -106,7 +107,7 @@ The battle plugin supports CTB and ATB. Both start off. With the component
 installed, open Suikoden I > Battle & ATB, disable shuffled Unites and the
 legacy Talisman preview, activate the component if needed, then enable the
 battle preview and CTB. The CTB tuning editor opens from the same tab.
-Guide: https://github.com/suikodenrand/suikodenrando/blob/v0.14.6/docs/CTB-PROTOTYPE.md
+Guide: https://github.com/suikodenrand/suikodenrando/blob/package-v0.14.6-r2/docs/CTB-PROTOTYPE.md
 
 OPTIONAL S1 ATB
 Select "Experimental S1 ATB / CTB (installed disabled)" during setup. In the

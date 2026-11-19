@@ -2,7 +2,7 @@ STARS OF DESTINY 0.14.6 - MOD-ONLY PACKAGE FEATURES AND DEFAULTS
 
 COMPONENTS
 Combined randomizer       0.14.6
-Windows launcher          1.0.7, self-contained Windows x64
+Windows launcher          1.0.8, self-contained Windows x64
 S1 ATB / CTB plugin       0.15.2, optional; dormant outside active plugins
 Suikoden Fix              upstream release 1.5.2b (plugin reports 1.5.2)
 BepInEx                   REQUIRED SEPARATELY: 6.0.0-be.697, Unity IL2CPP x64
@@ -26,7 +26,7 @@ The battle plugin supports CTB and ATB. Both start off. With the component
 installed, open Suikoden I > Battle & ATB, disable shuffled Unites and the
 legacy Talisman preview, activate the component if needed, then enable the
 battle preview and CTB. The CTB tuning editor opens from the same tab.
-Guide: https://github.com/suikodenrand/suikodenrando/blob/v0.14.6/docs/CTB-PROTOTYPE.md
+Guide: https://github.com/suikodenrand/suikodenrando/blob/package-v0.14.6-r2/docs/CTB-PROTOTYPE.md
 
 BOTH GAMES
 Seeded character-role shuffle; five chosen companions; seeded random fixed
@@ -102,7 +102,7 @@ S1 TREASURE (EXPERIMENTAL)
 132 ordinary item locations use a deterministic campaign-seeded reward map.
 Potch, Blinking Mirror, recruitment-related Sound Orb, Window Orb and
 Illustrated War Scroll, and the special Dwarves' Vault reward stay original.
-Native item granting and open-state handling are retained. Launcher 1.0.7
+Native item granting and open-state handling are retained. Launcher 1.0.8
 has one checkbox: Enable chest shuffle for new campaigns. Existing saves
 retain their stored policy. To change one, choose the checkbox value, Apply,
 select its snapshot and reset its chest settings, then load that save.

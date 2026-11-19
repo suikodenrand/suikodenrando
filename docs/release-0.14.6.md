@@ -1,5 +1,7 @@
 # Stars of Destiny 0.14.6
 
+**Windows package revision 0.14.6-r2** ships launcher **1.0.8** with **Join our Discord** in its header. Existing players can use the standalone launcher ZIP. [Launcher update](https://github.com/suikodenrand/suikodenrando/blob/launcher-v1.0.8/docs/launcher-1.0.8.md)
+
 This release adds four optional Suikoden I improvements, launcher 1.0.7, and the first public S1 CTB preview. The four improvements are enabled by default. In the launcher, open **Suikoden I → Quality of Life** to switch them individually or disable all four. CTB has its own switch and starts off.
 
 ## Inventory, equipment, and quick start

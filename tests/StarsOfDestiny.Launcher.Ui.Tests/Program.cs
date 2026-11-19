@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -30,8 +31,18 @@ internal static class Program
         {
             var type = Assembly.Load("StarsOfDestiny.Launcher").GetType("StarsOfDestiny.Launcher.MainForm", true)!;
             string versionedTitle = "Stars of Destiny Launcher " + type.Assembly.GetName().Version!.ToString(3);
+            var shellRequests = new List<ProcessStartInfo>();
             form = (Form)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic,
-                binder: null, args: new object?[] { game }, culture: null)!;
+                binder: null, args: new object?[] { game, (Action<ProcessStartInfo>)shellRequests.Add }, culture: null)!;
+            var discord = Descendants<LinkLabel>(form).Single(link => link.Text == "Join our Discord");
+            Check(discord.TabStop && discord.Enabled && discord.Parent is Panel && discord.Links.Count == 1,
+                "The Discord invite must be a keyboard-accessible link in the launcher header.");
+            typeof(LinkLabel).GetMethod("OnLinkClicked", BindingFlags.NonPublic | BindingFlags.Instance)!
+                .Invoke(discord, new object[] { new LinkLabelLinkClickedEventArgs(discord.Links[0]) });
+            Check(shellRequests.Count == 1 && shellRequests[0].UseShellExecute
+                && shellRequests[0].FileName == "https://discord.gg/NbjPpcG3Cb" && shellRequests[0].Arguments == "",
+                "The invite did not request the official Discord address in the default browser before game setup.");
+            Passed("The header opens the official Discord invite through the default browser without game setup");
             Call(form, "LoadInstallation", game);
             var workspace = Field<SettingsWorkspace>(form, "_workspace");
             var seed = Field<TextBox>(form, "_seed");
@@ -52,6 +63,8 @@ internal static class Program
             Check(!Descendants<GroupBox>(tabs).Single(group => group.Text.StartsWith("Suikoden I inventory and quick start", StringComparison.Ordinal)).Enabled,
                 "A missing host exposed S1 equipment and quick-start controls.");
             gameChoice.SelectedIndex = 1;
+            Check(Descendants<LinkLabel>(form).Single(link => link.Text == "Join our Discord") == discord
+                && !tabs.Contains(discord), "Changing games replaced the shared header link or moved it inside a settings page.");
             Check(!WeaponChoice(tabs).Enabled && WeaponChoice(tabs).Parent!.Parent!.Text.Contains("requires plug-in 0.14.3", StringComparison.Ordinal),
                 "A missing host did not disable S2 joining weapon selection with the RiouVariance minimum.");
             Check(!EquipmentChoice(tabs).Enabled, "Missing S2 host incorrectly exposed original-role inventory support.");

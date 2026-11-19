@@ -2,12 +2,12 @@
 
 CTB gives each living combatant an individual turn based on SPD. While you choose a command, the battle clock pauses. The bottom-center strip shows up to eight upcoming actions. Highlight a command and the cyan **Next** marker shows when that hero is projected to act again.
 
-The preview is optional in Stars of Destiny **0.14.6**. It uses battle plugin **0.15.2**, launcher **1.0.7**, and tuning editor **0.5.1**. Fresh installations leave CTB off.
+The preview is optional in Stars of Destiny **0.14.6**. It uses battle plugin **0.15.2**, launcher **1.0.8** in the revised Windows downloads, and tuning editor **0.5.1**. Fresh installations leave CTB off.
 
 ## Enable CTB
 
 1. Close the game. Open the **Stars of Destiny Launcher** for your game installation. The 0.14.6 setup and manual mod package include the preview and the tuning editor. If using the separate CTB download, follow the add-on instructions below first.
-2. In **Suikoden I → Battle & ATB**, turn off shuffled Unites and the legacy Talisman preview. If the component is dormant, select **Activate ATB / CTB preview**.
+2. In **Suikoden I → Battle & ATB**, turn off shuffled Unites. If you enabled the legacy Talisman preview under **Advanced**, turn it off there. If the component is dormant, select **Activate ATB / CTB preview**.
 3. Turn on **Enable battle preview component** and **Enable CTB (overrides ATB)**. Choose whether to enable **Break** and **Reserve Rally**, then apply your settings and start the game.
 4. To switch back to ordinary combat, close the game and turn off the battle preview component and CTB in the launcher. To use ATB, disable CTB and enable the ATB options you want. Applying battle settings affects your next game launch.
 

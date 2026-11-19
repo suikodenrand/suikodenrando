@@ -26,7 +26,7 @@ function Get-Sha256([string]$Path) {
 $repo = Split-Path -Parent $PSScriptRoot
 $callerLocation = $ExecutionContext.SessionState.Path
 $game = $callerLocation.GetUnresolvedProviderPathFromPSPath($GamePath)
-if (-not $OutputDirectory) { $OutputDirectory = Join-Path $repo 'artifacts/0.14.6' }
+if (-not $OutputDirectory) { $OutputDirectory = Join-Path $repo 'artifacts/0.14.6-r2' }
 $output = $callerLocation.GetUnresolvedProviderPathFromPSPath($OutputDirectory)
 if ($output -eq $game -or $output.StartsWith($game.TrimEnd('\','/') + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
     throw 'Build output must be outside the game installation.'
@@ -98,7 +98,7 @@ try {
         if ($LASTEXITCODE -ne 0) { throw "Release packaging failed with exit code $LASTEXITCODE." }
     }
     $report = [ordered]@{version='0.14.6'; packageMode=$PackageMode; runtime=$runtime; atb=$atbDll;
-        launcher=$launcher; reviewedAtbSha256=$reviewedAtbHash; gameModified=$false; published=$false}
+        launcher=$launcher; sourceCommit=$SourceCommit; reviewedAtbSha256=$reviewedAtbHash; gameModified=$false; published=$false}
     [IO.File]::WriteAllText((Join-Path $output 'release-build.json'), ($report | ConvertTo-Json -Depth 5), [Text.UTF8Encoding]::new($false))
     Write-Output "Built Stars of Destiny 0.14.6 in $output"
 } finally { Pop-Location }

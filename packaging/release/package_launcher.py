@@ -18,7 +18,7 @@ from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
-VERSION = "1.0.7"
+VERSION = "1.0.8"
 SUPPORTED_HOST = "0.14.6"
 ROOT = "StarsOfDestiny Launcher/"
 SUPPORT = "StarsOfDestiny Launcher Package/"
@@ -36,7 +36,7 @@ FORBIDDEN_DLLS = {"gameassembly.dll", "unityplayer.dll", "gsd1.dll", "gsd2.dll",
                   "winhttp.dll", "dobby.dll"}
 ZIP_TIME = (2026, 11, 15, 0, 0, 0)
 
-START_HERE = """STARS OF DESTINY LAUNCHER 1.0.7 - OPTIONAL WINDOWS DOWNLOAD
+START_HERE = """STARS OF DESTINY LAUNCHER 1.0.8 - OPTIONAL WINDOWS DOWNLOAD
 For Stars of Destiny randomizer plug-ins 0.14.6 | Steam | Windows x64
 
 This download includes the settings launcher and CTB tuning editor. Install the
@@ -156,7 +156,7 @@ def read_publish(folder: Path, reviewed_atb_sha256: str, dotnet: str) -> dict[st
             or deps["libraries"][own_key].get("type") != "project"
             or own_key not in deps["targets"].get(target, {})
             or any(k.startswith("StarsOfDestiny.Launcher/") and k != own_key for k in deps["libraries"])):
-        raise ValueError("Publish dependencies must identify StarsOfDestiny.Launcher/1.0.7 for win-x64")
+        raise ValueError("Publish dependencies must identify StarsOfDestiny.Launcher/1.0.8 for win-x64")
     declared_assets = set()
     for library in deps["targets"][target].values():
         for asset_type in ("runtime", "native", "resources"):
@@ -221,10 +221,10 @@ def package(launcher_dir: Path, atb_dll: Path, output: Path, source_commit: str,
         raise ValueError("--atb-dll must identify the reviewed SuikodenRandomizer.S1BattlePreview.dll")
     atb_hash = digest(atb_dll.read_bytes())
     publish = read_publish(launcher_dir, atb_hash, dotnet)
-    notes = REPO / "docs/launcher-1.0.7.md"
+    notes = REPO / "docs/launcher-1.0.8.md"
     license_file = REPO / "LICENSE"
     if not notes.is_file() or not notes.read_text(encoding="utf-8").strip():
-        raise ValueError("Missing docs/launcher-1.0.7.md release notes")
+        raise ValueError("Missing docs/launcher-1.0.8.md release notes")
     if not license_file.is_file() or not license_file.read_bytes():
         raise ValueError("Missing project MIT LICENSE")
     files = {ROOT + name: data for name, data in publish.items()}
@@ -276,7 +276,7 @@ def package(launcher_dir: Path, atb_dll: Path, output: Path, source_commit: str,
         "bytes": archive_path.stat().st_size, "files": len(files), "status": "passed",
         "launcherVersion": VERSION, "supportedRandomizerHostVersion": SUPPORTED_HOST,
         "sourceCommit": source_commit.lower(), "reviewedAtbSha256": atb_hash,
-        "checks": ["Complete self-contained win-x64 launcher 1.0.7", "Private runtime license notices preserved",
+        "checks": ["Complete self-contained win-x64 launcher 1.0.8", "Private runtime license notices preserved",
                    "No personal preferences, scripts, nested archives, links or unexpected executable files",
                    "Every ZIP member and CRC checked against original input bytes"],
         "claim": "Packaging checks only; no install, launch, native gameplay or publication performed.",

@@ -1,5 +1,9 @@
 # Changelog
 
+## Launcher 1.0.8 and Windows package revision 0.14.6-r2 — 2026-11-19
+
+- Open the randomizer community invite from **Join our Discord** in the launcher header on every tab. The updated launcher is available on its own and in the Windows installer, manual mod package and CTB preview download. [Launcher notes](docs/launcher-1.0.8.md)
+
 ## [0.14.6](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.6) — 2026-11-19
 
 - Open Roc’s Warehouse from Items after recruitment, share living teammates’ battle items, and optimize each fighter’s equipment from configurable gear sources.

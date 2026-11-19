@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -15,6 +16,7 @@ namespace StarsOfDestiny.Launcher;
 internal sealed partial class MainForm : Form
 {
     private const string AppTitle = "Stars of Destiny Launcher";
+    private const string DiscordInvite = "https://discord.gg/NbjPpcG3Cb";
     private static readonly string VersionedTitle = AppTitle + " " + typeof(MainForm).Assembly.GetName().Version?.ToString(3);
     private static readonly Color Navy = Color.FromArgb(14, 43, 69);
     private static readonly Color Muted = Color.FromArgb(84, 94, 105);
@@ -28,6 +30,7 @@ internal sealed partial class MainForm : Form
     private readonly Button _apply = Button("Apply settings");
     private readonly Button _launch = Button("Save && launch game");
     private readonly System.Windows.Forms.Timer _timer = new() { Interval = 2000 };
+    private readonly Action<ProcessStartInfo> _openWithShell;
     private SettingsWorkspace? _workspace;
     private DataGridView? _advanced;
     private bool _loading;
@@ -35,8 +38,11 @@ internal sealed partial class MainForm : Form
     private string GameId => _game.SelectedIndex == 1 ? "s2" : "s1";
     private string GameName => _game.SelectedIndex == 1 ? "Suikoden II" : "Suikoden I";
 
-    internal MainForm(string? gameFolder)
+    internal MainForm(string? gameFolder) : this(gameFolder, info => Process.Start(info)?.Dispose()) { }
+
+    private MainForm(string? gameFolder, Action<ProcessStartInfo> openWithShell)
     {
+        _openWithShell = openWithShell;
         Text = VersionedTitle;
         Font = new Font("Segoe UI", 9F);
         BackColor = Color.FromArgb(244, 245, 247);
@@ -57,6 +63,14 @@ internal sealed partial class MainForm : Form
             ForeColor = Color.White, Dock = DockStyle.Left, Width = 270, TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(12, 0, 0, 0) });
         header.Controls.Add(new Label { Text = "Randomizer settings and game launcher", ForeColor = Color.FromArgb(203, 215, 226),
             Dock = DockStyle.Right, Width = 350, TextAlign = ContentAlignment.MiddleRight, Padding = new Padding(0, 0, 12, 0) });
+        var discord = new LinkLabel
+        {
+            Text = "Join our Discord", AccessibleDescription = "Opens the Stars of Destiny randomizer Discord invite in your browser.",
+            Dock = DockStyle.Right, Width = 120, TextAlign = ContentAlignment.MiddleCenter, TabStop = true,
+            LinkColor = Color.White, ActiveLinkColor = Color.Gold
+        };
+        discord.LinkClicked += (_, _) => OpenInDefaultApp(DiscordInvite);
+        header.Controls.Add(discord);
         shell.Controls.Add(header, 0, 0);
         shell.Controls.Add(BuildTop(), 0, 1);
         shell.Controls.Add(_tabs, 0, 2);
@@ -389,10 +403,15 @@ internal sealed partial class MainForm : Form
     private bool CanDiscard() => _workspace?.IsDirty != true || MessageBox.Show(this,
         "Discard the unsaved launcher changes?", AppTitle, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes;
     private void ShowError(Exception error) { _status.Text = error.Message; MessageBox.Show(this, error.Message, AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Information); }
-    private static void OpenPath(string path)
+    private void OpenPath(string path)
     {
         if (!File.Exists(path) && !Directory.Exists(path)) return;
-        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true });
+        OpenInDefaultApp(path);
+    }
+    private void OpenInDefaultApp(string target)
+    {
+        try { _openWithShell(new ProcessStartInfo(target) { UseShellExecute = true }); }
+        catch (Exception error) { ShowError(new InvalidOperationException($"Windows could not open {target}.\n\n{error.Message}", error)); }
     }
     private static string PreferencePath => Path.Combine(AppContext.BaseDirectory, "launcher-preferences.json");
     private static string? ReadPreferredFolder()

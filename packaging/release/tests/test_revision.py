@@ -68,7 +68,7 @@ class DistributionRevisionChecks(unittest.TestCase):
                     self.assertEqual('r2', document['packageRevision'])
                     self.assertEqual('0.14.6-r2', document['distributionVersion'])
                     self.assertEqual({'runtime': 'a' * 40, 'launcher': 'b' * 40}, document['binarySourceCommits'])
-                self.assertEqual('1.0.7', manifest['launcherVersion'])
+                self.assertEqual('1.0.8', manifest['launcherVersion'])
             sidecar = args.output / (result['name'] + '.sha256')
             self.assertEqual(result['sha256'] + '  ' + result['name'] + '\n', sidecar.read_text(encoding='ascii'))
 
@@ -92,7 +92,7 @@ class DistributionRevisionChecks(unittest.TestCase):
             self.assertEqual('0.14.6', manifest['packageVersion'])
             self.assertEqual('r2', manifest['packageRevision'])
             self.assertEqual('0.14.6-r2', manifest['distributionVersion'])
-            self.assertEqual('1.0.7', manifest['launcherVersion'])
+            self.assertEqual('1.0.8', manifest['launcherVersion'])
             relative = 'Game Files/StarsOfDestiny Setup/Build information.txt'
             self.assertIn(relative, {entry['path'] for entry in manifest['files']})
             self.assertEqual((release.HERE / 'docs/setup/Build information.txt').read_bytes(),

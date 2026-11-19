@@ -19,7 +19,8 @@ from zipfile import ZipFile, ZIP_DEFLATED
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 VERSION = '0.14.6'
-LAUNCHER_VERSION = '1.0.7'
+PACKAGE_REVISION = 'r2'
+LAUNCHER_VERSION = '1.0.8'
 FRESH_DEFAULTS = dict(characterShuffle=True, dialogue=True, shuffledUnites=True, s1Atb=False,
     s1AtbInstalled=False, s1Treasure=False, f6View='Hidden',
     s1JoiningWeaponLevel='TirVariance', s2JoiningWeaponLevel='RiouVariance',
@@ -397,8 +398,8 @@ def main():
     parser.add_argument('--launcher-dir', type=Path, required=True, help='Self-contained win-x64 launcher publish directory')
     parser.add_argument('--dependencies', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--package-revision', type=package_revision,
-                        help='Optional distribution revision, e.g. r2; runtime version remains ' + VERSION)
+    parser.add_argument('--package-revision', type=package_revision, default=PACKAGE_REVISION,
+                        help='Distribution revision (default r2); runtime version remains ' + VERSION)
     parser.add_argument('--runtime-source-commit', type=source_commit,
                         help='Declared reviewed source commit for reused runtime DLLs; bytes must be verified separately')
     parser.add_argument('--launcher-source-commit', type=source_commit,

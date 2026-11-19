@@ -146,17 +146,22 @@ Use `--mode all --makensis <path-to-makensis.exe>` for the full setup as well. `
 
 ## Produce the public downloads
 
-The release builds the S1 battle plugin 0.15.2 from this tag. The same DLL supports ATB and the opt-in CTB 0.5.2 preview. The launcher records its exact SHA-256, and the CTB tuning editor shares the launcher's Windows Desktop runtime.
+For package revision **0.14.6-r2**, use the qualified 0.14.6 runtime, battle plugin 0.15.2 and CTB editor 0.5.1. Compare the original build files with the [0.14.6 manual ZIP and its checksums](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.6) first. The plugins-only ZIP from that release also applies to r2.
+
+Set `$original` to the original 0.14.6 release build directory, `$publish` to an empty launcher publish directory, and `$dependencies`, `$nsis` and `$output` to the dependency cache, NSIS compiler and new output directory. Run these commands from the clean, reviewed packaging commit.
 
 ```powershell
-.\packaging\Build-Release.ps1 -GamePath $game -PackageMode All -SourceCommit (git rev-parse HEAD) -DependenciesDirectory $dependencies -MakeNsis $nsis -OutputDirectory $output
-$publicAtb = Join-Path $output 'atb/SuikodenRandomizer.S1BattlePreview.dll'
-$manual = Join-Path $output 'packages/Stars-of-Destiny-0.14.6-Mod-Only-Windows.zip'
-$hash = (Get-FileHash -Algorithm SHA256 $manual).Hash.ToLowerInvariant()
-python packaging/release/split_nexus.py --manual-zip $manual --manual-sha256 $hash --output (Join-Path $output 'split')
-python packaging/release/package_launcher.py --launcher-dir (Join-Path $output 'launcher') --atb-dll $publicAtb --source-commit (git rev-parse HEAD) --output (Join-Path $output 'standalone')
+$runtimeCommit = git rev-parse v0.14.6
+$launcherCommit = git rev-parse HEAD
+$publicAtb = Join-Path $original 'atb/SuikodenRandomizer.S1BattlePreview.dll'
+$hash = (Get-FileHash -Algorithm SHA256 $publicAtb).Hash.ToLowerInvariant()
+dotnet publish src/StarsOfDestiny.Launcher/StarsOfDestiny.Launcher.csproj -c Release -r win-x64 --self-contained true -p:RuntimeFrameworkVersion=10.0.14 "-p:ReviewedAtbSha256=$hash" -o $publish
+foreach ($suffix in '.exe','.dll','.runtimeconfig.json','.deps.json') {
+    Copy-Item -LiteralPath (Join-Path $original "launcher/StarsOfDestiny.CtbEditor$suffix") -Destination $publish
+}
+python packaging/release/build.py --mode all --package-revision r2 --runtime-dir (Join-Path $original 'runtime') --atb-dll $publicAtb --reviewed-atb-sha256 $hash --launcher-dir $publish --dependencies $dependencies --makensis $nsis --runtime-source-commit $runtimeCommit --launcher-source-commit $launcherCommit --output (Join-Path $output 'bundles')
+python packaging/release/package_launcher.py --launcher-dir $publish --atb-dll $publicAtb --source-commit $launcherCommit --output (Join-Path $output 'standalone')
+python packaging/release/package_ctb.py --build $original --launcher-dir $publish --runtime-source-commit $runtimeCommit --launcher-source-commit $launcherCommit --output (Join-Path $output 'ctb')
 ```
 
-Set `$dependencies`, `$nsis` and `$output` to local paths. Use the plugins-only ZIP from the split output and the versioned 1.0.7 launcher ZIP from the standalone output. Produce the separate optional CTB download from the same release build. Hash all five final downloads into `SHA256SUMS.txt` and verify the uploaded files against those hashes.
-
-The previous distribution recipes and their original checksums are available at the [0.14.4-r2 packaging tag](https://github.com/suikodenrand/suikodenrando/tree/package-v0.14.4-r2). [Release process](CONTRIBUTING.md)
+The full setup, manual ZIP and CTB preview use the suffix `-r2`. The standalone Windows launcher is version 1.0.8. Record checksums for the revised downloads separately and verify the uploaded files. The [original 0.14.6 source](https://github.com/suikodenrand/suikodenrando/tree/v0.14.6) contains the recipes for the original downloads, including the plugins-only ZIP. [Release process](CONTRIBUTING.md)

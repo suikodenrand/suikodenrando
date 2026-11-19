@@ -1,6 +1,6 @@
 # Release packaging
 
-This recipe builds runtime 0.14.6 and launcher 1.0.7 from the reviewed public source.
+Package revision 0.14.6-r2 pairs launcher 1.0.8 with the reviewed 0.14.6 gameplay binaries.
 The release builds battle preview 0.15.2 and pairs its hash with the launcher. Use the same release outputs when packaging the optional CTB 0.5.2 download.
 The release tag and published checksums identify the source and downloads.
 
@@ -8,13 +8,7 @@ The release tag and published checksums identify the source and downloads.
 installs into or launches the game. Start with the repository's
 [BUILDING.md](../../BUILDING.md) and `packaging/Build-Release.ps1`.
 
-For the additional **plugins-only Nexus** and **optional launcher** downloads,
-use `split_nexus.py` with the 0.14.6 manual ZIP and its verified `--manual-sha256`. It preserves released
-binary/config bytes and uses the instructions in `nexus-templates`, with no
-loader or launcher EXEs in the plugins ZIP. The launcher is a separate complete
-self-contained download. See the split-package instructions in
-[BUILDING.md](../../BUILDING.md#produce-the-public-downloads).
-The original setup/manual assets and binary source tag remain unchanged.
+Use the original 0.14.6 plugins-only download for r2. The standalone 1.0.8 launcher and 0.5.2-r2 CTB downloads use `package_launcher.py` and `package_ctb.py`. The [release build instructions](../../BUILDING.md#produce-the-public-downloads) include the commands and component source tags.
 
 Requirements are Python 3.12 or later, the .NET SDK pinned in global.json, the four combined runtime DLLs, the
 optional ATB DLL, and a complete self-contained `win-x64` launcher publish.
@@ -28,7 +22,7 @@ python packaging/release/build.py --mode all `
   --reviewed-atb-sha256 <reviewed-ATB-SHA256-used-to-publish-that-launcher> `
   --dependencies artifacts/dependencies `
   --download-dependencies `
-  --output artifacts/0.14.6/packages `
+  --output artifacts/0.14.6-r2/packages `
   --makensis C:/Tools/NSIS/makensis.exe
 ```
 
@@ -88,10 +82,10 @@ retain Donor behavior without an inventory retrofit. Weapon-level policies
 remain separate, and optional ATB stays disabled. Run the static metadata
 checks with `python -m unittest discover -s packaging/release/tests -v`.
 
-- `Stars-of-Destiny-0.14.6-Mod-Only-Windows.zip` is an ordinary Deflate ZIP
+- `Stars-of-Destiny-0.14.6-r2-Mod-Only-Windows.zip` is an ordinary Deflate ZIP
   with game-folder-relative paths. It has no setup executable or product
   install/restore scripts.
-- `Stars-of-Destiny-0.14.6-Setup.exe` includes BepInEx and uses the unchanged
+- `Stars-of-Destiny-0.14.6-r2-Setup.exe` includes BepInEx and uses the unchanged
   transactional install/restore implementation. ATB remains an optional
   setup component and is installed disabled when selected.
 - SHA-256 sidecars and `build-verification.json` record the local outputs.

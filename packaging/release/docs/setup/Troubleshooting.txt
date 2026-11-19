@@ -82,7 +82,7 @@ Saved campaigns keep their policy, acquired items and first-join history.
 Campaigns predating this feature keep Donor; they are not retrofitted. Do not
 delete sidecars to force a new policy, or repeatedly recruit to reset items.
 Report unexpected gear with game, seed/mode, original role, replacement and
-log lines. This feature requires the combined 0.14.6 plugin. Launcher 1.0.7
+log lines. This feature requires the combined 0.14.6 plugin. Launcher 1.0.8
 manages the option; manual CFG editing also works.
 
 UNITES ARE MISSING OR ATB IS NOT ACTIVE
@@ -104,7 +104,7 @@ campaigns in Treasure and Apply before starting a new game. Existing saves
 keep their stored policy. To change one, choose checked (shuffled) or
 unchecked (original), Apply, select its snapshot and reset its chest
 settings, then load that save. The reset creates a backup and keeps acquired
-items and opened chest flags. Launcher 1.0.7 automatically clears the older
+items and opened chest flags. Launcher 1.0.8 automatically clears the older
 global pause on Apply, allowing saved shuffled policies to resume. Unticking
 the new-campaign checkbox does not pause an existing shuffled save.
 Manual Treasure/Enabled=false still pauses replacement, but the next launcher

@@ -19,12 +19,12 @@ ManifestDPIAware true
 !endif
 
 !define GAME_EXE "Suikoden I and II HD Remaster.exe"
-Name "Stars of Destiny 0.14.6"
+Name "Stars of Destiny 0.14.6-r2"
 OutFile "${OUTPUT_EXE}"
 InstallDir "$PROGRAMFILES32\Steam\steamapps\common\Suikoden I and II HD Remaster"
 VIProductVersion "0.14.6.0"
 VIAddVersionKey /LANG=1033 "ProductName" "Stars of Destiny"
-VIAddVersionKey /LANG=1033 "FileDescription" "Stars of Destiny 0.14.6 Full Setup"
+VIAddVersionKey /LANG=1033 "FileDescription" "Stars of Destiny 0.14.6-r2 Full Setup"
 VIAddVersionKey /LANG=1033 "ProductVersion" "0.14.6"
 VIAddVersionKey /LANG=1033 "FileVersion" "0.14.6.0"
 VIAddVersionKey /LANG=1033 "LegalCopyright" "Stars of Destiny project contributors"

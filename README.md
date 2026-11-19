@@ -1,7 +1,7 @@
 # Stars of Destiny
 Disclaimer: to those that it matters. This was vibecoded by me with AI. I came up with all the features and tested and iterated on them, but AI took care of the Technical groundwork and making it happen.
 
-A seeded character randomizer for the Windows Steam release of **Suikoden I & II HD Remaster**. Both games share one plugin host and interface, with separate settings and saved campaign mappings. Release **0.14.6** includes launcher **1.0.7**.
+A seeded character randomizer for the Windows Steam release of **Suikoden I & II HD Remaster**. Both games share one plugin host and interface, with separate settings and saved campaign mappings. The current **0.14.6-r2** Windows packages include launcher **1.0.8**. Select **Join our Discord** at the top right of the launcher to find the randomizer community.
 
 [Download 0.14.6](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.6) · [Release notes](docs/release-0.14.6.md) · [Build instructions](BUILDING.md) · [Changelog](CHANGELOG.md)
 
@@ -25,13 +25,13 @@ Suikoden II ATB and chest shuffle, Nuzlocke and extra rune slots are not include
 
 | Asset | Installation | BepInEx |
 | --- | --- | --- |
-| `Stars-of-Destiny-0.14.6-Setup.exe` | Guided full install, including the launcher and transaction recovery | Included |
-| `Stars-of-Destiny-0.14.6-Mod-Only-Windows.zip` | Manual install, including the launcher | Required separately |
+| `Stars-of-Destiny-0.14.6-r2-Setup.exe` | Guided full install, including the launcher and transaction recovery | Included |
+| `Stars-of-Destiny-0.14.6-r2-Mod-Only-Windows.zip` | Manual install, including the launcher | Required separately |
 | `Stars-of-Destiny-0.14.6-Plugins-Only-Nexus.zip` | Plugins, settings and manual instructions | Required separately |
-| `Stars-of-Destiny-Launcher-1.0.7-Windows.zip` | Standalone settings launcher for an existing installation | Install separately for the game plugins |
-| `Stars-of-Destiny-S1-CTB-Preview-0.5.2-Windows.zip` | Optional CTB add-on for an existing 0.14.6 installation | Required separately |
+| `Stars-of-Destiny-Launcher-1.0.8-Windows.zip` | Standalone settings launcher for an existing installation | Install separately for the game plugins |
+| `Stars-of-Destiny-S1-CTB-Preview-0.5.2-r2-Windows.zip` | Optional CTB add-on for an existing 0.14.6 installation | Required separately |
 
-Use `SHA256SUMS.txt` on the release to verify the download. For a Nexus-style installation, use the plugins-only ZIP. It includes the combined randomizer, Suikoden Fix, configuration, instructions and the dormant optional S1 ATB preview. The standalone launcher includes its .NET runtime. [Launcher changes](docs/launcher-1.0.7.md)
+Use `SHA256SUMS-0.14.6-r2.txt` on the release to verify these downloads. For a Nexus-style installation, use the plugins-only ZIP. It includes the combined randomizer, Suikoden Fix, configuration, instructions and the dormant optional S1 ATB preview. The standalone launcher includes its .NET runtime. [Launcher changes](docs/launcher-1.0.8.md)
 
 ### Full setup
 
