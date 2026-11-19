@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/Shared/CtbTuning*.cs" Link="%(Filename)%(Extension)" />
+    <Compile Include="../../src/StarsOfDestiny.CtbEditor/Data/CtbTuningCatalog.Data.cs" Link="CtbTuningCatalog.Data.cs" />
+  </ItemGroup>
+</Project>

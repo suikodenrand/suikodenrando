@@ -5,10 +5,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../src/Shared/S1BattleItemAddress.cs" Link="S1BattleItemAddress.cs" />
     <Compile Include="../../src/SuikodenRandomizer.Core/Combat/AtbReadiness.cs" Link="AtbReadiness.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.Core/Combat/CtbTimeline.cs" Link="CtbTimeline.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.Core/Combat/CtbActionTiming.cs" Link="CtbActionTiming.cs" />
     <Compile Include="../../src/SuikodenRandomizer.S1BattlePreview/BattleSampleClock.cs" Link="BattleSampleClock.cs" />
     <Compile Include="../../src/SuikodenRandomizer.S1BattlePreview/HeroCommandGate.cs" Link="HeroCommandGate.cs" />
     <Compile Include="../../src/SuikodenRandomizer.S1BattlePreview/MeterActionScheduler.cs" Link="MeterActionScheduler.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.S1BattlePreview/NativeHeroMenuInputPolicy.cs" Link="NativeHeroMenuInputPolicy.cs" />
     <Compile Include="../../src/SuikodenRandomizer.S1BattlePreview/OneShotActionGate.cs" Link="OneShotActionGate.cs" />
   </ItemGroup>
 </Project>

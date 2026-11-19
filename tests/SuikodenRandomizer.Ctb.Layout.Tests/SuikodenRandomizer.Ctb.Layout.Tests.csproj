@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/SuikodenRandomizer.S1BattlePreview/NativeCtbStripLayout.cs" Link="NativeCtbStripLayout.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.S1BattlePreview/NativeEnemyBadgeLayout.cs" Link="NativeEnemyBadgeLayout.cs" />
+  </ItemGroup>
+</Project>

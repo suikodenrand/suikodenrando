@@ -107,10 +107,10 @@ function Get-GameFolder {
 }
 
 function Assert-GameClosed {
-    foreach ($name in @([IO.Path]::GetFileNameWithoutExtension($gameExe), [IO.Path]::GetFileNameWithoutExtension($launcherExe))) {
+    foreach ($name in @([IO.Path]::GetFileNameWithoutExtension($gameExe), [IO.Path]::GetFileNameWithoutExtension($launcherExe), 'StarsOfDestiny.CtbEditor')) {
         $running = [Diagnostics.Process]::GetProcessesByName($name)
         try {
-            if ($running.Length -gt 0) { throw 'Close Suikoden I and II HD Remaster and Stars of Destiny Launcher before running setup.' }
+            if ($running.Length -gt 0) { throw 'Close Suikoden I and II HD Remaster and the Stars of Destiny launcher and CTB editor before running setup.' }
         } finally { foreach ($process in $running) { $process.Dispose() } }
     }
 }
@@ -530,7 +530,7 @@ try {
             throw 'The package manifest is missing or invalid. Extract the complete ZIP again.'
         }
         $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-        if ($manifest.schema -ne 'stars-full-package-v1' -or $manifest.packageVersion -ne '0.14.5' -or
+        if ($manifest.schema -ne 'stars-full-package-v1' -or $manifest.packageVersion -ne '0.14.6' -or
             $manifest.gameAssemblySha256 -notmatch '^[0-9a-fA-F]{64}$' -or -not $manifest.files) {
             throw 'The package manifest is missing or invalid. Extract the complete ZIP again.'
         }
@@ -538,9 +538,9 @@ try {
         $receiptGameHash = $expectedGameHash
         Assert-GameBuild $assembly $expectedGameHash
         $plan = @(Get-InstallPlan $manifest $folder)
-        Write-Host 'Required components: BepInEx, combined randomizer 0.14.5, launcher, and Suikoden Fix.'
-        if ($IncludeAtb) { Write-Host 'Optional S1 ATB selected. Its fresh configuration is disabled.' }
-        else { Write-Host 'Optional S1 ATB not selected. Any existing ATB files are preserved.' }
+        Write-Host 'Required components: BepInEx, combined randomizer 0.14.6, launcher, and Suikoden Fix.'
+        if ($IncludeAtb) { Write-Host 'Optional S1 ATB / CTB selected. Its fresh configuration is disabled.' }
+        else { Write-Host 'Optional S1 ATB / CTB not selected. Any existing ATB files are preserved.' }
         Write-Host 'Existing settings are preserved. Fresh settings start with chest shuffle and ATB disabled.'
     }
     $loaderCount = @($plan | Where-Object { $_.Target -match '^(?:dotnet|BepInEx\\core)\\' -or $_.Target -in @('winhttp.dll','doorstop_config.ini','.doorstop_version','changelog.txt') }).Count
@@ -577,7 +577,7 @@ try {
         if ($RestoreTransaction -and $expectedGameHash -ine $receiptGameHash) {
             Write-Host 'Recovery complete. Previous loader and plugin binaries for the old game build remain in their backups.'
         } elseif ($RestoreTransaction) { Write-Host 'Previous installation files restored.' }
-        else { Write-Host 'Stars of Destiny Full Preview 0.14.5 installed.' }
+        else { Write-Host 'Stars of Destiny Full Preview 0.14.6 installed.' }
         Write-Host "Undo this transaction using StarsOfDestiny Setup\Restore.cmd -TransactionPath `"$transaction`""
     }
     if (-not [IO.File]::Exists((Join-Path $folder 'BepInEx\interop\GSD1.dll')) -or

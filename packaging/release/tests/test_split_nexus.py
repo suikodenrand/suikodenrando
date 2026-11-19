@@ -109,7 +109,7 @@ class SplitDistributionTests(unittest.TestCase):
         source = fixture()
         records = [{"path": name, "bytes": len(data), "sha256": split.digest(data)} for name, data in source.items()]
         manifest = dict(schema="stars-of-destiny-mod-only-manual-v1", packageVersion=split.VERSION,
-                        launcherVersion="1.0.6", optionalAtbDormant=True, bepInExFilesIncluded=False, files=records)
+                        launcherVersion="1.0.7", optionalAtbDormant=True, bepInExFilesIncluded=False, files=records)
         source[split.PLUGIN_SUPPORT + "Verification.json"] = split.json_bytes(dict(status="passed",
             packageVersion=split.VERSION, reviewedAtbSha256=split.digest(source["BepInEx/" + split.ATB_NAME])))
         for name in ["FILES.txt", "SHA256SUMS.txt"]:

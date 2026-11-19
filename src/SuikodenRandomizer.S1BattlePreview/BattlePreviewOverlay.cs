@@ -19,6 +19,7 @@ public sealed class BattlePreviewOverlay : MonoBehaviour
 
     public void OnGUI()
     {
+        if (BattlePreviewPlugin.CtbEnabled) return;
         if (_drawFailed || !Application.isFocused || Event.current is not { } guiEvent) return;
         try
         {
@@ -36,7 +37,15 @@ public sealed class BattlePreviewOverlay : MonoBehaviour
         }
     }
 
-    public void LateUpdate() => NativeSpdMeters.Update();
+    public void LateUpdate()
+    {
+        if (BattlePreviewPlugin.CtbEnabled)
+        {
+            NativeCtbWindow.Update();
+            NativeEnemyIndicators.Update();
+        }
+        else NativeSpdMeters.Update();
+    }
 
     public void Update()
     {

@@ -55,7 +55,7 @@ class PublicBattlePreviewTests(unittest.TestCase):
             for name in release.RUNTIME_NAMES:
                 (base / name).write_bytes(b'fixture')
             atb = base / release.ATB
-            atb.write_bytes(battle_dll(0, 10, 1, 0))
+            atb.write_bytes(battle_dll(0, 15, 2, 0))
             for mode in ('manual', 'all'):
                 with self.subTest(mode=mode):
                     output = base / mode
@@ -73,7 +73,7 @@ class PublicBattlePreviewTests(unittest.TestCase):
             path = Path(folder) / release.ATB
             for pe32_plus in (False, True):
                 with self.subTest(pe32_plus=pe32_plus):
-                    data = battle_dll(0, 10, 1, 0, pe32_plus=pe32_plus)
+                    data = battle_dll(0, 15, 2, 0, pe32_plus=pe32_plus)
                     path.write_bytes(data)
                     self.assertEqual(data, release.public_atb_payload(path, release.digest(data)))
                     with self.assertRaisesRegex(ValueError, 'differs from the hash'):
@@ -82,7 +82,7 @@ class PublicBattlePreviewTests(unittest.TestCase):
     def test_missing_version_resource_is_rejected_even_with_a_matching_hash(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / release.ATB
-            path.write_bytes(b'0.10.1.0')
+            path.write_bytes(b'0.15.2.0')
             with self.assertRaisesRegex(ValueError, 'PE file version'):
                 release.public_atb_payload(path, release.sha(path))
 
@@ -102,7 +102,7 @@ class PublicBattlePreviewTests(unittest.TestCase):
                         '--atb-dll', str(path), '--reviewed-atb-sha256', release.sha(path),
                         '--dependencies', str(base / 'dependencies'), '--output', str(output), '--stage-only']
                 with self.subTest(mode=mode), patch.object(sys, 'argv', args):
-                    with self.assertRaisesRegex(ValueError, r'0\.10\.1\.0.*9\.8\.7\.6'):
+                    with self.assertRaisesRegex(ValueError, r'0\.15\.2\.0.*9\.8\.7\.6'):
                         release.main()
                     self.assertFalse(output.exists())
                     self.assertFalse((base / 'dependencies').exists())

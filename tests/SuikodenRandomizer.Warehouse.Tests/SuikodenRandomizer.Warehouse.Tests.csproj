@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="QualityOfLifeOptions.cs" />
+    <Compile Include="EquipmentMenuChecks.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/EquipmentOptimizeMenu.cs" Link="EquipmentOptimizeMenu.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/WarehouseMenu.cs" Link="WarehouseMenu.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.AvatarPlugin/EquipmentWarehouse.cs" Link="EquipmentWarehouse.cs" />
+    <ProjectReference Include="FakeGame/FakeGame.csproj" Aliases="global,GSD1" />
+  </ItemGroup>
+</Project>

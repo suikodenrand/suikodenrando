@@ -9,7 +9,9 @@ using System.Reflection;
 using System.Runtime.Versioning;
 using System.Security;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace StarsOfDestiny.Launcher.Core;
 
@@ -21,6 +23,7 @@ public static class GameInstallation
     public const string GameExeName = "Suikoden I and II HD Remaster.exe";
     public static Version RiouJoiningWeaponMinimumVersion { get; } = new(0, 14, 3);
     public static Version JoiningEquipmentMinimumVersion { get; } = new(0, 14, 4);
+    public static Version CtbMinimumVersion { get; } = new(0, 11, 0);
     private const string GameFolderName = "Suikoden I and II HD Remaster";
     private const string AtbFileName = "SuikodenRandomizer.S1BattlePreview.dll";
     private const string ReviewedAtbHash = "C3BB58521254035F2599F6C3EDA1EEF2F4D68517A7B7A3C60C561085019A2E9F";
@@ -104,7 +107,7 @@ public static class GameInstallation
     {
         if (!string.Equals(policy, "RiouVariance", StringComparison.OrdinalIgnoreCase)) return;
         if (!Version.TryParse(Inspect(gameFolder).HostVersion, out var version) || version < RiouJoiningWeaponMinimumVersion)
-            throw new InvalidOperationException("Riou ±3 joining weapon levels require Stars of Destiny plug-in "
+            throw new InvalidOperationException("Riou Â±3 joining weapon levels require Stars of Destiny plug-in "
                 + RiouJoiningWeaponMinimumVersion + " or later. Install the updated mod, or choose Match original character or Level 1.");
     }
 
@@ -119,6 +122,23 @@ public static class GameInstallation
     public static string ActivateAtb(string gameFolder)
     {
         string root = RequireGameFolder(gameFolder);
+        // The DLL and its portrait directory are published together. Two launcher instances
+        // must observe the completed state before either decides to replace an empty folder.
+        string directory = Path.TrimEndingDirectorySeparator(root).ToUpperInvariant();
+        string key = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(directory)));
+        using var gate = new Mutex(false, "StarsOfDestiny.BattlePreview." + key);
+        try
+        {
+            if (!gate.WaitOne(TimeSpan.FromSeconds(15)))
+                throw new IOException("Another launcher is activating the battle preview. Try again when it finishes.");
+        }
+        catch (AbandonedMutexException) { /* This caller owns the mutex and will inspect the installation again. */ }
+        try { return ActivateAtbUnderLock(root); }
+        finally { gate.ReleaseMutex(); }
+    }
+
+    private static string ActivateAtbUnderLock(string root)
+    {
         RequireClosed(root);
         string plugins = Path.Combine(root, "BepInEx", "plugins");
         string[] active = PluginFiles(plugins, AtbFileName).ToArray();
@@ -126,6 +146,7 @@ public static class GameInstallation
         if (active.Length == 1)
         {
             RequireReviewedAtb(active[0]);
+            PrepareCtbAssets(root, active[0], active[0]);
             return active[0];
         }
         string dormant = Path.Combine(root, "BepInEx", AtbFileName);
@@ -138,6 +159,7 @@ public static class GameInstallation
         {
             File.Copy(dormant, temporary);
             RequireReviewedAtb(temporary);
+            PrepareCtbAssets(root, temporary, target);
             RequireClosed(root);
             try { File.Move(temporary, target); }
             catch (IOException) when (File.Exists(target)) { RequireReviewedAtb(target); }
@@ -145,6 +167,21 @@ public static class GameInstallation
             return target;
         }
         finally { if (File.Exists(temporary)) File.Delete(temporary); }
+    }
+
+    private static void PrepareCtbAssets(string root, string reviewedDll, string target)
+    {
+        if (!Version.TryParse(ReadVersion(reviewedDll), out var version) || version < new Version(0, 12, 0)) return;
+        string source = Path.Combine(root, "BepInEx", "CTBAssets", "Enemies");
+        string destination = Path.Combine(Path.GetDirectoryName(target)!, "CTBAssets", "Enemies");
+        CtbEnemyAssets.Install(source, destination, alreadyActive: string.Equals(reviewedDll, target, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public static void RequireCtbSupport(string gameFolder)
+    {
+        var status = Inspect(gameFolder);
+        if (!status.AtbActive || !Version.TryParse(status.AtbVersion, out var version) || version < CtbMinimumVersion)
+            throw new InvalidOperationException("Activate the S1 battle preview in Suikoden I Battle & ATB before enabling CTB.");
     }
 
     public static void LaunchGame(string gameFolder)

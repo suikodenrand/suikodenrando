@@ -29,19 +29,24 @@ internal static class JoiningEquipmentNative
     {
         var plan = JoiningEquipmentPlan.Create(reference, Catalog(), donor.soubi_type, donor.sex);
         var inventory = plan.Inventory;
+        target.item = NativeItems(inventory);
+        target.item_kazu = inventory.Count;
+        return "JOINING EQUIPMENT INITIALIZED: role=" + role + "; donor=" + fighter + "; policy=MatchRole"
+            + "; inventory count=" + inventory.Count + "; " + (plan.Changes.Length == 0 ? "original role items retained" : string.Join("; ", plan.Changes));
+    }
+
+    internal static Il2CppReferenceArray<GSD1.PLAYER_ITEM> NativeItems(JoiningEquipmentInventory inventory)
+    {
         var native = new Il2CppReferenceArray<GSD1.PLAYER_ITEM>(inventory.Items.Length);
         for (int i = 0; i < native.Count; i++)
         {
             var item = inventory.Items[i];
             native[i] = new GSD1.PLAYER_ITEM { item_id = item.Id, soubi = item.Equipped, data = item.Data };
         }
-        target.item = native;
-        target.item_kazu = inventory.Count;
-        return "JOINING EQUIPMENT INITIALIZED: role=" + role + "; donor=" + fighter + "; policy=MatchRole"
-            + "; inventory count=" + inventory.Count + "; " + (plan.Changes.Length == 0 ? "original role items retained" : string.Join("; ", plan.Changes));
+        return native;
     }
 
-    private static IReadOnlyDictionary<ushort, JoiningEquipmentCatalogEntry> Catalog()
+    internal static IReadOnlyDictionary<ushort, JoiningEquipmentCatalogEntry> Catalog()
     {
         var table = GSD1.G_item_c_data.item_data_table
             ?? throw new InvalidOperationException("Native item definitions are not ready for joining equipment.");

@@ -1,10 +1,10 @@
-STARS OF DESTINY 0.14.5 - MANUAL SETTINGS
+STARS OF DESTINY 0.14.6 - MANUAL SETTINGS
 
 Close the game and launcher before editing CFG files in BepInEx/config.
 Keep each key under its named [Section]; do not add duplicate keys. Use true
 or false for toggles. Save as plain text with the existing .cfg extension.
 Back up Save and the entire config folder together. Do not edit campaign
-binding/sidecar files. Launcher 1.0.6 is an optional graphical editor.
+binding/sidecar files. Launcher 1.0.7 is an optional graphical editor.
 
 PER-GAME FILES
 S1: agilen.suikoden.recruitment_randomizer.cfg
@@ -98,6 +98,23 @@ OPTIONAL S1 ATB (EXPERIMENTAL; OFF BY DEFAULT)
    Then re-enable S1 ShuffledUnitesPreview if desired. Never run the ATB or
    one-shot probe together with S1 shuffled Unites. S2 ATB is not implemented.
 
+S1 QUALITY OF LIFE
+In agilen.suikoden.recruitment_randomizer.cfg these switches start true.
+Set any to false to disable that feature.
+[QualityOfLife]
+WarehouseMenu = true
+SharedBattleItems = true
+OptimizeEquipment = true
+MatchViktorStarterLevels = true
+[Inventory]
+OptimizeSources = PartyAndWarehouse
+
+S1 CTB PREVIEW 0.5.2
+Follow steps 1-4 for the battle component above, then set Enabled=true in
+[CTB] of agilen.suikoden1.battle-preview.cfg. To return to native combat,
+set Enabled=false in both [Preview] and [CTB]. For the full guide:
+https://github.com/suikodenrand/suikodenrando/blob/v0.14.6/docs/CTB-PROTOTYPE.md
+
 OTHER OPTIONS
 The optional launcher exposes fixed rosters, companion choices, protagonist
 shuffle, quick starts and upstream Suikoden Fix display/audio/QoL options.
@@ -107,4 +124,4 @@ rather than guessing character IDs. Suikoden Fix settings are independent
 in d3xMachina.suikoden_fix.cfg; supplied gameplay multipliers are normal.
 
 Source and build instructions:
-https://github.com/suikodenrand/suikodenrando/tree/v0.14.5
+https://github.com/suikodenrand/suikodenrando/tree/v0.14.6

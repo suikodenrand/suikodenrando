@@ -13,6 +13,15 @@ internal sealed class MeterActionScheduler
     private double _lastTime;
     private bool _charging;
     private bool _admitted;
+    private readonly CtbTimeline _ctb;
+    private readonly bool[] _ctbEligible;
+    private double _ctbRecovery = 1;
+    internal bool UseCtb { get; set; }
+    internal CtbTimeline Ctb => _ctb;
+    // Filled at the native turn-selection boundary. Menu and animation previews
+    // reuse these decisions without probing native action readiness mid-command.
+    internal Span<bool> CtbEligible => _ctbEligible;
+    internal double CtbRecoveryMultiplier => _ctbRecovery;
 
     internal MeterActionScheduler(int slotCount, double secondsAtReferenceSpeed = 6)
     {
@@ -21,6 +30,8 @@ internal sealed class MeterActionScheduler
         _readyAt = new double[slotCount];
         _chargeSeconds = new double[slotCount];
         _completedThisRound = new bool[slotCount];
+        _ctb = new CtbTimeline(slotCount);
+        _ctbEligible = new bool[slotCount];
     }
 
     internal int PendingSlot { get; private set; }
@@ -36,14 +47,17 @@ internal sealed class MeterActionScheduler
             _readyAt[slot] = 0;
             _chargeSeconds[slot] = 0;
             _completedThisRound[slot] = false;
+            _ctbEligible[slot] = false;
         }
 
         _identities[slot] = eligible ? identity : IntPtr.Zero;
         _gauges.Observe(slot, speed, eligible, rateMultiplier);
+        if (UseCtb) _ctb.Observe(slot, identity.ToInt64(), speed, eligible);
     }
 
     internal void Tick(double now, bool charging)
     {
+        if (UseCtb) return; // No wall-clock input can advance CTB.
         if (now < _lastTime) return;
         if (_charging && charging && now > _lastTime)
         {
@@ -66,6 +80,12 @@ internal sealed class MeterActionScheduler
     internal int Select(ReadOnlySpan<bool> eligible)
     {
         if (PendingSlot != 0) return 0;
+        if (UseCtb)
+        {
+            int chosen = _ctb.Select(eligible);
+            PendingSlot = chosen < 1 ? 0 : chosen;
+            return PendingSlot;
+        }
         int selected = 0;
         for (int slot = 1; slot < eligible.Length; slot++)
         {
@@ -76,8 +96,23 @@ internal sealed class MeterActionScheduler
         return selected;
     }
 
+    internal CtbForecastEntry[] ForecastCtb(int count, ReadOnlySpan<bool> currentCandidates, IntPtr pendingActor,
+        double recovery)
+    {
+        // A native menu callback can see a KO or slot replacement before Observe runs.
+        if (PendingSlot != 0 && pendingActor != _identities[PendingSlot]) return Array.Empty<CtbForecastEntry>();
+        // Live observations may remove an actor between native selection calls.
+        // Only a fresh native selection pass can admit a previously excluded slot.
+        Span<bool> eligible = stackalloc bool[_ctbEligible.Length];
+        for (int slot = 0; slot < _ctbEligible.Length; slot++)
+            eligible[slot] = currentCandidates[slot] && _ctbEligible[slot];
+        return _ctb.Forecast(count, eligible, recovery);
+    }
+
     internal bool IsReadyBefore(int slot, int other)
-        => _gauges.IsReady(slot) && (other == 0 || _readyAt[slot] < _readyAt[other]);
+        => UseCtb ? _ctb.GetNextReady(slot) <= _ctb.Now
+            && (other == 0 || _ctb.GetNextReady(slot) < _ctb.GetNextReady(other))
+            : _gauges.IsReady(slot) && (other == 0 || _readyAt[slot] < _readyAt[other]);
 
     internal bool TryReserveReady(int slot, IntPtr identity)
     {
@@ -91,6 +126,7 @@ internal sealed class MeterActionScheduler
     internal bool Admit(int slot, IntPtr identity)
     {
         if (_admitted || !MatchesReservation(slot, identity)) return false;
+        if (UseCtb && !_ctb.Admit(slot, identity.ToInt64())) return false;
         _admitted = true;
         return true;
     }
@@ -98,6 +134,7 @@ internal sealed class MeterActionScheduler
     internal bool CancelReservation(int slot, IntPtr identity)
     {
         if (_admitted || !MatchesReservation(slot, identity)) return false;
+        if (UseCtb && !_ctb.CancelReservation(slot, identity.ToInt64())) return false;
         ClearReservation();
         return true;
     }
@@ -105,6 +142,8 @@ internal sealed class MeterActionScheduler
     internal bool Finish(int slot, IntPtr identity)
     {
         if (!_admitted || !MatchesReservation(slot, identity)) return false;
+        if (UseCtb && !_ctb.Complete(slot, identity.ToInt64(), _ctbRecovery)) return false;
+        _ctbRecovery = 1;
         _gauges.ObserveNativeAction(slot);
         _readyAt[slot] = 0;
         _chargeSeconds[slot] = 0;
@@ -113,7 +152,19 @@ internal sealed class MeterActionScheduler
         return true;
     }
 
-    internal double GetGauge(int slot) => _gauges.GetGauge(slot);
+    internal double GetGauge(int slot) => UseCtb ? _ctb.GetGauge(slot) : _gauges.GetGauge(slot);
+    internal void SetCtbRecovery(double multiplier)
+    {
+        if (!double.IsFinite(multiplier) || multiplier <= 0) throw new ArgumentOutOfRangeException(nameof(multiplier));
+        _ctbRecovery = multiplier;
+    }
+    internal bool SpendCtbMenuTurn(int slot, IntPtr identity, double recoveryMultiplier)
+    {
+        if (!UseCtb || !MatchesReservation(slot, identity)
+            || !_ctb.Wait(slot, identity.ToInt64(), recoveryMultiplier)) return false;
+        ClearReservation();
+        return true;
+    }
     internal double GetChargeSeconds(int slot) => _chargeSeconds[slot];
     internal double SecondsToFull(int speed, double rateMultiplier = 1) => _gauges.SecondsToFull(speed, rateMultiplier);
     internal static double EnemyDexMultiplier(int dex) => 1 + 0.0075 * Math.Clamp(dex, 0, 100);
@@ -130,13 +181,16 @@ internal sealed class MeterActionScheduler
     }
 
     internal bool CanRepeat(int slot, IntPtr identity)
-        => slot > 0 && identity != IntPtr.Zero && _identities[slot] == identity && _completedThisRound[slot];
+        => slot > 0 && identity != IntPtr.Zero && _identities[slot] == identity && (UseCtb || _completedThisRound[slot]);
 
     internal void BeginRound() => Array.Clear(_completedThisRound, 0, _completedThisRound.Length);
 
     internal void Reset()
     {
         _gauges.Reset();
+        _ctb.Reset();
+        Array.Clear(_ctbEligible, 0, _ctbEligible.Length);
+        _ctbRecovery = 1;
         Array.Clear(_identities, 0, _identities.Length);
         Array.Clear(_readyAt, 0, _readyAt.Length);
         Array.Clear(_chargeSeconds, 0, _chargeSeconds.Length);
@@ -153,5 +207,6 @@ internal sealed class MeterActionScheduler
     {
         PendingSlot = 0;
         _admitted = false;
+        _ctbRecovery = 1;
     }
 }

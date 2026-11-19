@@ -1,13 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <Version>0.10.1</Version>
+    <Version>0.15.2</Version>
     <AssemblyName>SuikodenRandomizer.S1BattlePreview</AssemblyName>
     <BepInExPath Condition="'$(BepInExPath)' == '' and '$(GamePath)' != ''">$(GamePath)/BepInEx</BepInExPath>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../Shared/CtbPortraitIndex.cs" Link="CtbPortraitIndex.cs" />
+    <Compile Include="../Shared/S1BattleItemAddress.cs" Link="S1BattleItemAddress.cs" />
+    <Compile Include="../Shared/CtbTuning*.cs" Link="%(Filename)%(Extension)" />
+    <Compile Include="../StarsOfDestiny.CtbEditor/Data/CtbTuningCatalog.Data.cs" Link="CtbTuningCatalog.Data.cs" />
     <Compile Include="../SuikodenRandomizer.Plugin/Runtime/BuildCompatibility.cs" Link="BuildCompatibility.cs" />
     <Compile Include="../SuikodenRandomizer.Core/Combat/AtbReadiness.cs" Link="AtbReadiness.cs" />
+    <Compile Include="../SuikodenRandomizer.Core/Combat/CtbTimeline.cs" Link="CtbTimeline.cs" />
+    <Compile Include="../SuikodenRandomizer.Core/Combat/CtbActionTiming.cs" Link="CtbActionTiming.cs" />
+    <Compile Include="../SuikodenRandomizer.Core/Combat/CtbReserveSupport.cs" Link="CtbReserveSupport.cs" />
+    <Compile Include="../SuikodenRandomizer.Core/Combat/CtbEnemyIdentity.cs" Link="CtbEnemyIdentity.cs" />
+    <Compile Include="../SuikodenRandomizer.Core/CombatCatalog.cs" Link="CombatCatalog.cs" />
     <Reference Include="0Harmony"><HintPath>$(BepInExPath)/core/0Harmony.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="BepInEx.Core"><HintPath>$(BepInExPath)/core/BepInEx.Core.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="BepInEx.Unity.IL2CPP"><HintPath>$(BepInExPath)/core/BepInEx.Unity.IL2CPP.dll</HintPath><Private>false</Private></Reference>
@@ -18,8 +27,10 @@
     <Reference Include="ShareUI"><HintPath>$(BepInExPath)/interop/ShareUI.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="GSD1"><HintPath>$(BepInExPath)/interop/GSD1.dll</HintPath><Aliases>GSD1</Aliases><Private>false</Private></Reference>
     <Reference Include="UnityEngine.CoreModule"><HintPath>$(BepInExPath)/interop/UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.ImageConversionModule"><HintPath>$(BepInExPath)/interop/UnityEngine.ImageConversionModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.UIModule"><HintPath>$(BepInExPath)/interop/UnityEngine.UIModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.UI"><HintPath>$(BepInExPath)/interop/UnityEngine.UI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.TextMeshPro"><HintPath>$(BepInExPath)/interop/Unity.TextMeshPro.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.IMGUIModule"><HintPath>$(BepInExPath)/interop/UnityEngine.IMGUIModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.TextRenderingModule"><HintPath>$(BepInExPath)/interop/UnityEngine.TextRenderingModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Unity.InputSystem"><HintPath>$(BepInExPath)/interop/Unity.InputSystem.dll</HintPath><Private>false</Private></Reference>

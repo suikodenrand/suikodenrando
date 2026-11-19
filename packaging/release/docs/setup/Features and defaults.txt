@@ -1,13 +1,32 @@
-STARS OF DESTINY 0.14.5 - FEATURES AND DEFAULTS
+STARS OF DESTINY 0.14.6 - FEATURES AND DEFAULTS
 
 COMPONENTS
-Combined randomizer       0.14.5
-Windows launcher          1.0.6, self-contained Windows x64
-Suikoden I ATB Preview    0.10.1, optional and installed disabled
+Combined randomizer       0.14.6
+Windows launcher          1.0.7, self-contained Windows x64
+S1 ATB / CTB plugin       0.15.2, optional and installed disabled
 Suikoden Fix              upstream release 1.5.2b (plugin reports 1.5.2)
 BepInEx                   6.0.0-be.697, Unity IL2CPP Windows x64
 Loader .NET runtime      6.0.7, private to the game loader
 Launcher .NET runtime    10.0.14, private Windows Desktop runtime
+
+SUIKODEN I QUALITY OF LIFE
+The four options start enabled. In the launcher, open Suikoden I > Quality of
+Life to switch any option off or disable the group.
+- Warehouse access adds Roc's Warehouse after Party Items once recruited.
+- Shared battle items let each living active fighter use another living
+  fighter's carried item. The charge comes from the owner's stack.
+- Optimize equips one fighter from loose active-party gear and, after Roc
+  joins, warehouse stock. Select either source or both in the launcher.
+  Other fighters keep the gear they are wearing.
+- The Viktor quick start matches starting companions to Tir's level with
+  each companion's own stat growth.
+
+S1 COUNT TIME BATTLE (OPTIONAL PREVIEW 0.5.2)
+The battle plugin supports CTB and ATB. Both start off. With the component
+installed, open Suikoden I > Battle & ATB, disable shuffled Unites and the
+legacy Talisman preview, activate the component if needed, then enable the
+battle preview and CTB. The CTB tuning editor opens from the same tab.
+Guide: https://github.com/suikodenrand/suikodenrando/blob/v0.14.6/docs/CTB-PROTOTYPE.md
 
 BOTH GAMES
 Seeded character-role shuffle; five chosen companions; seeded random fixed
@@ -83,7 +102,7 @@ S1 TREASURE (EXPERIMENTAL)
 132 ordinary item locations use a deterministic campaign-seeded reward map.
 Potch, Blinking Mirror, recruitment-related Sound Orb, Window Orb and
 Illustrated War Scroll, and the special Dwarves' Vault reward stay original.
-Native item granting and open-state handling are retained. Launcher 1.0.6
+Native item granting and open-state handling are retained. Launcher 1.0.7
 has one checkbox: Enable chest shuffle for new campaigns. Existing saves
 retain their stored policy. To change one, choose the checkbox value, Apply,
 select its snapshot and reset its chest settings, then load that save.
@@ -143,5 +162,4 @@ needed to install this bundle.
 
 NOT INCLUDED
 Personal saves, generated interop/cache files, custom music, the separate
-Audio Redirector, Nuzlocke, S2 ATB/chest randomization, extra rune slots and a
-shared-inventory or storage rewrite. See the project website and GitHub release for current downloads.
+Audio Redirector, Nuzlocke, S2 ATB/chest randomization, and extra rune slots. See the project website and GitHub release for current downloads.

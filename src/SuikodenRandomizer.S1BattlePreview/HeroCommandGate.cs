@@ -4,7 +4,7 @@ namespace SuikodenRandomizer.S1BattlePreview;
 
 internal enum HeroCommandKind { None, Attack, Defend, Rune, Item }
 
-internal readonly record struct HeroCommandResource(int Index, int Id, int RuneId = -1);
+internal readonly record struct HeroCommandResource(int Index, int Id, int RuneId = -1, IntPtr ItemStack = default);
 
 internal readonly record struct HeroCommandTarget(int Slot, IntPtr Identity, string Name)
 {
@@ -19,6 +19,11 @@ internal readonly record struct HeroCommandTarget(int Slot, IntPtr Identity, str
 
 internal readonly record struct HeroCommand(HeroCommandKind Kind, int TargetSlot, IntPtr TargetIdentity,
     HeroCommandResource? Resource = null);
+
+internal sealed record HeroCommandPrompt(int Slot, IntPtr Identity, string Name, HeroCommandTarget[] Targets,
+    HeroResourceOption[] Runes, HeroResourceOption[] Items);
+
+internal sealed record HeroResourceOption(HeroCommandResource Resource, string Name, int? Uses, HeroCommandTarget[] Targets);
 
 internal struct HeroCommandGate
 {

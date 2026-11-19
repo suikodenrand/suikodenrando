@@ -176,7 +176,7 @@ namespace SuikodenRandomizer.AvatarPlugin
   {
    ValidateBase(v);
    return new GSD1.PLAYER_BASE {chara_no=v.chara_no,level=v.level,hp=v.hp,max_hp=v.max_hp,exp=v.exp,status=v.status,
-    noryoku=v.noryoku.ToList(),monsyo_data=CloneRune(v.monsyo_data),buki_data=new GSD1.PLAYER_BUKI{buki_id=v.buki_data.buki_id,level=v.buki_data.level},
+    noryoku=v.noryoku.ToList(),magic_point=v.magic_point.ToList(),monsyo_data=CloneRune(v.monsyo_data),buki_data=new GSD1.PLAYER_BUKI{buki_id=v.buki_data.buki_id,level=v.buki_data.level},
     seicho_type=CloneBytes(v.seicho_type),IsComplete=v.IsComplete,Equipment=v.Equipment,Rune=v.Rune,Items=(int[])v.Items.Clone(),
     item_kazu=v.item_kazu,item=CloneInventory(v.item)};
   }
@@ -197,7 +197,7 @@ namespace SuikodenRandomizer.AvatarPlugin
    to.seicho_type=CloneBytes(from.seicho_type);to.IsComplete=from.IsComplete;to.Equipment=from.Equipment;
    to.Rune=from.Rune;to.Items=(int[])from.Items.Clone();
    to.item=CloneInventory(from.item);to.item_kazu=from.item_kazu;
-   to.noryoku=from.noryoku.ToList();to.monsyo_data=CloneRune(from.monsyo_data);
+   to.noryoku=from.noryoku.ToList();to.magic_point=from.magic_point.ToList();to.monsyo_data=CloneRune(from.monsyo_data);
    to.buki_data=new GSD1.PLAYER_BUKI{buki_id=from.buki_data.buki_id,level=from.buki_data.level};
   }
   internal static string Fingerprint(GSD1.PLAYER_BASE value)
@@ -205,7 +205,7 @@ namespace SuikodenRandomizer.AvatarPlugin
    ValidateBase(value);
    return string.Join("|",value.chara_no,value.level,value.hp,value.max_hp,value.exp,value.status,value.Equipment,value.Rune,value.buki_data.buki_id,value.buki_data.level,
     value.monsyo_data?.monsyo_id,value.monsyo_data?.monsyo_level,value.monsyo_data?.monsyo_exp,string.Join(",",value.noryoku),
-    string.Join(",",value.Items),string.Join(",",value.seicho_type),value.item_kazu,
+    string.Join(",",value.Items),string.Join(",",value.seicho_type),string.Join(",",value.magic_point),value.item_kazu,
     string.Join(";",value.item.Select(item=>item.item_id+":"+item.soubi+":"+item.data)));
   }
   internal static GSD1.PLAYER_DATA CreateProxy(GSD1.PLAYER_DATA original,GSD1.PLAYER_DATA donor,GSD1.PLAYER_BASE roleBase,

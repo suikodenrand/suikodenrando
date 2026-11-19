@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -92,18 +93,20 @@ internal sealed partial class MainForm
         var uniteSwitch = Check(GameId + ".unites", "Enable shuffled-character Unite attacks");
         uniteSwitch.Enabled = SupportsHost(new Version(0, 14, 1));
         uniteStack.Controls.Add(uniteSwitch);
-        uniteStack.Controls.Add(Note("Unites follow the actual fighters in your party and require standard turn-based combat. Turn off S1 shuffled Unites before enabling ATB. Requires plug-in 0.14.1 or later."));
+        uniteStack.Controls.Add(Note("Unites follow the actual fighters in your party and require standard turn-based combat. Turn off S1 shuffled Unites before enabling ATB or CTB. Requires plug-in 0.14.1 or later."));
         unites.Controls.Add(uniteStack);
         page.Controls.Add(unites, 0, 0);
         page.SetColumnSpan(unites, 2);
         var atb = Group("Suikoden I experimental ATB");
         var stack = Stack();
         var state = GameInstallation.Inspect(_workspace!.GameFolder);
-        stack.Controls.Add(Note(state.AtbActive ? "ATB preview " + state.AtbVersion + " is installed." : state.AtbDormantPath is not null
-            ? "ATB preview " + state.AtbVersion + " is available but its plug-in is inactive." : "ATB is not installed. Select Experimental S1 ATB in setup to add it; it starts disabled."));
+        bool ctbComponent = Version.TryParse(state.AtbVersion, out var componentVersion) && componentVersion >= new Version(0, 11, 0);
+        string previewName = ctbComponent ? "S1 ATB / CTB preview" : "S1 ATB preview";
+        stack.Controls.Add(Note(state.AtbActive ? previewName + " " + state.AtbVersion + " is installed." : state.AtbDormantPath is not null
+            ? previewName + " " + state.AtbVersion + " is available to activate." : "Install the optional S1 battle preview to use ATB or CTB."));
         if (!state.AtbActive && state.AtbDormantPath is not null)
         {
-            var activate = Button("Activate ATB preview");
+            var activate = Button(ctbComponent ? "Activate ATB / CTB preview" : "Activate ATB preview");
             activate.Click += (_, _) =>
             {
                 try
@@ -114,7 +117,7 @@ internal sealed partial class MainForm
             };
             stack.Controls.Add(activate);
         }
-        foreach (var option in new[] { ("Enabled", "Enable ATB preview"), ("ActiveAtb", "Schedule actions with SPD meters"),
+        foreach (var option in new[] { ("Enabled", ctbComponent ? "Enable battle preview component" : "Enable ATB preview"), ("ActiveAtb", "Schedule actions with SPD meters"),
             ("RepeatTurns", "Allow repeated actions when a meter refills"), ("ReadyCommands", "Choose a hero's command when ready"),
             ("NativeReadyMenus", "Use native menus and targeting"), ("NativeSpdMeters", "Show SPD meters in the battle UI") })
         {
@@ -125,7 +128,55 @@ internal sealed partial class MainForm
         atb.Controls.Add(stack);
         atb.Enabled = GameId == "s1";
         page.Controls.Add(atb, 0, 1);
-        page.SetRowSpan(atb, 2);
+        if (GameId == "s1")
+        {
+            var ctb = Group("Suikoden I experimental CTB");
+            bool supportsCtb = state.AtbActive && Version.TryParse(state.AtbVersion, out var previewVersion)
+                && previewVersion >= new Version(0, 11, 0);
+            var ctbStack = Stack();
+            ctbStack.Controls.Add(Note(supportsCtb
+                ? "CTB is available in the installed battle preview. Enable the preview component above, then enable CTB here."
+                : "Activate the S1 battle preview from 0.14.6 to use CTB."));
+            string editorPath = Path.Combine(AppContext.BaseDirectory, "StarsOfDestiny.CtbEditor.exe");
+            if (state.AtbActive && componentVersion >= new Version(0, 13, 0) && File.Exists(editorPath))
+            {
+                var edit = Button("Open CTB tuning editor");
+                edit.Click += (_, _) =>
+                {
+                    try
+                    {
+                        var launch = new ProcessStartInfo(editorPath) { UseShellExecute = false };
+                        launch.ArgumentList.Add("--game-path");
+                        launch.ArgumentList.Add(_workspace!.GameFolder);
+                        Process.Start(launch)?.Dispose();
+                    }
+                    catch (Exception error) { ShowError(error); }
+                };
+                ctbStack.Controls.Add(edit);
+            }
+            foreach (var option in new[] { ("Enabled", "Enable CTB (overrides ATB)"),
+                ("Break", "Enable Break / stagger"), ("ReserveSupport", "Enable experimental reserve Rally support") })
+            {
+                var control = Check("ctb." + option.Item1, option.Item2);
+                control.Enabled = supportsCtb;
+                ctbStack.Controls.Add(control);
+            }
+            var reserveRow = Grid(1, 2);
+            reserveRow.Height = 62;
+            reserveRow.Dock = DockStyle.Top;
+            reserveRow.RowStyles.Add(new RowStyle(SizeType.Absolute, 32));
+            reserveRow.RowStyles.Add(new RowStyle(SizeType.Absolute, 28));
+            reserveRow.Controls.Add(TextLabel("Reserve role IDs (blank selects eligible reserves)"), 0, 0);
+            var reserveIds = new TextBox { Dock = DockStyle.Fill, Text = Get("ctb.ReserveRoleIds"), Enabled = supportsCtb };
+            reserveIds.TextChanged += (_, _) => Set("ctb.ReserveRoleIds", reserveIds.Text);
+            reserveRow.Controls.Add(reserveIds, 0, 1);
+            ctbStack.Controls.Add(reserveRow);
+            ctbStack.Controls.Add(Note("CTB uses SPD turn order and pauses while you choose commands. Wait replaces Auto."));
+            ctbStack.Controls.Add(Note("Reserve Rally is experimental support from eligible recruited characters outside the party. Enter comma-separated original role IDs to restrict the reserve roster."));
+            ctb.Controls.Add(ctbStack);
+            page.Controls.Add(ctb, 0, 2);
+        }
+        else page.SetRowSpan(atb, 2);
 
         var timing = Group("ATB timing and input");
         var timingStack = Stack();
@@ -153,13 +204,21 @@ internal sealed partial class MainForm
     {
         string path = GameInstallation.ActivateAtb(_workspace!.GameFolder);
         RebuildPages();
-        _status.Text = "ATB preview activated at " + path;
+        _status.Text = "S1 battle preview activated at " + path;
     }
 
     private Control BuildQualityOfLife()
     {
-        var page = Grid(3, 2);
+        int first = GameId == "s1" ? 1 : 0;
+        var page = Grid(3, first + 2);
         for (int n = 0; n < 3; n++) page.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.333F));
+        if (first == 1)
+        {
+            page.RowStyles.Add(new RowStyle(SizeType.Absolute, 105));
+            var features = BuildS1QualityOfLife();
+            page.Controls.Add(features, 0, 0);
+            page.SetColumnSpan(features, 3);
+        }
         page.RowStyles.Add(new RowStyle(SizeType.Percent, 65));
         page.RowStyles.Add(new RowStyle(SizeType.Percent, 35));
         var movement = Group("Movement and menus");
@@ -172,7 +231,7 @@ internal sealed partial class MainForm
         a.Controls.Add(Check("fix.SkipSplashscreens", "Skip splash screens"));
         a.Controls.Add(Check("fix.SkipMovies", "Skip opening movies"));
         movement.Controls.Add(a);
-        page.Controls.Add(movement, 0, 0);
+        page.Controls.Add(movement, 0, first);
 
         var saves = Group("Saving and controls");
         var b = Stack();
@@ -184,7 +243,7 @@ internal sealed partial class MainForm
         b.Controls.Add(Check("fix.ResetGame", "Enable title-screen reset shortcut"));
         b.Controls.Add(Check("fix.PauseGame", "Enable pause shortcut"));
         saves.Controls.Add(b);
-        page.Controls.Add(saves, 1, 0);
+        page.Controls.Add(saves, 1, first);
 
         var services = Group("Shops and headquarters");
         var c = Stack();
@@ -196,7 +255,7 @@ internal sealed partial class MainForm
         c.Controls.Add(Check("fix.MoreTeleportLocations", "S2 • extra visited teleport locations"));
         c.Controls.Add(Check("fix.InstantRichmondInvestigation", "S2 • instant Richmond investigations"));
         services.Controls.Add(c);
-        page.Controls.Add(services, 2, 0);
+        page.Controls.Add(services, 2, first);
 
         var multipliers = Group("Battle and reward multipliers");
         var numbers = Grid(3, 2);
@@ -205,9 +264,45 @@ internal sealed partial class MainForm
             ("ExperienceMultiplier", "Experience"), ("MoneyMultiplier", "Potch"), ("LootMultiplier", "Loot") };
         for (int n = 0; n < fields.Length; n++) numbers.Controls.Add(Number("fix." + fields[n].Item1, fields[n].Item2, 0, 100, 1), n % 3, n / 3);
         multipliers.Controls.Add(numbers);
-        page.Controls.Add(multipliers, 0, 1);
+        page.Controls.Add(multipliers, 0, first + 1);
         page.SetColumnSpan(multipliers, 3);
         return page;
+    }
+
+    private Control BuildS1QualityOfLife()
+    {
+        bool supported = SupportsHost(new Version(0, 14, 6));
+        var group = Group(supported ? "Suikoden I inventory and quick start" : "Suikoden I inventory and quick start (requires plug-in 0.14.6)");
+        var grid = Grid(3, 2);
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        var features = new[]
+        {
+            Check("s1.WarehouseMenu", "Open Roc's Warehouse from Items after recruiting him"),
+            Check("s1.SharedBattleItems", "Share living party members' items in battle"),
+            Check("s1.OptimizeEquipment", "Show Optimize in the Equipment menu"),
+            Check("s1.MatchViktorStarterLevels", "Match starting companions to Tir's level at the Viktor skip")
+        };
+        var toggle = Button("");
+        toggle.Anchor = AnchorStyles.Right;
+        void UpdateButton() => toggle.Text = features.Any(check => check.Checked) ? "Disable all four" : "Enable all four";
+        for (int i = 0; i < features.Length; i++)
+        {
+            grid.Controls.Add(features[i], i % 2, i / 2);
+            features[i].CheckedChanged += (_, _) => UpdateButton();
+        }
+        UpdateButton();
+        toggle.Click += (_, _) =>
+        {
+            bool enable = !features.Any(check => check.Checked);
+            foreach (var check in features) check.Checked = enable;
+        };
+        grid.Controls.Add(toggle, 2, 0);
+        grid.SetRowSpan(toggle, 2);
+        group.Controls.Add(grid);
+        group.Enabled = supported;
+        return group;
     }
 
     private Control BuildDisplay()

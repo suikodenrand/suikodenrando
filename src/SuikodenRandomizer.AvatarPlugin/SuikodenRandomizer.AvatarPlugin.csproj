@@ -19,6 +19,7 @@
     <Compile Include="../Shared/RejectedSaveMirrorGuard.cs" Link="Integration/RejectedSaveMirrorGuard.cs" />
     <Compile Include="../SuikodenRandomizer.Plugin/Runtime/BuildCompatibility.cs" Link="BuildCompatibility.cs" />
     <Compile Include="../Shared/AvatarShuffleBindingJson.cs" Link="Serialization/AvatarShuffleBindingJson.cs" />
+    <Compile Include="../Shared/S1BattleItemAddress.cs" Link="Inventory/S1BattleItemAddress.cs" />
   </ItemGroup>
 
   <ItemGroup>

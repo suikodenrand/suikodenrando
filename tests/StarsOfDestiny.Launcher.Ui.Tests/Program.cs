@@ -9,7 +9,7 @@ using StarsOfDestiny.Launcher.Core;
 internal static class Program
 {
     [STAThread]
-    private static int Main()
+    private static int Main(string[] args)
     {
         Application.SetHighDpiMode(HighDpiMode.SystemAware);
         Application.EnableVisualStyles();
@@ -49,6 +49,8 @@ internal static class Program
                 "A missing host did not disable joining weapon selection with the required version.");
             Check(!EquipmentChoice(tabs).Enabled && EquipmentChoice(tabs).Parent!.Parent!.Text.Contains("requires plug-in 0.14.4", StringComparison.Ordinal),
                 "A missing host did not disable original-role inventory selection with the required version.");
+            Check(!Descendants<GroupBox>(tabs).Single(group => group.Text.StartsWith("Suikoden I inventory and quick start", StringComparison.Ordinal)).Enabled,
+                "A missing host exposed S1 equipment and quick-start controls.");
             gameChoice.SelectedIndex = 1;
             Check(!WeaponChoice(tabs).Enabled && WeaponChoice(tabs).Parent!.Parent!.Text.Contains("requires plug-in 0.14.3", StringComparison.Ordinal),
                 "A missing host did not disable S2 joining weapon selection with the RiouVariance minimum.");
@@ -92,6 +94,24 @@ internal static class Program
                 "Advanced still exposes the removed chest master switch.");
             Passed("One new-campaign chest checkbox preserves saved-policy controls and hides the legacy master gate");
 
+            var qos = Descendants<GroupBox>(tabs).Single(group => group.Text == "Suikoden I inventory and quick start");
+            var switches = Descendants<CheckBox>(qos).ToArray();
+            var all = Descendants<Button>(qos).Single();
+            string[] features = { "WarehouseMenu", "SharedBattleItems", "OptimizeEquipment", "MatchViktorStarterLevels" };
+            Check(qos.Enabled && switches.Length == features.Length && switches.All(check => check.Checked) && all.Text == "Disable all four",
+                "Fresh S1 quality-of-life settings did not expose four enabled features.");
+            var click = typeof(Button).GetMethod("OnClick", BindingFlags.NonPublic | BindingFlags.Instance)!;
+            click.Invoke(all, new object[] { EventArgs.Empty });
+            Check(features.All(key => !workspace.GetBoolean("s1." + key)) && all.Text == "Enable all four"
+                && workspace.GetBoolean("shared.enabled") && !workspace.GetBoolean("ctb.Enabled"),
+                "Disabling the four S1 features modified unrelated settings or missed a feature.");
+            click.Invoke(all, new object[] { EventArgs.Empty });
+            var warehouse = switches.Single(check => check.Text.Contains("Warehouse", StringComparison.Ordinal));
+            warehouse.Checked = false;
+            Check(!workspace.GetBoolean("s1.WarehouseMenu") && features.Skip(1).All(key => workspace.GetBoolean("s1." + key)),
+                "Individual S1 feature switches were not independent.");
+            Passed("S1 quality-of-life switches stage independently or together");
+
             Check(weaponChoice.Items.Count == 3 && SelectedWeaponPolicy(weaponChoice) == "TirVariance",
                 "S1 joining weapon choices did not include and default to Tir ±3.");
             weaponChoice.SelectedIndex = 2;
@@ -111,7 +131,7 @@ internal static class Program
             Check(uniteSwitch.Enabled, "The supported host did not enable S1 Unite selection.");
             uniteSwitch.Checked = true;
             Check(workspace.GetBoolean("s1.unites"), "The S1 Unite control did not stage its setting.");
-            Check(!Descendants<CheckBox>(battlePage).Single(control => control.Text == "Enable ATB preview").Enabled,
+            Check(!Descendants<CheckBox>(battlePage).Single(control => control.Text is "Enable ATB preview" or "Enable battle preview component").Enabled,
                 "An absent optional ATB component still exposed its enable control.");
             Passed("Native Unite control stages per-game settings while absent optional ATB controls remain disabled");
 
@@ -135,7 +155,7 @@ internal static class Program
             File.Copy(type.Assembly.Location, atbFixture);
             Call(form, "RebuildPages");
             battlePage = tabs.TabPages.Cast<TabPage>().Single(page => page.Text == "Battle & ATB");
-            var atbSwitch = Descendants<CheckBox>(battlePage).Single(control => control.Text == "Enable ATB preview");
+            var atbSwitch = Descendants<CheckBox>(battlePage).Single(control => control.Text is "Enable ATB preview" or "Enable battle preview component");
             Check(atbSwitch.Enabled && !atbSwitch.Checked, "Installed optional ATB did not start with an enabled control and disabled setting.");
             atbSwitch.Checked = true;
             var activeAtb = Descendants<CheckBox>(battlePage).Single(control => control.Text == "Schedule actions with SPD meters");
@@ -177,6 +197,8 @@ internal static class Program
 
             gameChoice.SelectedIndex = 1;
             Check(seed.Text == "second-seed", "Changing to S2 showed S1's seed.");
+            Check(!Descendants<GroupBox>(tabs).Any(group => group.Text.StartsWith("Suikoden I inventory and quick start", StringComparison.Ordinal)),
+                "S1 quality-of-life controls appeared in the S2 view.");
             Check(WeaponChoice(tabs).Enabled && WeaponChoice(tabs).Items.Count == 3, "S2 joining weapon choices did not include all three supported policies.");
             Check(SelectedWeaponPolicy(WeaponChoice(tabs)) == "RiouVariance", "S2 did not default to Riou's weapon policy.");
             Check(((KeyValuePair<string, string>)WeaponChoice(tabs).SelectedItem!).Value == "Riou's current weapon level ±3 (default)",
@@ -231,6 +253,10 @@ internal static class Program
             Check(form.Text == versionedTitle, "Successful Apply did not restore the versioned clean title.");
             string savedS1 = File.ReadAllText(Path.Combine(config, SettingsCatalog.S1File));
             string savedS2 = File.ReadAllText(Path.Combine(config, SettingsCatalog.S2File));
+            var restored = SettingsWorkspace.Load(game, () => false);
+            Check(!restored.GetBoolean("s1.WarehouseMenu") && features.Skip(1).All(key => restored.GetBoolean("s1." + key))
+                && !savedS2.Contains("[QualityOfLife]", StringComparison.Ordinal),
+                "Applying and reopening the launcher lost the selected S1 feature settings or wrote them into S2.");
             Check(savedS1.Contains("# S1 comment must survive\r\n", StringComparison.Ordinal)
                 && savedS1.Contains("Seed = edited-first-seed", StringComparison.Ordinal)
                 && savedS1.Contains("Companions = " + rosterValue, StringComparison.Ordinal)
@@ -248,6 +274,57 @@ internal static class Program
             Check(File.ReadAllText(Path.Combine(backup, SettingsCatalog.S1File)) == originalS1, "UI Apply did not create the exact pre-edit backup.");
             Check(File.Exists(preference), "UI Apply did not remember the selected game folder.");
             Passed("Actual Apply writes the staged files, preserves comments and creates original backups");
+
+            if (args.Length > 0)
+            {
+                // Inspect the real preview's version metadata only; never load it into this process.
+                File.Copy(Path.GetFullPath(args[0]), Path.Combine(plugins, "SuikodenRandomizer.S1BattlePreview.dll"), true);
+                Call(form, "LoadInstallation", game);
+                workspace = Field<SettingsWorkspace>(form, "_workspace");
+                gameChoice = Field<ComboBox>(form, "_game");
+                tabs = Field<TabControl>(form, "_tabs");
+                var ctb = Descendants<GroupBox>(tabs).Single(group => group.Text == "Suikoden I experimental CTB");
+                var enabledCtb = Descendants<CheckBox>(ctb).Single(control => control.Text.StartsWith("Enable CTB", StringComparison.Ordinal));
+                Check(enabledCtb.Enabled, "Actual CTB preview did not enable its dedicated controls.");
+                workspace.SetBoolean("atb.Enabled", true);
+                workspace.SetBoolean("s1.unites", false);
+                workspace.SetBoolean("s1.talismanPreview", false);
+                enabledCtb.Checked = true;
+                Descendants<TextBox>(ctb).Single().Text = "35,17";
+                var breakSwitch = Descendants<CheckBox>(ctb).Single(control => control.Text.StartsWith("Enable Break", StringComparison.Ordinal));
+                breakSwitch.Checked = false;
+                Check(workspace.GetBoolean("ctb.Enabled") && !workspace.GetBoolean("ctb.Break")
+                    && workspace.Get("ctb.ReserveRoleIds") == "35,17" && workspace.Validate().Count == 0,
+                    "CTB controls failed to stage independent settings.");
+                Passed("CTB preview metadata enables controls and stages CTB, Break and reserve identities");
+                gameChoice.SelectedIndex = 1;
+                Check(!Descendants<GroupBox>(tabs).Any(group => group.Text == "Suikoden I experimental CTB")
+                    && workspace.GetBoolean("ctb.Enabled"), "S1 CTB leaked into S2 or lost its staged configuration.");
+                gameChoice.SelectedIndex = 0;
+                Passed("CTB controls remain S1-only and survive switching games");
+                workspace.SaveChanges();
+                var savedCtb = IniDocument.Parse(File.ReadAllText(Path.Combine(config, SettingsCatalog.AtbFile)));
+                Check(savedCtb.Get("CTB", "Enabled") == "true" && savedCtb.Get("CTB", "ReserveRoleIds") == "35,17",
+                    "The supported CTB preview did not accept and persist its settings.");
+                Passed("Supported preview accepts CTB settings through the normal backed-up transaction");
+                if (args.Length > 1)
+                {
+                    tabs.SelectedTab = tabs.TabPages.Cast<TabPage>().Single(page => page.Text == "Battle & ATB");
+                    form.ClientSize = new System.Drawing.Size(1100, 820);
+                    form.StartPosition = FormStartPosition.Manual;
+                    form.Location = new System.Drawing.Point(-20000, -20000);
+                    form.ShowInTaskbar = false;
+                    form.Show(); // Off-screen fixture only; allows child controls to paint.
+                    Application.DoEvents();
+                    form.PerformLayout();
+                    using var bitmap = new System.Drawing.Bitmap(form.Width, form.Height);
+                    form.DrawToBitmap(bitmap, new System.Drawing.Rectangle(System.Drawing.Point.Empty, form.Size));
+                    string snapshot = Path.GetFullPath(args[1]);
+                    Directory.CreateDirectory(Path.GetDirectoryName(snapshot)!);
+                    bitmap.Save(snapshot, System.Drawing.Imaging.ImageFormat.Png);
+                    form.Hide();
+                }
+            }
 
             Console.WriteLine(passed + " actual WinForms launcher checks passed.");
             return 0;

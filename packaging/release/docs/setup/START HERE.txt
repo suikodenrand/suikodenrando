@@ -1,17 +1,16 @@
-STARS OF DESTINY 0.14.5 - FULL WINDOWS RELEASE
+STARS OF DESTINY 0.14.6 - FULL WINDOWS RELEASE
 Suikoden I & II HD Remaster | Steam | Windows x64
-Launcher 1.0.6
+Launcher 1.0.7
 
 INSTALL
 1. Close the game and the Stars of Destiny launcher. Keep a paired backup
    of the game's Save and BepInEx/config folders outside the game directory
    if you already have a campaign. Starting New Game may replace autosave.
-2. Run the Stars of Destiny 0.14.5 setup EXE. Select the folder containing
+2. Run the Stars of Destiny 0.14.6 setup EXE. Select the folder containing
    Suikoden I and II HD Remaster.exe and GameAssembly.dll.
 3. The combined randomizer, launcher, BepInEx and Suikoden Fix are included.
-   Leave "Experimental S1 ATB (installed disabled)" unchecked for standard
-   turn-based battles. Select it only if you want to try the separate ATB
-   preview. Installing it does not enable it.
+   Leave "Experimental S1 ATB / CTB (installed disabled)" unchecked for standard
+   turn-based battles. Select it only if you want to try ATB or CTB. Installing it does not enable it.
 4. Complete setup. Open the launcher from the current user's Start Menu:
    Stars of Destiny. You can also run
    <game>/StarsOfDestiny Launcher/StarsOfDestiny.Launcher.exe.
@@ -26,16 +25,16 @@ INSTALL
    to show its text. F6 cycles Full, Compact and Hidden for that session.
 
 WHAT IS INCLUDED
-- Combined Suikoden I / II randomizer 0.14.5, with separate game settings.
+- Combined Suikoden I / II randomizer 0.14.6, with separate game settings.
 - Seeded character Shuffle, five chosen companions, or a seeded random
   fixed roster; optional protagonist shuffle and each game's quick start.
 - Supported English dialogue-name replacement in both games.
 - Native shuffled-character Unite previews for both games.
 - Suikoden I seeded chest shuffle, off until you enable it.
-- Windows launcher 1.0.6, preset import/export and configuration backups.
+- Windows launcher 1.0.7, preset import/export and configuration backups.
 - BepInEx 6 IL2CPP x64 build 697 and its private loader runtime.
 - Suikoden Fix 1.5.2b and its launcher settings.
-- Optional separate Suikoden I ATB Preview 0.10.1, installed disabled.
+- Optional separate Suikoden I ATB Preview 0.15.2, installed disabled.
 - Transaction restore tools, instructions, troubleshooting and notices.
 
 FRESH DEFAULTS AND UPGRADES
@@ -86,12 +85,31 @@ before starting a new game. Existing saves keep their stored chest policy.
 To change one, choose checked (shuffled) or unchecked (original), Apply,
 select its saved snapshot and use Reset selected save's chest settings.
 The next load adopts that policy. The manager keeps a backup; acquired items
-and opened chest flags stay put. On Apply, launcher 1.0.6 clears the older
+and opened chest flags stay put. On Apply, launcher 1.0.7 clears the older
 global pause and resumes saved shuffles. Unticking the new-campaign option
 does not pause an existing shuffled policy. S2 chest shuffle is unavailable.
 
+SUIKODEN I QUALITY OF LIFE
+The four options start enabled. In the launcher, open Suikoden I > Quality of
+Life to switch any option off or disable the group.
+- Warehouse access adds Roc's Warehouse after Party Items once recruited.
+- Shared battle items let each living active fighter use another living
+  fighter's carried item. The charge comes from the owner's stack.
+- Optimize equips one fighter from loose active-party gear and, after Roc
+  joins, warehouse stock. Select either source or both in the launcher.
+  Other fighters keep the gear they are wearing.
+- The Viktor quick start matches starting companions to Tir's level with
+  each companion's own stat growth.
+
+S1 COUNT TIME BATTLE (OPTIONAL PREVIEW 0.5.2)
+The battle plugin supports CTB and ATB. Both start off. With the component
+installed, open Suikoden I > Battle & ATB, disable shuffled Unites and the
+legacy Talisman preview, activate the component if needed, then enable the
+battle preview and CTB. The CTB tuning editor opens from the same tab.
+Guide: https://github.com/suikodenrand/suikodenrando/blob/v0.14.6/docs/CTB-PROTOTYPE.md
+
 OPTIONAL S1 ATB
-Select "Experimental S1 ATB (installed disabled)" during setup. In the
+Select "Experimental S1 ATB / CTB (installed disabled)" during setup. In the
 launcher's Battle & ATB tab, turn off "Enable shuffled-character Unite
 attacks" for S1 before enabling ATB preview, then apply
 and relaunch. The two previews cannot run together. ATB uses native command
@@ -109,7 +127,7 @@ the installer and installed in <game>/StarsOfDestiny Setup/Licenses, with
 sources under Source. The outer download omits duplicate support files.
 
 TEST COVERAGE AND LIMITS
-This is the 0.14.5 release package. Representative Unite attacks, shuffled parties,
+This is the 0.14.6 release package. Representative Unite attacks, shuffled parties,
 save/load transitions and the F6 presentation have been tested in-game; every
 campaign, Unite recipe and scripted encounter has not been played through.
 S1 chest shuffle and optional ATB remain experimental. See the release notes

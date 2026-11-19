@@ -9,7 +9,7 @@ using HarmonyLib;
 
 namespace SuikodenRandomizer.S1BattlePreview;
 
-[BepInPlugin(PluginId, "Suikoden I Battle Preview", "0.10.1")]
+[BepInPlugin(PluginId, "Suikoden I Battle Preview", "0.15.2")]
 public sealed class BattlePreviewPlugin : BasePlugin
 {
     public const string PluginId = "agilen.suikoden1.battle-preview";
@@ -23,16 +23,25 @@ public sealed class BattlePreviewPlugin : BasePlugin
     private static ConfigEntry<bool>? _activeInput;
     private static ConfigEntry<bool>? _enemyDexCharge;
     private static ConfigEntry<bool>? _openingCharge;
+    private static ConfigEntry<bool>? _ctb;
+    private static ConfigEntry<bool>? _ctbBreak;
+    private static ConfigEntry<bool>? _ctbSupport;
+    private static ConfigEntry<string>? _ctbReserves;
     internal static ManualLogSource? PreviewLog { get; private set; }
     internal static bool Enabled => _enabled?.Value == true;
-    internal static bool ActiveAtbEnabled => Enabled && _activeAtb?.Value == true;
-    internal static bool RepeatTurnsEnabled => ActiveAtbEnabled && _repeatTurns?.Value == true;
-    internal static bool ReadyCommandsEnabled => ActiveAtbEnabled && _readyCommands?.Value == true;
-    internal static bool NativeReadyMenusEnabled => ReadyCommandsEnabled && _nativeReadyMenus?.Value == true;
-    internal static bool NativeSpdMetersEnabled => Enabled && _nativeSpdMeters?.Value == true;
-    internal static bool ActiveInputEnabled => ReadyCommandsEnabled && _activeInput?.Value == true;
-    internal static bool EnemyDexChargeEnabled => ActiveAtbEnabled && _enemyDexCharge?.Value == true;
-    internal static bool OpeningChargeEnabled => ActiveAtbEnabled && _openingCharge?.Value == true;
+    internal static bool CtbEnabled => Enabled && _ctb?.Value == true;
+    internal static bool CtbBreakEnabled => CtbEnabled && _ctbBreak?.Value == true;
+    internal static bool CtbSupportEnabled => CtbEnabled && _ctbSupport?.Value == true;
+    internal static string CtbReserveRoles => _ctbReserves?.Value ?? "";
+    // CTB uses the existing single-actor/native-menu bridge. Only one scheduler owns it.
+    internal static bool ActiveAtbEnabled => Enabled && (CtbEnabled || _activeAtb?.Value == true);
+    internal static bool RepeatTurnsEnabled => ActiveAtbEnabled && (CtbEnabled || _repeatTurns?.Value == true);
+    internal static bool ReadyCommandsEnabled => ActiveAtbEnabled && (CtbEnabled || _readyCommands?.Value == true);
+    internal static bool NativeReadyMenusEnabled => ReadyCommandsEnabled && (CtbEnabled || _nativeReadyMenus?.Value == true);
+    internal static bool NativeSpdMetersEnabled => !CtbEnabled && Enabled && _nativeSpdMeters?.Value == true;
+    internal static bool ActiveInputEnabled => !CtbEnabled && ReadyCommandsEnabled && _activeInput?.Value == true;
+    internal static bool EnemyDexChargeEnabled => !CtbEnabled && ActiveAtbEnabled && _enemyDexCharge?.Value == true;
+    internal static bool OpeningChargeEnabled => !CtbEnabled && ActiveAtbEnabled && _openingCharge?.Value == true;
     internal static bool OneShotAttackEnabled => Enabled && !ActiveAtbEnabled && _oneShotAttack?.Value == true;
 
     public override void Load()
@@ -61,6 +70,14 @@ public sealed class BattlePreviewPlugin : BasePlugin
                 "Give enemies 0.75% faster meter charge per point of DEX, capped at 75% and the fastest meter rate.");
             _openingCharge = Config.Bind("Preview", "OpeningCharge", true,
                 "Start heroes and enemies with SPD-based charge, small random variation, and a chance of a DEX bonus.");
+            _ctb = Config.Bind("CTB", "Enabled", false,
+                "Experimental S1 logical-time CTB. Overrides ATB scheduling; native commands pause turn progression. Restart the game after changing.");
+            _ctbBreak = Config.Bind("CTB", "Break", true,
+                "Confirmed damage fills enemy Break gauges. Break delays one enemy turn; no damage multiplier is added.");
+            _ctbSupport = Config.Bind("CTB", "ReserveSupport", true,
+                "Eligible recruited combat reserves Rally one ally forward after every four completed hero actions. No MP or save edits.");
+            _ctbReserves = Config.Bind("CTB", "ReserveRoleIds", "",
+                "Optional comma-separated canonical S1 role IDs for up to two reserves. Empty selects eligible reserves by ID. Unavailable choices are skipped.");
             harmony.CreateClassProcessor(typeof(BattleUpdateProbe)).Patch();
             harmony.CreateClassProcessor(typeof(NextActorProbe)).Patch();
             harmony.CreateClassProcessor(typeof(BattleStartProbe)).Patch();
@@ -77,7 +94,14 @@ public sealed class BattlePreviewPlugin : BasePlugin
                 harmony.CreateClassProcessor(typeof(NativeReadyBackPatch)).Patch();
             }
             AddComponent<BattlePreviewOverlay>();
-            string mode = NativeReadyMenusEnabled ? "Native per-hero SPD command menus enabled."
+            if (CtbEnabled)
+            {
+                harmony.CreateClassProcessor(typeof(CtbEnemyTargetProbe)).Patch();
+                harmony.CreateClassProcessor(typeof(CtbResourcePreviewProbe)).Patch();
+                harmony.CreateClassProcessor(typeof(CtbTargetActionPreviewProbe)).Patch();
+            }
+            string mode = CtbEnabled ? "CTB prototype 0.5.2 enabled with support for shared party items."
+                : NativeReadyMenusEnabled ? "Native per-hero SPD command menus enabled."
                 : ReadyCommandsEnabled ? "Per-hero SPD command prompts enabled."
                 : RepeatTurnsEnabled ? "Same-round hero and enemy SPD repeats enabled."
                 : ActiveAtbEnabled ? "Hero and enemy SPD scheduling enabled."

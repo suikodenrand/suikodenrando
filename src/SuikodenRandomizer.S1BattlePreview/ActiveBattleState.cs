@@ -35,6 +35,7 @@ internal static partial class ActiveBattleState
 
     internal static bool TrySelect(out int result)
     {
+        if (BattlePreviewPlugin.CtbEnabled) return TrySelectCtb(out result);
         result = Wait;
         if (!BattlePreviewPlugin.ActiveAtbEnabled || global::SystemObject.mode != global::SystemObject.Mode.GSD1)
             return false;
@@ -105,7 +106,7 @@ internal static partial class ActiveBattleState
             {
                 var actor = rows[slot];
                 bool alive = IsLiving(actor);
-                ObserveSlot(slot, actor, alive, slot > party);
+                ObserveSlot(work, slot, actor, alive);
                 if (!alive || GSD1.BattleBase.dead_check(slot)) continue;
 
                 bool partyMember = slot <= party;
@@ -232,6 +233,16 @@ internal static partial class ActiveBattleState
         _waitStarted = -1;
         _dispatchedAt = now;
         string side = selected <= work.player_kazu ? "hero" : "enemy";
+        if (BattlePreviewPlugin.CtbEnabled)
+        {
+            if (chosen.finished_flg == 1)
+            {
+                _repeatSlot = selected;
+                _repeatActor = chosen.Pointer;
+            }
+            Trace(FormattableString.Invariant($"CTB dispatch {side} slot {selected} {chosen.name}, command {chosen.c_koudou}, target {chosen.c_mokuhyo}, logical time {Scheduler.Ctb.Now:F1}."));
+            return selected;
+        }
         int speed = ReadSpeed(chosen);
         int dexterity = ReadDexterity(chosen);
         bool modified = selected > work.player_kazu && BattlePreviewPlugin.EnemyDexChargeEnabled;
@@ -291,6 +302,7 @@ internal static partial class ActiveBattleState
                 Trace($"ATB reopened slot {slot} {actor.name} for its repeat action in round {_round}.");
             }
             Trace($"ATB native action started for slot {slot} {actor.name}.");
+            if (BattlePreviewPlugin.CtbEnabled) CaptureCtbAction(work, slot);
         }
         catch (Exception error) { Fallback(error.Message); }
     }
@@ -326,12 +338,25 @@ internal static partial class ActiveBattleState
             for (int slot = 1; slot <= work.pm_kazu; slot++)
             {
                 var actor = rows[slot];
-                ObserveSlot(slot, actor, IsLiving(actor), slot > work.player_kazu);
+                ObserveSlot(work, slot, actor, IsLiving(actor));
             }
             PruneQueuedHeroes(work);
             if (_repeatSlot != 0 && Scheduler.PendingSlot == 0) RestoreRepeatFlag();
             if (!resolving) PauseRound(work, now);
-            else if (running) AdvanceQueuedInput(work, now);
+            else if (running && !BattlePreviewPlugin.CtbEnabled) AdvanceQueuedInput(work, now);
+            if (BattlePreviewPlugin.CtbEnabled)
+            {
+                if (!resolving || work.battle_kaisuu != _round || NativeEscapeOwnsRound(_round)
+                    || NativeOnlyReason(work) is not null || !HasLiveFormationEnemy(work))
+                    ClearCtbQueues();
+                else if (running && Scheduler.IsAdmitted)
+                {
+                    int next = PeekCtbFollowup(work);
+                    if (Scheduler.PendingSlot <= work.player_kazu) UpdateCtbHeroQueue(work, next);
+                    else UpdateCtbEnemyQueue(work, next);
+                }
+                RefreshCtbPresentation(work);
+            }
         }
         catch (Exception error) { Fallback(error.Message); }
     }
@@ -346,13 +371,14 @@ internal static partial class ActiveBattleState
         _drainingRound = false;
         _closingReadySlots = 0;
         _inputTurnDepth = -1;
-        QueuedHeroActions.Clear();
+        DiscardQueuedHeroes();
         _fellBack = false;
         _waitStarted = -1;
         _dispatchedAt = 0;
         ClearRepeat();
         ClearHeroCommand(cancelReservation: false);
         _readyCommandRound = -1;
+        ResetCtb();
     }
 
     private static string? NativeOnlyReason(GSD1.BATTLE_WORK work)
@@ -409,16 +435,26 @@ internal static partial class ActiveBattleState
     }
 
     private static bool IsRepeatCandidate(int slot, GSD1.PM_DATA actor, bool partyMember, bool readyCommands)
-        => BattlePreviewPlugin.RepeatTurnsEnabled && actor.finished_flg == 1 && IsLiving(actor)
-            && Scheduler.CanRepeat(slot, actor.Pointer) && (actor.status & RepeatBlockingStatus) == 0
-            && actor.unbalance_cnt == 0 && (!partyMember || actor.c_koudou is Attack or Defend
-                || (readyCommands && actor.c_koudou is Rune or Item));
-
-    private static void ObserveSlot(int slot, GSD1.PM_DATA? actor, bool alive, bool enemy)
     {
+        if (!BattlePreviewPlugin.RepeatTurnsEnabled || actor.finished_flg != 1 || !IsLiving(actor)
+            || !Scheduler.CanRepeat(slot, actor.Pointer) || (actor.status & RepeatBlockingStatus) != 0
+            || actor.unbalance_cnt != 0) return false;
+        if (!partyMember) return true;
+        // During a native cursor callback the actor contains the menu's temporary draft.
+        var command = _pumpingNativeMenu && _nativeMenu is { } menu && menu.Actor == actor.Pointer
+            ? menu.StockCommand.Kind : actor.c_koudou;
+        return command is Attack or Defend || (readyCommands && command is Rune or Item);
+    }
+
+    private static void ObserveSlot(GSD1.BATTLE_WORK work, int slot, GSD1.PM_DATA? actor, bool alive)
+    {
+        bool enemy = slot > work.player_kazu;
+        int speed = ReadSpeed(actor);
+        if (Scheduler.UseCtb && alive && actor is not null)
+            speed = ReadTunedCtbSpeed(work, slot, actor, speed, enemy);
         double multiplier = enemy && BattlePreviewPlugin.EnemyDexChargeEnabled
             ? MeterActionScheduler.EnemyDexMultiplier(ReadDexterity(actor)) : 1;
-        Scheduler.Observe(slot, actor?.Pointer ?? IntPtr.Zero, ReadSpeed(actor), alive, multiplier);
+        Scheduler.Observe(slot, actor?.Pointer ?? IntPtr.Zero, speed, alive, multiplier);
     }
 
     private static int ReadDexterity(GSD1.PM_DATA? actor)
@@ -436,8 +472,9 @@ internal static partial class ActiveBattleState
     private static bool TryFinish(int slot, GSD1.PM_DATA? actor)
     {
         if (actor is null || actor.finished_flg == 0 || !Scheduler.Finish(slot, actor.Pointer)) return false;
+        if (BattlePreviewPlugin.CtbEnabled) CompleteCtbAction(slot, actor);
         if (slot == _repeatSlot) ClearRepeat();
-        Trace($"ATB completed slot {slot} {actor.name}; meter reset to 0%.");
+        if (!BattlePreviewPlugin.CtbEnabled) Trace($"ATB completed slot {slot} {actor.name}; meter reset to 0%.");
         RefreshHeldNativePartyStatus();
         return true;
     }
@@ -445,10 +482,19 @@ internal static partial class ActiveBattleState
     private static bool Fallback(string reason)
     {
         RestoreRepeatFlag();
-        QueuedHeroActions.Clear();
+        DiscardQueuedHeroes();
         ClearHeroCommand(cancelReservation: true);
         ReleaseNativeTargetPanels();
         _fellBack = true;
+        if (BattlePreviewPlugin.CtbEnabled)
+        {
+            ClearCtbQueues();
+            CtbPresentation.Turns = Array.Empty<CtbTurnView>();
+            CtbPresentation.Enemies = Array.Empty<CtbEnemyView>();
+            CtbPresentation.Support = "";
+            CtbPresentation.PreviewLabel = "";
+            ClearCtbTarget();
+        }
         Trace($"ATB returned to native timing for this encounter because {reason}.");
         return false;
     }
@@ -481,5 +527,6 @@ internal static partial class ActiveBattleState
         _repeatReopened = false;
     }
 
-    private static void Trace(string message) => BattlePreviewPlugin.PreviewLog?.LogInfo("[S1 ATB] " + message);
+    private static void Trace(string message) => BattlePreviewPlugin.PreviewLog?.LogInfo(
+        (BattlePreviewPlugin.CtbEnabled ? "[S1 CTB] " : "[S1 ATB] ") + message);
 }

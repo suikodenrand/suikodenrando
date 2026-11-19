@@ -1,4 +1,4 @@
-STARS OF DESTINY 0.14.5 - TROUBLESHOOTING
+STARS OF DESTINY 0.14.6 - TROUBLESHOOTING
 
 SETUP CANNOT FIND THE GAME
 In Steam, right-click the game > Manage > Browse local files. Select that
@@ -49,7 +49,7 @@ This is the fresh default. Focus the game and press F6 to display
 the text panel. Further presses cycle Full, Compact and Hidden. Visible text
 has no black background. F6 changes are for this session. To choose a startup
 view, change Interface/ViewMode in the launcher with the game closed.
-If F6 never responds, check BepInEx/LogOutput.log for Stars of Destiny 0.14.5
+If F6 never responds, check BepInEx/LogOutput.log for Stars of Destiny 0.14.6
 and errors. Verify winhttp.dll, doorstop_config.ini and BepInEx are beside
 the game executable and that the randomizer is enabled in the launcher.
 
@@ -82,7 +82,7 @@ Saved campaigns keep their policy, acquired items and first-join history.
 Campaigns predating this feature keep Donor; they are not retrofitted. Do not
 delete sidecars to force a new policy, or repeatedly recruit to reset items.
 Report unexpected gear with game, seed/mode, original role, replacement and
-log lines. This feature requires the combined 0.14.5 plugin. Launcher 1.0.6
+log lines. This feature requires the combined 0.14.6 plugin. Launcher 1.0.7
 manages the option; manual CFG editing also works.
 
 UNITES ARE MISSING OR ATB IS NOT ACTIVE
@@ -104,7 +104,7 @@ campaigns in Treasure and Apply before starting a new game. Existing saves
 keep their stored policy. To change one, choose checked (shuffled) or
 unchecked (original), Apply, select its snapshot and reset its chest
 settings, then load that save. The reset creates a backup and keeps acquired
-items and opened chest flags. Launcher 1.0.6 automatically clears the older
+items and opened chest flags. Launcher 1.0.7 automatically clears the older
 global pause on Apply, allowing saved shuffled policies to resume. Unticking
 the new-campaign checkbox does not pause an existing shuffled save.
 Manual Treasure/Enabled=false still pauses replacement, but the next launcher

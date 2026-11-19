@@ -1,9 +1,9 @@
 # Stars of Destiny
 Disclaimer: to those that it matters. This was vibecoded by me with AI. I came up with all the features and tested and iterated on them, but AI took care of the Technical groundwork and making it happen.
 
-A seeded character randomizer for the Windows Steam release of **Suikoden I & II HD Remaster**. Both games share one plugin host and interface, with separate settings and saved campaign mappings. Release **0.14.5** includes launcher **1.0.6**.
+A seeded character randomizer for the Windows Steam release of **Suikoden I & II HD Remaster**. Both games share one plugin host and interface, with separate settings and saved campaign mappings. Release **0.14.6** includes launcher **1.0.7**.
 
-[Download 0.14.5](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.5) · [Release notes](docs/release-0.14.5.md) · [Build instructions](BUILDING.md) · [Changelog](CHANGELOG.md)
+[Download 0.14.6](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.6) · [Release notes](docs/release-0.14.6.md) · [Build instructions](BUILDING.md) · [Changelog](CHANGELOG.md)
 
 ## Features
 
@@ -15,20 +15,23 @@ A seeded character randomizer for the Windows Steam release of **Suikoden I & II
 - Joining inventory and equipment for both games: use the original role's starting inventory, including consumables, with comparable wearable substitutes for incompatible equipment. Available in Shuffle, chosen companions and random fixed rosters; keeping the replacement's starting inventory remains an option.
 - A Windows launcher for settings, seeds, presets, configuration backups and optional features.
 - Optional experimental S1 chest shuffle and S1 Active Time Battle preview. ATB uses native command menus, targeting and SPD gauges.
+- S1 field access to Roc’s Warehouse after recruitment, shared battle items, per-fighter equipment optimization, and Viktor quick-start companion leveling. Each has an independent launcher switch.
+- Optional S1 CTB preview 0.5.2 with a turn-order forecast, queued commands, Break, reserve Rally and tuning editor.
 - One text-only F6 panel, hidden at launch by default.
 
-Suikoden II ATB and chest shuffle, Nuzlocke, shared-inventory changes and extra rune slots are not included. Some custom scene animations retain native handling. The English dialogue replacement is curated; it does not rewrite every mention in every language.
+Suikoden II ATB and chest shuffle, Nuzlocke and extra rune slots are not included. Some custom scene animations retain native handling. The English dialogue replacement is curated; it does not rewrite every mention in every language.
 
 ## Choose a download
 
 | Asset | Installation | BepInEx |
 | --- | --- | --- |
-| `Stars-of-Destiny-0.14.5-Setup.exe` | Guided full install, including the launcher and transaction recovery | Included |
-| `Stars-of-Destiny-0.14.5-Mod-Only-Windows.zip` | Manual install, including the launcher | Required separately |
-| `Stars-of-Destiny-0.14.5-Plugins-Only-Nexus.zip` | Plugins, settings and manual instructions | Required separately |
-| `Stars-of-Destiny-Launcher-1.0.6-Windows.zip` | Standalone settings launcher for an existing installation | Install separately for the game plugins |
+| `Stars-of-Destiny-0.14.6-Setup.exe` | Guided full install, including the launcher and transaction recovery | Included |
+| `Stars-of-Destiny-0.14.6-Mod-Only-Windows.zip` | Manual install, including the launcher | Required separately |
+| `Stars-of-Destiny-0.14.6-Plugins-Only-Nexus.zip` | Plugins, settings and manual instructions | Required separately |
+| `Stars-of-Destiny-Launcher-1.0.7-Windows.zip` | Standalone settings launcher for an existing installation | Install separately for the game plugins |
+| `Stars-of-Destiny-S1-CTB-Preview-0.5.2-Windows.zip` | Optional CTB add-on for an existing 0.14.6 installation | Required separately |
 
-Use `SHA256SUMS.txt` on the release to verify the download. For a Nexus-style installation, use the plugins-only ZIP. It includes the combined randomizer, Suikoden Fix, configuration, instructions and the dormant optional S1 ATB preview. The standalone launcher includes its .NET runtime. [Launcher changes](docs/launcher-1.0.6.md)
+Use `SHA256SUMS.txt` on the release to verify the download. For a Nexus-style installation, use the plugins-only ZIP. It includes the combined randomizer, Suikoden Fix, configuration, instructions and the dormant optional S1 ATB preview. The standalone launcher includes its .NET runtime. [Launcher changes](docs/launcher-1.0.7.md)
 
 ### Full setup
 
@@ -48,7 +51,7 @@ For an existing modded installation, first back up `Save` and `BepInEx/config` t
 
 ## Defaults and optional features
 
-Fresh 0.14.5 installations use character Shuffle, the original role's starting inventory, normal openings, English dialogue replacement and shuffled Unites. Protagonist shuffle and chest shuffle are off. F6 starts Hidden and cycles Full, Compact and Hidden text views for the current session.
+Fresh 0.14.6 installations use character Shuffle, the original role's starting inventory, normal openings, English dialogue replacement and shuffled Unites. Protagonist shuffle and chest shuffle are off. F6 starts Hidden and cycles Full, Compact and Hidden text views for the current session.
 
 In Characters, **Joining inventory & equipment** defaults to **Original role's starting inventory** (`Shuffle/JoiningEquipment=MatchRole`). At first join, replacements receive the original role's inventory and equipped items; incompatible armor and accessories use comparable equipment they can wear. The replacement's own weapon identity and rune setup remain intact. **Replacement's starting inventory** (`Donor`) keeps the previous behavior. The choice applies to new campaigns in all three modes, independently of the joining-weapon-level option. Later rejoining and reloading retain acquired items and equipment changes.
 
@@ -56,7 +59,9 @@ Campaigns saved before this feature keep the legacy replacement inventory behavi
 
 First joining weapons follow Tir or Riou with seeded -3 to +3 variance, including a possible exact match. These are new-campaign policies. Changing launcher settings does not rewrite the seed, mapping or weapon policy already bound to a saved campaign.
 
-ATB is inactive by default. In the manual ZIPs its reviewed DLL is dormant directly under `BepInEx`, outside the active plugins tree. With the game closed, follow the plugins-only package's `SETTINGS.txt` to disable both S1 Unite preview flags, copy the dormant DLL into `BepInEx/plugins` and enable ATB in its CFG. Alternatively use **Activate ATB preview** in the optional launcher's S1 Battle & ATB tab, then enable ATB and apply settings. Activation preserves existing settings; fresh defaults remain disabled until enabled. S1 ATB and shuffled S1 Unites must not run together.
+The four S1 improvements default to on. In the launcher, open **Suikoden I → Quality of Life** to change them individually or turn off all four. In Equipment, highlight Optimize and use Left/Right to change where it looks for gear.
+
+The optional S1 battle component supports both ATB and CTB. Standard turn-based combat is the fresh default. Close the game, activate the component through the launcher if needed, disable S1 shuffled Unites and the Talisman preview, and select the battle mode you want. [CTB setup and tuning](docs/CTB-PROTOTYPE.md)
 
 ## Source, builds and license
 
@@ -66,6 +71,6 @@ The project's own code and documentation are under the [MIT License](LICENSE). D
 
 ## Testing status and support
 
-The 0.14.5 update was checked with managed game fixtures, the installed game's interop assemblies, launcher checks and installer recovery tests. It has no new native playtest. S1 chest shuffle and ATB remain experimental. [Release notes](docs/release-0.14.5.md)
+Gameplay tests during development covered S1 quick-start growth, shared battle item charges, warehouse access, optimized gear after reload, and several CTB encounters. CTB is an experimental preview. [Release notes](docs/release-0.14.6.md)
 
 Report the game, version, seed/mode, scene and steps that reproduce a problem. Include relevant `BepInEx/LogOutput.log` lines and screenshots after reviewing them for personal paths or other private data. Keep saves and their configuration sidecars paired when backing up or sharing a campaign.

@@ -1,7 +1,9 @@
 using SuikodenRandomizer.Core.Combat;
 using SuikodenRandomizer.S1BattlePreview;
+using SuikodenRandomizer.Shared;
 
 int passed = 0;
+double waitCost = CtbActionTiming.Describe(CtbActionKind.Wait).Multiplier;
 void Check(bool passed, string failure)
 {
     if (!passed) throw new InvalidOperationException(failure);
@@ -16,6 +18,28 @@ void Case(string title, Action test)
     Console.WriteLine($"PASS {title}");
     passed++;
 }
+
+Case("Shared items preserve each actor's nine native pockets and identify every ally pocket uniquely", () =>
+{
+    for (int actor = 1; actor <= 6; actor++)
+    {
+        var tokens = new HashSet<int>();
+        for (int owner = 1; owner <= 6; owner++)
+        for (int pocket = 0; pocket < 9; pocket++)
+        {
+            int token = S1BattleItemAddress.Encode(actor, owner, pocket);
+            Check(token <= sbyte.MaxValue && tokens.Add(token), "Duplicate or incompatible native item operand.");
+            Check(owner == actor ? token == pocket : token == owner * 9 + pocket, "Wrong pocket encoding.");
+            Check(S1BattleItemAddress.TryDecode(actor, token, out int actualOwner, out int actualPocket)
+                && owner == actualOwner && pocket == actualPocket, "Owner or pocket lost during dispatch.");
+        }
+        for (int token = sbyte.MinValue; token <= sbyte.MaxValue; token++)
+            Check(S1BattleItemAddress.TryDecode(actor, token, out _, out _) == tokens.Contains(token),
+                "Accepted a noncanonical item operand.");
+    }
+    Check(!S1BattleItemAddress.TryDecode(0, 0, out _, out _) && !S1BattleItemAddress.TryDecode(7, 0, out _, out _),
+        "Nonparty actor decoded a pocket.");
+});
 
 Case("SPD produces independent readiness with bounded rates", () =>
 {
@@ -906,4 +930,349 @@ Case("Opening charge breaks equal-SPD ties and refills start from empty", () =>
     Near(0, scheduler.GetGauge(1));
 });
 
-Console.WriteLine($"{passed} ATB checks passed.");
+Case("CTB bridge ignores frame clocks and completes its selected native actor once", () =>
+{
+    var scheduler = new MeterActionScheduler(3) { UseCtb = true };
+    var fast = new IntPtr(11);
+    var slow = new IntPtr(22);
+    scheduler.Observe(1, fast, 20, true);
+    scheduler.Observe(2, slow, 10, true);
+    double firstDue = scheduler.Ctb.GetNextReady(1);
+    scheduler.Tick(0, true);
+    scheduler.Tick(3600, true);
+    Near(0, scheduler.Ctb.Now);
+    Near(firstDue, scheduler.Ctb.GetNextReady(1));
+    Check(scheduler.Select(new[] { false, true, true }) == 1, "Native slot zero remains a sentinel.");
+    scheduler.Tick(999999, true);
+    Near(firstDue, scheduler.Ctb.Now);
+    Check(!scheduler.Finish(1, fast) && scheduler.Admit(1, fast), "A command is not a completed native action.");
+    Check(scheduler.Finish(1, fast) && !scheduler.Finish(1, fast), "Completion is exactly once.");
+    Near(firstDue * 2, scheduler.Ctb.GetNextReady(1));
+});
+
+Case("CTB native round maintenance preserves future turns and repeat eligibility", () =>
+{
+    var scheduler = new MeterActionScheduler(3) { UseCtb = true };
+    var hero = new IntPtr(11);
+    var enemy = new IntPtr(22);
+    scheduler.Observe(1, hero, 100, true);
+    scheduler.Observe(2, enemy, 25, true);
+    var mask = new[] { false, true, true };
+    Check(scheduler.Select(mask) == 1 && scheduler.Admit(1, hero) && scheduler.Finish(1, hero), "First hero turn.");
+    double due = scheduler.Ctb.GetNextReady(2);
+    scheduler.BeginRound();
+    scheduler.Tick(98765, false);
+    Near(due, scheduler.Ctb.GetNextReady(2));
+    Check(scheduler.CanRepeat(1, hero), "Native bookkeeping must not impose a full-party turn barrier.");
+    Check(scheduler.Select(mask) == 1, "Fast hero acts again before the slower enemy.");
+});
+
+Case("CTB Wait advances a selected turn without admitting a native action", () =>
+{
+    var scheduler = new MeterActionScheduler(3) { UseCtb = true };
+    var hero = new IntPtr(11);
+    var enemy = new IntPtr(22);
+    scheduler.Observe(1, hero, 100, true);
+    scheduler.Observe(2, enemy, 100, true);
+    var mask = new[] { false, true, true };
+    Check(scheduler.Select(mask) == 1, "Choose hero.");
+    double now = scheduler.Ctb.Now;
+    Check(scheduler.SpendCtbMenuTurn(1, hero, waitCost), "Wait consumes the selected opportunity.");
+    Check(scheduler.PendingSlot == 0 && !scheduler.IsAdmitted, "Both reservations clear after Wait.");
+    Check(scheduler.Ctb.GetNextReady(1) > now && !scheduler.SpendCtbMenuTurn(1, hero, waitCost), "Wait has positive recovery and cannot repeat without a turn.");
+    Check(scheduler.Select(mask) == 2, "Waiting yields to the enemy at the same timestamp.");
+});
+
+Case("CTB forecasts preserve native selection exclusions and invalidate replaced candidates", () =>
+{
+    var scheduler = new MeterActionScheduler(4) { UseCtb = true };
+    var hero = new IntPtr(11);
+    scheduler.Observe(1, hero, 200, true);
+    scheduler.Observe(2, new IntPtr(22), 150, true);
+    scheduler.Observe(3, new IntPtr(33), 140, true);
+    // All three are living. Native readiness rejected slot 2 at turn selection.
+    scheduler.CtbEligible[1] = true;
+    scheduler.CtbEligible[3] = true;
+    Check(scheduler.Select(scheduler.CtbEligible) == 1, "Expected the hero to own the command.");
+    var candidates = new[] { false, true, true, true };
+    var forecast = scheduler.ForecastCtb(4, candidates, hero, 1);
+    Check(forecast[0].Current && forecast[0].Slot == 1 && forecast[1].Slot == 3
+        && forecast.All(entry => entry.Slot != 2), "Forecast admitted a native-ineligible actor.");
+    Check(scheduler.ForecastCtb(4, candidates, IntPtr.Zero, 1).Length == 0
+        && scheduler.ForecastCtb(4, candidates, new IntPtr(44), 1).Length == 0,
+        "A KO or replacement in the pending slot inherited the forecast before the next observation.");
+    var spent = scheduler.ForecastCtb(4, new[] { false, false, true, true }, hero, 1);
+    Check(spent[0].Current && spent[0].Identity == hero.ToInt64() && spent.Skip(1).All(entry => entry.Slot == 3),
+        "A valid pending actor may own the current action while being ineligible for future turns.");
+    Check(scheduler.Admit(1, hero) && scheduler.Finish(1, hero)
+        && scheduler.Select(scheduler.CtbEligible) == forecast[1].Slot, "Next native selection differed from the preview.");
+
+    scheduler.Observe(3, new IntPtr(44), 140, true);
+    Check(scheduler.PendingSlot == 0 && !scheduler.CtbEligible[3], "A replacement inherited its predecessor's eligibility.");
+    var changed = scheduler.ForecastCtb(4, new[] { false, false, true, true }, IntPtr.Zero, 1);
+    Check(changed.Length == 0, "Newly blocked or replaced actors were projected before the next selection.");
+    scheduler.Reset();
+    Check(!scheduler.CtbEligible[1], "A new encounter retained a previous selection decision.");
+});
+
+Case("CTB bridge clears an unadmitted command when native actor identity changes", () =>
+{
+    var scheduler = new MeterActionScheduler(2) { UseCtb = true };
+    var oldActor = new IntPtr(11);
+    var replacement = new IntPtr(12);
+    scheduler.Observe(1, oldActor, 50, true);
+    Check(scheduler.Select(new[] { false, true }) == 1, "Reserve command.");
+    scheduler.Observe(1, replacement, 50, true);
+    Check(scheduler.PendingSlot == 0 && scheduler.Ctb.PendingSlot == -1, "Native and CTB reservations must both clear.");
+    Check(!scheduler.Admit(1, oldActor) && !scheduler.SpendCtbMenuTurn(1, oldActor, waitCost), "Stale identity cannot act or Wait.");
+    Check(scheduler.Select(new[] { false, true }) == 1 && scheduler.Admit(1, replacement), "Replacement can receive its own turn.");
+});
+
+Case("An early full menu gains turn ownership only when CTB promotes it", () =>
+{
+    var scheduler = new MeterActionScheduler(3) { UseCtb = true };
+    var hero = new IntPtr(11);
+    scheduler.Observe(1, hero, 100, true);
+    bool[] mask = { false, true, false };
+    Check(scheduler.Select(mask) == 1 && scheduler.Admit(1, hero), "Admit the first action.");
+    Check(!NativeHeroMenuInputPolicy.OwnsTurn(2, scheduler.PendingSlot, queued: true, activeAtbInput: false)
+        && !NativeHeroMenuInputPolicy.OwnsTurn(1, scheduler.PendingSlot, queued: true, activeAtbInput: false),
+        "An early menu must allow playback for both a different ally and the same hero acting twice.");
+    Check(scheduler.Finish(1, hero) && scheduler.Select(mask) == 1, "Reserve the following turn.");
+    Check(NativeHeroMenuInputPolicy.OwnsTurn(1, scheduler.PendingSlot, queued: false, activeAtbInput: false)
+        && scheduler.SpendCtbMenuTurn(1, hero, waitCost), "The promoted native menu can now execute its Wait.");
+});
+
+Case("Native Wait row confirmation exits as party command three without invoking a hero command", () =>
+{
+    var decision = NativeHeroMenuInputPolicy.Evaluate(6, new[] { true, true, true, true },
+        confirm: true, cancel: false, up: false, down: false);
+    Check(decision.Kind == NativeHeroMenuInputKind.ConfirmParty && decision.PartyCommand == 3,
+        "The extended final row must route to the mode-owned Auto/Wait handoff.");
+});
+
+Case("Idle or canceled Wait cannot fall through to stock Auto or consume a CTB opportunity", () =>
+{
+    var scheduler = new MeterActionScheduler(2) { UseCtb = true };
+    var hero = new IntPtr(11);
+    scheduler.Observe(1, hero, 100, true);
+    scheduler.Select(new[] { false, true });
+    double due = scheduler.Ctb.GetNextReady(1);
+    var enabled = new[] { true, true, true, true };
+    var idle = NativeHeroMenuInputPolicy.Evaluate(6, enabled, false, false, false, false);
+    var canceled = NativeHeroMenuInputPolicy.Evaluate(6, enabled, false, true, false, false);
+    Check(idle.Kind == NativeHeroMenuInputKind.Consume && idle.PartyCommand == 0,
+        "Idle on Wait must not execute the stock handler or select a party action.");
+    Check(canceled.Kind == NativeHeroMenuInputKind.Cancel && canceled.PartyCommand == 0,
+        "Cancel must keep the selected opportunity without choosing Wait.");
+    Check(scheduler.PendingSlot == 1 && !scheduler.IsAdmitted, "Menu input must not consume initiative.");
+    Near(due, scheduler.Ctb.GetNextReady(1));
+});
+
+Case("A confirmed native Wait consumes its selected CTB opportunity once", () =>
+{
+    var scheduler = new MeterActionScheduler(3) { UseCtb = true };
+    var hero = new IntPtr(11);
+    scheduler.Observe(1, hero, 100, true);
+    scheduler.Observe(2, new IntPtr(22), 100, true);
+    var mask = new[] { false, true, true };
+    Check(scheduler.Select(mask) == 1, "Hero should own the native command menu.");
+    var choice = NativeHeroMenuInputPolicy.Evaluate(6, new[] { true, true, true, true }, true, false, false, false);
+    Check(choice.Kind == NativeHeroMenuInputKind.ConfirmParty && choice.PartyCommand == 3
+        && scheduler.SpendCtbMenuTurn(1, hero, waitCost), "Native Wait must reach the CTB handoff.");
+    Check(!scheduler.SpendCtbMenuTurn(1, hero, waitCost) && scheduler.PendingSlot == 0 && scheduler.Ctb.PendingSlot == -1,
+        "Duplicate menu completion must not consume another opportunity.");
+    Check(scheduler.Select(mask) == 2, "The next actor must be free to proceed after native Wait.");
+});
+
+Case("A failed Run spends one full turn and preserves tied allies and enemies in CTB order", () =>
+{
+    var scheduler = new MeterActionScheduler(4) { UseCtb = true };
+    var runner = new IntPtr(11);
+    var ally = new IntPtr(22);
+    var enemy = new IntPtr(33);
+    scheduler.Observe(1, runner, 100, true);
+    scheduler.Observe(2, ally, 100, true);
+    scheduler.Observe(3, enemy, 100, true);
+    var eligible = new[] { false, true, true, true };
+    Check(scheduler.Select(eligible) == 1, "Opening tie should select the runner first.");
+    double opening = scheduler.Ctb.Now;
+    double recovery = CtbActionTiming.Describe(CtbActionKind.Attack).Multiplier;
+    Check(!scheduler.SpendCtbMenuTurn(1, ally, recovery), "A different actor cannot spend the runner's turn.");
+    Check(scheduler.SpendCtbMenuTurn(1, runner, recovery), "The runner should spend the selected opportunity.");
+    Near(opening + scheduler.Ctb.RecoveryForSpeed(100), scheduler.Ctb.GetNextReady(1));
+    Near(opening, scheduler.Ctb.GetNextReady(2));
+    Near(opening, scheduler.Ctb.GetNextReady(3));
+    Check(!scheduler.SpendCtbMenuTurn(1, runner, recovery) && !scheduler.Finish(1, runner),
+        "Repeated failure feedback must not spend another turn.");
+    Check(scheduler.Select(eligible) == 2 && scheduler.Admit(2, ally) && scheduler.Finish(2, ally),
+        "The tied ally should receive the next opportunity.");
+    Check(scheduler.Select(eligible) == 3 && scheduler.Admit(3, enemy) && scheduler.Finish(3, enemy),
+        "The tied enemy should follow without waiting for a new native round.");
+    Check(scheduler.Select(eligible) == 1, "The runner should return after normal recovery.");
+});
+
+Case("Native hero command confirmations remain with native Attack Rune and Item selectors", () =>
+{
+    var enabled = new[] { true, true, true, true };
+    for (int row = 0; row < enabled.Length; row++)
+    {
+        var decision = NativeHeroMenuInputPolicy.Evaluate(row, enabled, true, false, false, false);
+        Check(decision.Kind == NativeHeroMenuInputKind.PassNative && decision.Row == row && decision.PartyCommand == 0,
+            "Hero commands must retain native resource and target selection.");
+    }
+});
+
+Case("Native extended menu preserves Run Bribe and Auto or Wait command numbers", () =>
+{
+    var enabled = new[] { true, true, true, true };
+    for (int row = 4; row < 7; row++)
+    {
+        var decision = NativeHeroMenuInputPolicy.Evaluate(row, enabled, true, false, false, false);
+        Check(decision.Kind == NativeHeroMenuInputKind.ConfirmParty && decision.PartyCommand == row - 3,
+            "The stock party-command number changed.");
+    }
+});
+
+Case("Native menu wraps through Wait and skips disabled hero commands", () =>
+{
+    var enabled = new[] { true, false, false, true };
+    var up = NativeHeroMenuInputPolicy.Evaluate(0, enabled, false, false, true, false);
+    Check(up.Kind == NativeHeroMenuInputKind.Move && up.Row == 6, "Up from Attack should reach Wait or Auto.");
+    var down = NativeHeroMenuInputPolicy.Evaluate(6, enabled, false, false, false, true);
+    Check(down.Kind == NativeHeroMenuInputKind.Move && down.Row == 0, "Down from Wait should wrap to Attack.");
+    var skip = NativeHeroMenuInputPolicy.Evaluate(0, enabled, false, false, false, true);
+    Check(skip.Kind == NativeHeroMenuInputKind.Move && skip.Row == 3, "Disabled hero commands must be skipped.");
+    var reverse = NativeHeroMenuInputPolicy.Evaluate(3, enabled, false, false, true, false);
+    Check(reverse.Row == 0, "Reverse navigation must skip the same disabled commands.");
+});
+
+Case("All disabled hero commands still leave a finite path among party rows", () =>
+{
+    var disabled = new[] { false, false, false, false };
+    int row = 6;
+    for (int i = 0; i < 100; i++)
+    {
+        var decision = NativeHeroMenuInputPolicy.Evaluate(row, disabled, false, false, false, true);
+        Check(decision.Kind == NativeHeroMenuInputKind.Move && decision.Row is >= 4 and <= 6,
+            "Disabled hero rows should never trap the native cursor.");
+        row = decision.Row;
+    }
+    Check(NativeHeroMenuInputPolicy.Evaluate(4, disabled, false, false, true, false).Row == 6,
+        "Reverse navigation should wrap directly between enabled party rows.");
+});
+
+Case("Opposing directions do not move and confirmation keeps native input priority", () =>
+{
+    var enabled = new[] { true, true, true, true };
+    var opposing = NativeHeroMenuInputPolicy.Evaluate(6, enabled, false, false, true, true);
+    Check(opposing.Kind == NativeHeroMenuInputKind.Consume && opposing.Row == 6 && opposing.PartyCommand == 0,
+        "Simultaneous Up and Down should leave Wait unselected.");
+    var confirm = NativeHeroMenuInputPolicy.Evaluate(6, enabled, true, true, true, false);
+    Check(confirm.Kind == NativeHeroMenuInputKind.ConfirmParty && confirm.PartyCommand == 3,
+        "Confirm must retain priority over Cancel and repeated directions.");
+});
+
+Case("Committed command recovery drives the admitted forecast and actual completion through the same bridge", () =>
+{
+    foreach (var command in new[]
+    {
+        (CtbActionKind.Wait, 0), (CtbActionKind.Defend, 0), (CtbActionKind.Attack, 0),
+        (CtbActionKind.Item, 0), (CtbActionKind.Rune, 1), (CtbActionKind.Rune, 2),
+        (CtbActionKind.Rune, 3), (CtbActionKind.Rune, 4), (CtbActionKind.Rune, 0),
+        (CtbActionKind.EnemyAttack, 0)
+    })
+    {
+        var scheduler = new MeterActionScheduler(3) { UseCtb = true };
+        var hero = new IntPtr(11);
+        var enemy = new IntPtr(22);
+        scheduler.Observe(1, hero, 100, true);
+        scheduler.Observe(2, enemy, 75, true);
+        var mask = new[] { false, true, true };
+        Check(scheduler.Select(mask) == 1 && scheduler.Admit(1, hero), "The native action must own its opportunity.");
+        var cost = CtbActionTiming.Describe(command.Item1, command.Item2);
+        scheduler.SetCtbRecovery(cost.Multiplier);
+        Near(cost.Multiplier, scheduler.CtbRecoveryMultiplier);
+        var forecast = scheduler.Ctb.Forecast(16, mask, scheduler.CtbRecoveryMultiplier);
+        var returning = forecast.First(entry => !entry.Current && entry.Slot == 1 && entry.Identity == hero.ToInt64());
+        Check(scheduler.IsAdmitted && scheduler.Ctb.IsAdmitted, "Playback preview must retain native ownership.");
+        Check(scheduler.Finish(1, hero), "Native completion should consume the committed command cost.");
+        Near(returning.ReadyAt, scheduler.Ctb.GetNextReady(1));
+        Near(1, scheduler.CtbRecoveryMultiplier);
+        Check(scheduler.PendingSlot == 0 && scheduler.Ctb.PendingSlot == -1 && !scheduler.IsAdmitted,
+            "Finishing must clear both reservations and the old command cost.");
+        Check(!scheduler.Finish(1, hero), "Repeated native completion must not reschedule a command twice.");
+    }
+});
+
+Case("Invalid committed recovery is rejected without replacing the last valid native command cost", () =>
+{
+    var scheduler = new MeterActionScheduler(2) { UseCtb = true };
+    var hero = new IntPtr(11);
+    scheduler.Observe(1, hero, 100, true);
+    var mask = new[] { false, true };
+    Check(scheduler.Select(mask) == 1 && scheduler.Admit(1, hero), "Admit the Rune action.");
+    double multiplier = CtbActionTiming.RecoveryMultiplier(CtbActionKind.Rune, 3);
+    scheduler.SetCtbRecovery(multiplier);
+    var before = scheduler.Ctb.Forecast(5, mask, scheduler.CtbRecoveryMultiplier);
+    foreach (double invalid in new[] { 0, -1, double.NaN, double.PositiveInfinity, double.NegativeInfinity })
+    {
+        bool rejected = false;
+        try { scheduler.SetCtbRecovery(invalid); }
+        catch (ArgumentOutOfRangeException) { rejected = true; }
+        Check(rejected, "Invalid recovery must not enter the native-completion bridge.");
+        Near(multiplier, scheduler.CtbRecoveryMultiplier);
+        Check(scheduler.IsAdmitted && scheduler.PendingSlot == 1, "Rejected recovery changed native ownership.");
+    }
+    var after = scheduler.Ctb.Forecast(5, mask, scheduler.CtbRecoveryMultiplier);
+    Check(before.Select(entry => (entry.Slot, entry.ReadyAt)).SequenceEqual(after.Select(entry => (entry.Slot, entry.ReadyAt))),
+        "Rejected values changed the committed preview.");
+    Check(scheduler.Finish(1, hero), "The original valid native command must still complete.");
+    Near(2550, scheduler.Ctb.GetNextReady(1));
+    Near(1, scheduler.CtbRecoveryMultiplier);
+});
+
+Case("CTB Wait uses the half interval once and released commands cannot leak recovery into later turns", () =>
+{
+    var scheduler = new MeterActionScheduler(3) { UseCtb = true };
+    var hero = new IntPtr(11);
+    scheduler.Observe(1, hero, 100, true);
+    scheduler.Observe(2, new IntPtr(22), 100, true);
+    var mask = new[] { false, true, true };
+    Check(scheduler.Select(mask) == 1, "Reserve the hero's native menu.");
+    scheduler.SetCtbRecovery(CtbActionTiming.RecoveryMultiplier(CtbActionKind.Rune, 4));
+    double started = scheduler.Ctb.Now;
+    double wait = CtbActionTiming.RecoveryMultiplier(CtbActionKind.Wait);
+    var preview = scheduler.Ctb.Forecast(8, mask, wait);
+    var returning = preview.First(entry => !entry.Current && entry.Slot == 1);
+    Check(!scheduler.SpendCtbMenuTurn(1, new IntPtr(99), waitCost) && scheduler.SpendCtbMenuTurn(1, hero, waitCost),
+        "Only the owning native actor may consume Wait.");
+    Near(started + scheduler.Ctb.RecoveryForSpeed(100, wait), scheduler.Ctb.GetNextReady(1));
+    Near(returning.ReadyAt, scheduler.Ctb.GetNextReady(1));
+    Check(!scheduler.SpendCtbMenuTurn(1, hero, waitCost) && !scheduler.Finish(1, hero), "Wait must not also complete as a native attack.");
+    Check(scheduler.PendingSlot == 0 && scheduler.Ctb.PendingSlot == -1 && !scheduler.IsAdmitted,
+        "Wait must release the native menu and logical reservation together.");
+    Near(1, scheduler.CtbRecoveryMultiplier);
+    Check(scheduler.Select(mask) == 2, "The equal-time enemy should act after the hero yields.");
+    Check(scheduler.Admit(2, new IntPtr(22)) && scheduler.Finish(2, new IntPtr(22)),
+        "The next native enemy should complete with a fresh default cost.");
+    Near(2000, scheduler.Ctb.GetNextReady(2));
+
+    Check(scheduler.Select(mask) == 1, "The waiting hero should receive its next menu.");
+    scheduler.SetCtbRecovery(CtbActionTiming.RecoveryMultiplier(CtbActionKind.Rune, 3));
+    Check(!scheduler.CancelReservation(1, new IntPtr(99)), "A different actor must not cancel the command.");
+    Near(1.55, scheduler.CtbRecoveryMultiplier);
+    Check(scheduler.CancelReservation(1, hero), "Cancel the actual command owner.");
+    Near(1, scheduler.CtbRecoveryMultiplier);
+
+    Check(scheduler.Select(mask) == 1, "A canceled opportunity should remain available.");
+    scheduler.SetCtbRecovery(CtbActionTiming.RecoveryMultiplier(CtbActionKind.Rune, 4));
+    scheduler.Observe(1, hero, 100, false);
+    Check(scheduler.PendingSlot == 0 && scheduler.Ctb.PendingSlot == -1, "KO must release both reservations.");
+    Near(1, scheduler.CtbRecoveryMultiplier);
+    Check(scheduler.Select(mask) == 2 && scheduler.Admit(2, new IntPtr(22))
+        && scheduler.Finish(2, new IntPtr(22)), "A KO'd command must not change the surviving enemy's recovery.");
+    Near(3000, scheduler.Ctb.GetNextReady(2));
+});
+
+Console.WriteLine($"{passed} ATB / CTB bridge checks passed.");

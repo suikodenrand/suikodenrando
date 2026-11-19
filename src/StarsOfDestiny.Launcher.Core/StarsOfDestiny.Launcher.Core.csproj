@@ -5,6 +5,7 @@
     <RootNamespace>StarsOfDestiny.Launcher.Core</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../Shared/CtbPortraitIndex.cs" Link="CtbPortraitIndex.cs" />
     <ProjectReference Include="../SuikodenRandomizer.Core/SuikodenRandomizer.Core.csproj" />
     <ProjectReference Include="../SuikodenRandomizer.Suikoden2.Core/SuikodenRandomizer.Suikoden2.Core.csproj" />
   </ItemGroup>

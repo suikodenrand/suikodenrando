@@ -160,6 +160,8 @@ public sealed class SettingsWorkspace
         if (errors.Count > 0) throw new InvalidOperationException(string.Join(Environment.NewLine, errors));
         if (changed.Length == 0) return new SettingsSaveResult(null, Array.Empty<string>());
         bool changesS2 = changed.Contains(SettingsCatalog.S2File, StringComparer.OrdinalIgnoreCase);
+        bool requestsCtb = changed.Contains(SettingsCatalog.AtbFile, StringComparer.OrdinalIgnoreCase) && GetBoolean("ctb.Enabled");
+        if (requestsCtb) GameInstallation.RequireCtbSupport(GameFolder);
         if (changesS2) GameInstallation.RequireRiouJoiningWeaponSupport(GameFolder, Get("s2.joiningWeaponLevel"));
         RequireJoiningEquipmentSupport(changed);
         Directory.CreateDirectory(ConfigDirectory);
@@ -184,6 +186,7 @@ public sealed class SettingsWorkspace
                 WriteDurably(temporary, bytes);
             }
             if (IsGameRunning) throw new InvalidOperationException("Suikoden started while settings were being prepared. Close it and try again.");
+            if (requestsCtb) GameInstallation.RequireCtbSupport(GameFolder);
             if (changesS2) GameInstallation.RequireRiouJoiningWeaponSupport(GameFolder, Get("s2.joiningWeaponLevel"));
             RequireJoiningEquipmentSupport(changed);
             foreach (string name in SettingsCatalog.FileNames) RequireUnchanged(name);

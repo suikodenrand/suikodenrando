@@ -44,15 +44,15 @@ const string s1Namespace = "SuikodenRandomizer.AvatarPlugin";
 const string s2Namespace = "SuikodenRandomizer.Suikoden2Plugin";
 const string bootstrap = unifiedNamespace + ".UnifiedPlugin";
 Version assemblyVersion = md.GetAssemblyDefinition().Version;
-Require("combined assembly version 0.14.5", assemblyVersion == new Version(0, 14, 5, 0));
+Require("combined assembly version 0.14.6", assemblyVersion == new Version(0, 14, 6, 0));
 var plugins = Attributed("BepInEx.BepInPlugin");
 Require("exactly one BepInEx bootstrap", plugins.SequenceEqual(new[] { bootstrap }));
 var pluginAttribute = types[bootstrap].GetCustomAttributes().Single(h => AttributeType(h) == "BepInEx.BepInPlugin");
 var pluginArguments = md.GetBlobReader(md.GetCustomAttribute(pluginAttribute).Value);
-Require("BepInEx bootstrap retains GUID and version 0.14.5", pluginArguments.ReadUInt16() == 1
+Require("BepInEx bootstrap retains GUID and version 0.14.6", pluginArguments.ReadUInt16() == 1
     && pluginArguments.ReadSerializedString() == "agilen.starsofdestiny"
     && !string.IsNullOrEmpty(pluginArguments.ReadSerializedString())
-    && pluginArguments.ReadSerializedString() == "0.14.5");
+    && pluginArguments.ReadSerializedString() == "0.14.6");
 Require("exactly one BasePlugin subclass", types.Count(p => TypeName(p.Value.BaseType) == "BepInEx.Unity.IL2CPP.BasePlugin") == 1);
 Require("exactly one Unity frame/UI component", types.Where(p => TypeName(p.Value.BaseType) == "UnityEngine.MonoBehaviour").Select(p => p.Key).SequenceEqual(new[] { "SuikodenRandomizer.Unified.UnifiedOverlay" }));
 Require("standalone UI drivers excluded", !types.ContainsKey("SuikodenRandomizer.AvatarPlugin.AvatarOverlay") && !types.ContainsKey("SuikodenRandomizer.Suikoden2Plugin.Gsd2Driver"));
@@ -202,7 +202,9 @@ Require("one explicit patch-class dispatcher", calls.Where(c => c.Name == "Creat
 Require("engine and dialogue installers share the one dispatcher", calls.Where(c => c.Owner == bootstrap && c.Name == "ApplyPatches")
     .Select(c => c.Caller).OrderBy(name => name, StringComparer.Ordinal)
     .SequenceEqual(new[] { unifiedNamespace + ".DialogueNative.Install", bootstrap + ".LoadEngine" }));
-Require("one component registration", calls.Count(c => c.Name == "AddComponent") == 1);
+Require("one BepInEx component registration in the unified bootstrap",
+    calls.Where(c => c.Owner == "BepInEx.Unity.IL2CPP.BasePlugin" && c.Name == "AddComponent")
+        .Select(c => c.Caller).SequenceEqual(new[] { bootstrap + ".Load" }));
 Require("one F6 consumer", calls.Where(c => c.Name == "get_f6Key").Select(c => c.Caller).SequenceEqual(new[] { "SuikodenRandomizer.Unified.UnifiedOverlay.Update" }));
 Require("one OnGUI method", types.SelectMany(p => p.Value.GetMethods().Select(h => p.Key + "." + md.GetString(md.GetMethodDefinition(h).Name)))
     .Where(name => name.EndsWith(".OnGUI", StringComparison.Ordinal)).SequenceEqual(new[] { "SuikodenRandomizer.Unified.UnifiedOverlay.OnGUI" }));

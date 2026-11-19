@@ -240,7 +240,7 @@ internal sealed partial class AvatarRuntime
             _automaticCheckScheduled = true;
             _nextAutomaticCheck = now + AutomaticCheckInterval;
             bool ready = IsFixedRoster ? EnsureFixedRoster(reason, required) : EnsureProxiesCore(reason, required);
-            return ready && ObserveJoinedShuffleLoadouts(required);
+            return ready && ObserveJoinedShuffleLoadouts(required) && ViktorStart.FinishStartingParty(this);
         }
         catch (Exception exception) { Fail("Shuffle preparation failed: " + exception.Message); return false; }
     }
@@ -643,7 +643,7 @@ internal sealed partial class AvatarRuntime
                 AvatarPresentation.Reset();
             }
             _wasTitle = title;
-            if (!title && IsAdmitted && (IsFixedRoster || !IsActive || _game != GSD1.OldSrcBase.game_work?.Pointer))
+            if (!title && IsAdmitted && (ViktorStart.WaitingForCompanions || IsFixedRoster || !IsActive || _game != GSD1.OldSrcBase.game_work?.Pointer))
                 EnsureProxy("native initialization observation", false);
             else if (!title) ObserveJoinedShuffleLoadouts(false);
         }

@@ -79,6 +79,7 @@ public sealed class PLAYER_BASE : NativeObject
     public ushort exp { get; set; }
     public ushort status { get; set; }
     public List<byte> noryoku { get; set; } = new List<byte>(new byte[6]);
+    public List<byte> magic_point { get; set; } = new List<byte>(new byte[5]);
     public PLAYER_MONSYO? monsyo_data { get; set; } = new PLAYER_MONSYO();
     public PLAYER_BUKI buki_data { get; set; } = new PLAYER_BUKI();
     public byte[] seicho_type { get; set; } = new byte[7];
@@ -197,4 +198,35 @@ public sealed class SaveDataManager
 }
 public sealed class P_BATTLE_DATA { public PLAYER_DATA? player_data { get; set; } }
 public sealed class BATTLE_WORK { public List<P_BATTLE_DATA?>? p_battle_data { get; set; } }
-public static class BattleBase { public static BATTLE_WORK? battle_work { get; set; } }
+public static class BattleBase
+{
+    public static BATTLE_WORK? battle_work { get; set; }
+    public static int? FailLevelUpRoleOnce { get; set; }
+
+    // Deterministic gains expose which fighter's growth record the caller passed.
+    public static void g1_level_up(PLAYER_BASE player)
+    {
+        if (player.level >= 99) return;
+        player.level++;
+        for (int i = 0; i < player.noryoku.Count; i++)
+            player.noryoku[i] = (byte)Math.Min(255, player.noryoku[i] + player.seicho_type[i]);
+        ushort hpGain = (ushort)(2 + player.seicho_type[0]);
+        player.max_hp += hpGain;
+        player.hp += hpGain;
+        if (FailLevelUpRoleOnce == player.chara_no)
+        {
+            FailLevelUpRoleOnce = null;
+            throw new InvalidOperationException("Injected native growth failure.");
+        }
+    }
+}
+
+public static class G_monsyo_h
+{
+    public static void calc_magic_point(PLAYER_BASE player)
+    {
+        player.magic_point[0] = 0;
+        for (int tier = 1; tier <= 4; tier++)
+            player.magic_point[tier] = (byte)Math.Clamp(player.noryoku[4] / 8 - (tier - 1) * 2, 0, 9);
+    }
+}

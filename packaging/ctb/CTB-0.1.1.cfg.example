@@ -1,0 +1,13 @@
+# CTB 0.1.1 / battle preview 0.11.1.
+# Merge these sections into agilen.suikoden1.battle-preview.cfg while the game is closed.
+# Also disable ShuffledUnitesPreview and ShuffledTalismanPreview in the S1 randomizer config.
+[Preview]
+Enabled = true
+ActiveAtb = false
+OneShotAttack = false
+
+[CTB]
+Enabled = true
+Break = true
+ReserveSupport = true
+ReserveRoleIds =

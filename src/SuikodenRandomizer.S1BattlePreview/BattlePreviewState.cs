@@ -120,7 +120,8 @@ internal static class BattlePreviewState
                 {
                     Gauges.ObserveNativeAction(slot);
                     Ready[slot] = false;
-                    Trace("Slot " + slot + " " + current.Name + " SPD=" + current.Speed + ".");
+                    Trace("Slot " + slot + " " + current.Name + " SPD=" + current.Speed + "."
+                        + (BattlePreviewPlugin.CtbEnabled ? " Native battle value." : ""));
                 }
                 else if (current.Finished && !previous.Finished && alive && phase == 4)
                 {
@@ -261,6 +262,7 @@ internal static class BattlePreviewState
 
     private static void EndBattle()
     {
+        CtbPresentation.Visible = false;
         if (_clock.Battle == IntPtr.Zero) return;
         _clock.Reset();
         ClearCombatants();

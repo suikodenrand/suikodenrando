@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Portable 0.14.5 release assembler. It never installs into a game folder."""
+"""Portable 0.14.6 release assembler. It never installs into a game folder."""
 from __future__ import annotations
 
 import argparse
@@ -18,12 +18,13 @@ from zipfile import ZipFile, ZIP_DEFLATED
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
-VERSION = '0.14.5'
-LAUNCHER_VERSION = '1.0.6'
+VERSION = '0.14.6'
+LAUNCHER_VERSION = '1.0.7'
 FRESH_DEFAULTS = dict(characterShuffle=True, dialogue=True, shuffledUnites=True, s1Atb=False,
     s1AtbInstalled=False, s1Treasure=False, f6View='Hidden',
     s1JoiningWeaponLevel='TirVariance', s2JoiningWeaponLevel='RiouVariance',
-    s1JoiningEquipment='MatchRole', s2JoiningEquipment='MatchRole')
+    s1JoiningEquipment='MatchRole', s2JoiningEquipment='MatchRole', s1Ctb=False,
+    s1WarehouseMenu=True, s1SharedBattleItems=True, s1OptimizeEquipment=True, s1MatchViktorStarterLevels=True)
 GAME_HASH = 'e093f175eaf3734d293ca0a236c652dd7fcc72ea5fa10d7b21103edf12f11c3a'
 LOADER = 'BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.697.zip'
 FIX = 'Suikoden_Fix-v1.5.2b.zip'
@@ -31,7 +32,7 @@ FIX_DLL_HASH = '4b1a38e7512e4a91cbd86f94d9f233749f83dbb0584979242f8062faf6132f46
 RUNTIME_NAMES = ('SuikodenRandomizer.dll', 'SuikodenRandomizer.Core.dll',
                  'SuikodenRandomizer.Suikoden2.Core.dll', 'SuikodenRandomizer.Shared.dll')
 ATB = 'SuikodenRandomizer.S1BattlePreview.dll'
-PUBLIC_ATB_VERSION = '0.10.1'
+PUBLIC_ATB_VERSION = '0.15.2'
 ARCHIVE_SUFFIXES = {'.zip', '.7z', '.rar', '.tar', '.gz', '.tgz', '.cab', '.nupkg'}
 FORBIDDEN = {'gameassembly.dll', 'unityplayer.dll', 'gsd1.dll', 'gsd2.dll',
              'logoutput.log', 'launcher-preferences.json', 'install.cmd'}

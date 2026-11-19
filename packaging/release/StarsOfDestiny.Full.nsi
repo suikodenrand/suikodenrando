@@ -19,14 +19,14 @@ ManifestDPIAware true
 !endif
 
 !define GAME_EXE "Suikoden I and II HD Remaster.exe"
-Name "Stars of Destiny 0.14.5"
+Name "Stars of Destiny 0.14.6"
 OutFile "${OUTPUT_EXE}"
 InstallDir "$PROGRAMFILES32\Steam\steamapps\common\Suikoden I and II HD Remaster"
-VIProductVersion "0.14.5.0"
+VIProductVersion "0.14.6.0"
 VIAddVersionKey /LANG=1033 "ProductName" "Stars of Destiny"
-VIAddVersionKey /LANG=1033 "FileDescription" "Stars of Destiny 0.14.5 Full Setup"
-VIAddVersionKey /LANG=1033 "ProductVersion" "0.14.5"
-VIAddVersionKey /LANG=1033 "FileVersion" "0.14.5.0"
+VIAddVersionKey /LANG=1033 "FileDescription" "Stars of Destiny 0.14.6 Full Setup"
+VIAddVersionKey /LANG=1033 "ProductVersion" "0.14.6"
+VIAddVersionKey /LANG=1033 "FileVersion" "0.14.6.0"
 VIAddVersionKey /LANG=1033 "LegalCopyright" "Stars of Destiny project contributors"
 VIAddVersionKey /LANG=1033 "CompanyName" "Stars of Destiny"
 
@@ -36,16 +36,16 @@ Var ResultCode
 Var Parameters
 
 !define MUI_CUSTOMFUNCTION_GUIINIT SetComponentDefaults
-!define MUI_WELCOMEPAGE_TEXT "Install the combined Suikoden I and II randomizer, desktop launcher, BepInEx and Suikoden Fix.$\r$\n$\r$\nClose the game and launcher first. Existing saves and settings are preserved. The experimental S1 ATB component is optional.$\r$\n$\r$\nA legal Steam copy of Suikoden I and II HD Remaster is required. First launch needs internet to generate BepInEx interop files."
+!define MUI_WELCOMEPAGE_TEXT "Install the combined Suikoden I and II randomizer, desktop launcher, BepInEx and Suikoden Fix.$\r$\n$\r$\nClose the game and launcher first. Existing saves and settings are preserved. The experimental S1 ATB / CTB component is optional.$\r$\n$\r$\nA legal Steam copy of Suikoden I and II HD Remaster is required. First launch needs internet to generate BepInEx interop files."
 !insertmacro MUI_PAGE_WELCOME
-!define MUI_COMPONENTSPAGE_TEXT_TOP "The randomizer and launcher are required. ATB is optional and starts disabled when installed."
+!define MUI_COMPONENTSPAGE_TEXT_TOP "The randomizer and launcher are required. The S1 battle preview is optional and starts disabled when installed."
 !define MUI_COMPONENTSPAGE_SMALLDESC
 !insertmacro MUI_PAGE_COMPONENTS
 !define MUI_DIRECTORYPAGE_TEXT_TOP "Choose the game folder containing ${GAME_EXE} and GameAssembly.dll. Setup verifies the supported game build before changing files."
 !define MUI_PAGE_CUSTOMFUNCTION_LEAVE ValidateDirectory
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
-!define MUI_FINISHPAGE_TEXT "Stars of Destiny 0.14.5 is installed.$\r$\n$\r$\nUse the launcher to choose settings. Fresh chest shuffling and ATB are off, and the text-only F6 panel starts hidden.$\r$\n$\r$\nFirst launch may need several minutes and an internet connection. Installation receipts and recovery copies are in the game's SRR-Backups folder."
+!define MUI_FINISHPAGE_TEXT "Stars of Destiny 0.14.6 is installed.$\r$\n$\r$\nUse the launcher to choose settings. Fresh chest shuffling and ATB are off, and the text-only F6 panel starts hidden.$\r$\n$\r$\nFirst launch may need several minutes and an internet connection. Installation receipts and recovery copies are in the game's SRR-Backups folder."
 !define MUI_FINISHPAGE_RUN "$INSTDIR\StarsOfDestiny Launcher\StarsOfDestiny.Launcher.exe"
 !define MUI_FINISHPAGE_RUN_TEXT "Open Stars of Destiny Launcher"
 !define MUI_FINISHPAGE_RUN_NOTCHECKED
@@ -117,7 +117,7 @@ Section "Randomizer, launcher, BepInEx and Suikoden Fix" SEC_REQUIRED
   SectionIn RO
 SectionEnd
 
-Section /o "Experimental S1 ATB (installed disabled)" SEC_ATB
+Section /o "Experimental S1 ATB / CTB (installed disabled)" SEC_ATB
 SectionEnd
 
 Function SetComponentDefaults
@@ -177,6 +177,6 @@ Section "-Install full package"
 SectionEnd
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-  !insertmacro MUI_DESCRIPTION_TEXT ${SEC_REQUIRED} "Combined 0.14.5 randomizer, self-contained Windows launcher, BepInEx 6 loader and Suikoden Fix. Saves and existing settings are preserved."
-  !insertmacro MUI_DESCRIPTION_TEXT ${SEC_ATB} "Separate experimental S1 battle plugin. Installed disabled; enable in the launcher after disabling shuffled S1 Unites. Does not add ATB to Suikoden II."
+  !insertmacro MUI_DESCRIPTION_TEXT ${SEC_REQUIRED} "Combined 0.14.6 randomizer, self-contained Windows launcher, BepInEx 6 loader and Suikoden Fix. Saves and existing settings are preserved."
+  !insertmacro MUI_DESCRIPTION_TEXT ${SEC_ATB} "Adds ATB and the CTB 0.5.2 preview for S1. Both start disabled. Choose your battle mode in the launcher after disabling shuffled S1 Unites."
 !insertmacro MUI_FUNCTION_DESCRIPTION_END

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "soloBossBlendEnabled": true,
+  "normalEnemyScalingEnabled": true,
+  "soloBossPartyWeightPercent": 75,
+  "soloBossVariationPercent": 0,
+  "soloBossBreakPercent": 25,
+  "otherBreakPercent": 50,
+  "soloBossSpdBonusPercent": 0,
+  "starSpd": {},
+  "enemySpd": {}
+}

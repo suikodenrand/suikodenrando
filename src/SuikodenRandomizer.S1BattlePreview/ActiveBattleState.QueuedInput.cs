@@ -2,6 +2,7 @@ extern alias GSD1;
 
 using System;
 using System.Collections.Generic;
+using SuikodenRandomizer.Shared;
 using UnityEngine;
 using Battle = GSD1::BattleBase;
 
@@ -10,7 +11,9 @@ namespace SuikodenRandomizer.S1BattlePreview;
 internal static partial class ActiveBattleState
 {
     private readonly record struct QueuedHeroAction(int Slot, IntPtr Identity, NativeCommand Command,
-        IntPtr TargetIdentity, bool TargetWasAlive, int ResourceId);
+        IntPtr TargetIdentity, bool TargetWasAlive, QueuedResource Resource);
+
+    private readonly record struct QueuedResource(int Id, IntPtr Owner = default, IntPtr Stack = default);
 
     private static readonly List<QueuedHeroAction> QueuedHeroActions = new(6);
     private static int _inputTurnDepth = -1;
@@ -74,7 +77,7 @@ internal static partial class ActiveBattleState
             var queued = QueuedHeroActions[i];
             var actor = ReadNativeTarget(work, queued.Slot);
             if (!IsLiving(actor) || actor!.Pointer != queued.Identity)
-                QueuedHeroActions.RemoveAt(i);
+                DiscardQueuedHero(i);
         }
     }
 
@@ -102,6 +105,18 @@ internal static partial class ActiveBattleState
         return false;
     }
 
+    private static void DiscardQueuedHero(int index)
+    {
+        var queued = QueuedHeroActions[index];
+        if (queued.Command.Kind == Item) SharedBattleItemBridge.Release(queued.Slot);
+        QueuedHeroActions.RemoveAt(index);
+    }
+
+    private static void DiscardQueuedHeroes()
+    {
+        for (int i = QueuedHeroActions.Count - 1; i >= 0; i--) DiscardQueuedHero(i);
+    }
+
     private static bool QueueConfirmedHero(GSD1.BATTLE_WORK work, GSD1.PM_DATA actor)
     {
         NativeCommand command;
@@ -121,11 +136,15 @@ internal static partial class ActiveBattleState
         }
 
         int slot = _heroCommand.Slot;
-        int resource = ReadQueuedResource(work, slot, command);
-        if (resource >= 0 && !IsHeroQueued(slot))
+        bool overlayItem = _nativeMenu is null && command.Kind == Item;
+        var resource = ReadQueuedResource(work, slot, command, reservedItem: !overlayItem);
+        if (resource.Id >= 0 && !IsHeroQueued(slot) && (!overlayItem
+            || (_heroCommand.Choice.Resource is { } selected && selected.Id == resource.Id
+                && selected.ItemStack == resource.Stack && SharedBattleItemBridge.Reserve(slot, command.Resource))))
         {
             QueuedHeroActions.Add(new QueuedHeroAction(slot, actor.Pointer, command, targetIdentity,
                 IsLiving(ReadNativeTarget(work, command.Target)), resource));
+            if (_nativeMenu is { } accepted) accepted.ItemHandedToQueue = command.Kind == Item;
             string during = Scheduler.PendingSlot != 0 ? $" while slot {Scheduler.PendingSlot} was acting" : "";
             Trace($"ATB queued hero slot {slot} {actor.name}'s command {command.Kind} targeting slot {command.Target}{during}.");
         }
@@ -147,7 +166,7 @@ internal static partial class ActiveBattleState
             var actor = ReadNativeTarget(work, slot);
             if (!IsLiving(actor) || actor!.Pointer != queued.Identity)
             {
-                QueuedHeroActions.RemoveAt(index);
+                DiscardQueuedHero(index);
                 continue;
             }
             if (slot >= eligible.Length || !eligible[slot] || !Scheduler.IsReadyBefore(slot, 0)
@@ -172,9 +191,10 @@ internal static partial class ActiveBattleState
                 }
                 command = command with { Target = checked((sbyte)replacement.Slot) };
             }
-            else if (!QueuedTargetStillMatches(work, queued) || ReadQueuedResource(work, slot, command) != queued.ResourceId)
+            else if (!QueuedTargetStillMatches(work, queued)
+                || ReadQueuedResource(work, slot, command, reservedItem: true) != queued.Resource)
             {
-                QueuedHeroActions.RemoveAt(index);
+                DiscardQueuedHero(index);
                 Trace($"ATB discarded hero slot {slot}'s queued command because its target or resource was no longer valid.");
                 continue;
             }
@@ -200,24 +220,40 @@ internal static partial class ActiveBattleState
         return target?.Pointer == queued.TargetIdentity && IsLiving(target) == queued.TargetWasAlive;
     }
 
-    private static int ReadQueuedResource(GSD1.BATTLE_WORK work, int slot, NativeCommand command)
+    private static QueuedResource ReadQueuedResource(GSD1.BATTLE_WORK work, int slot, NativeCommand command, bool reservedItem)
     {
-        if (command.Kind is Attack or Defend) return 0;
-        if (command.Resource < 0 || GetHeroBase(work, slot) is not { } hero) return -1;
+        if (command.Kind is Attack or Defend) return default;
         int index = command.Resource;
         if (command.Kind == Rune)
         {
-            if (hero.monsyo_data is not { monsyo_id: > 0 } rune) return -1;
+            var hero = GetHeroBase(work, slot);
+            if (index < 0 || hero?.monsyo_data is not { monsyo_id: > 0 } rune) return new(-1);
             if (index != 0 && (hero.magic_point is not { } charges || index >= charges.Count || charges[index] == 0))
-                return -1;
-            return rune.monsyo_id;
+                return new(-1);
+            return new(rune.monsyo_id);
         }
-        if (command.Kind != Item || hero.item is not { } items || index >= hero.item_kazu || index >= items.Count
-            || items[index] is not { item_id: > 0 } item || GSD1.G_item_c_data.item_data_table is not { } table
+        if (command.Kind != Item || !S1BattleItemAddress.TryDecode(slot, index, out int ownerSlot, out int pocket))
+            return new(-1);
+        if (SharedBattleItemBridge.Enabled)
+        {
+            // A depleted neighbour can move the reserved stack. The token sent to
+            // the game stays the same; the host tracks the stack's current pocket.
+            if (reservedItem) pocket = SharedBattleItemBridge.ReservedPocket(slot, index);
+        }
+        else if (ownerSlot != slot) return new(-1);
+        if (pocket < 0 || GetLivingItemOwner(work, ownerSlot) is not { item: { } items } owner
+            || pocket >= owner.item_kazu || pocket >= items.Count || items[pocket] is not { item_id: > 0 } item
+            || GSD1.G_item_c_data.item_data_table is not { } table
             || item.item_id >= table.Count || table[item.item_id]?.TryCast<GSD1.ITEM_DATA>() is not { } effect
-            || (item.data == 0 && effect.times != 0)) return -1;
-        return item.item_id;
+            || (effect.type & BattleItemFlag) == 0 || effect.item_func is null
+            || (item.data == 0 && effect.times != 0)) return new(-1);
+        return new(item.item_id, owner.Pointer, item.Pointer);
     }
+
+    private static GSD1.PLAYER_BASE? GetLivingItemOwner(GSD1.BATTLE_WORK work, int slot)
+        => slot is >= 1 and <= S1BattleItemAddress.PartySlots && slot <= work.player_kazu
+            && ReadNativeTarget(work, slot) is { hp: > 0, dead_flg: 0, IsAway: false }
+            ? GetHeroBase(work, slot) : null;
 
     private static void ObserveQueuedTurnReturn()
     {

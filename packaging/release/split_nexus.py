@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Split the exact published 0.14.5 manual ZIP without rebuilding its binaries.
+"""Split the exact published 0.14.6 manual ZIP without rebuilding its binaries.
 
 Creates a plugins/configuration/manual-instructions ZIP and a separate optional
 self-contained launcher ZIP. Never installs, executes, downloads or publishes.
@@ -17,8 +17,8 @@ import stat
 from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED, ZIP_STORED
 
 HERE = Path(__file__).resolve().parent
-VERSION = "0.14.5"
-SOURCE_TAG = "https://github.com/suikodenrand/suikodenrando/tree/v0.14.5"
+VERSION = "0.14.6"
+SOURCE_TAG = "https://github.com/suikodenrand/suikodenrando/tree/v0.14.6"
 ZIP_TIME = (2026, 11, 15, 0, 0, 0)
 LAUNCHER = "StarsOfDestiny Launcher/"
 PLUGIN_SUPPORT = "StarsOfDestiny Manual/"
@@ -105,7 +105,7 @@ def read_source(path: Path, expected_hash: str) -> dict[str, bytes]:
     manifest = json.loads(files[PLUGIN_SUPPORT + "payload-manifest.json"])
     receipt = json.loads(files[PLUGIN_SUPPORT + "Verification.json"])
     if (manifest.get("schema") != "stars-of-destiny-mod-only-manual-v1"
-            or manifest.get("packageVersion") != VERSION or manifest.get("launcherVersion") != "1.0.6"
+            or manifest.get("packageVersion") != VERSION or manifest.get("launcherVersion") != "1.0.7"
             or manifest.get("optionalAtbDormant") is not True or manifest.get("bepInExFilesIncluded") is not False
             or receipt.get("status") != "passed" or receipt.get("packageVersion") != VERSION
             or receipt.get("reviewedAtbSha256") != digest(files["BepInEx/" + ATB_NAME])):
@@ -165,6 +165,10 @@ def check_defaults(files: dict[str, bytes]):
     if (s1.getboolean("Treasure", "Enabled") or s1.getboolean("Treasure", "ShuffleChests")
             or atb.getboolean("Preview", "Enabled") or shared["Interface"]["ViewMode"] != "Hidden"):
         raise ValueError("Chest, ATB or F6 defaults changed")
+    if (atb.getboolean("CTB", "Enabled") or s1["Inventory"]["OptimizeSources"] != "PartyAndWarehouse"
+            or not all(s1.getboolean("QualityOfLife", key) for key in
+                       ("WarehouseMenu", "SharedBattleItems", "OptimizeEquipment", "MatchViktorStarterLevels"))):
+        raise ValueError("S1 inventory, quick-start or CTB defaults changed")
 
 
 def verify_payload(files: dict[str, bytes], source: dict[str, bytes], kind: str):
@@ -209,7 +213,7 @@ def add_metadata(files: dict[str, bytes], kind: str, recipe_sha256: str, source_
     manifest = {
         "schema": "stars-of-destiny-split-distribution-v1", "packageVersion": VERSION,
         "distribution": "plugins-only-nexus" if kind == "plugins" else "optional-launcher-windows",
-        "launcherVersion": "1.0.6" if kind == "launcher" else None,
+        "launcherVersion": "1.0.7" if kind == "launcher" else None,
         "binarySource": SOURCE_TAG, "sourceManualZipSha256": source_hash,
         "packagingRecipeSha256": recipe_sha256,
         "bepInExFilesIncluded": False, "files": records,
@@ -287,7 +291,7 @@ def build(manual_zip: Path, output: Path, template_root: Path, source_hash: str)
         "claim": "Packaging checks only; no installation, game execution, native playtesting or platform approval claimed.",
     }
     (output / "build-verification.json").write_bytes(json_bytes(report))
-    (output / "SHA256SUMS-Split-0.14.5.txt").write_text(
+    (output / "SHA256SUMS-Split-0.14.6.txt").write_text(
         "".join(f"{x['sha256']}  {x['name']}\n" for x in artifacts), encoding="ascii")
     return report
 

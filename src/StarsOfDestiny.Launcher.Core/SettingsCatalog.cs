@@ -9,7 +9,7 @@ using SuikodenRandomizer.Core.Suikoden2;
 
 namespace StarsOfDestiny.Launcher.Core;
 
-public enum SettingKind { Boolean, Seed, Choice, Companions, Integer, Number }
+public enum SettingKind { Boolean, Seed, Choice, Companions, Integer, Number, ReserveRoles }
 
 public sealed record SettingDefinition(string Id, string FileName, string Section, string Key,
     string DefaultValue, SettingKind Kind, IReadOnlyList<string>? Choices = null, double Minimum = 0, double Maximum = 100)
@@ -76,6 +76,14 @@ public static class SettingsCatalog
                 if (setting.FileName == S1File) _ = FixedRosterProfile.CreateChosen(ids);
                 else _ = Gsd2AvatarProfile.CreateChosen("launcher-validation", ids);
                 return string.Join(",", ids);
+            case SettingKind.ReserveRoles:
+                if (trimmed.Length == 0) return "";
+                string[] reserveParts = trimmed.Split(',');
+                if (reserveParts.Length > 2 || reserveParts.Any(part => !int.TryParse(part.Trim(), NumberStyles.None,
+                    CultureInfo.InvariantCulture, out int role) || role < 0 || role >= 108)) throw Invalid(setting);
+                int[] reserves = reserveParts.Select(part => int.Parse(part.Trim(), CultureInfo.InvariantCulture)).ToArray();
+                if (reserves.Distinct().Count() != reserves.Length) throw Invalid(setting);
+                return string.Join(",", reserves);
             case SettingKind.Integer:
                 if (!int.TryParse(trimmed, NumberStyles.Integer, CultureInfo.InvariantCulture, out int integer)
                     || integer < setting.Minimum || integer > setting.Maximum) throw Invalid(setting);
@@ -113,9 +121,11 @@ public static class SettingsCatalog
         bool Enabled(string file, string section, string key, bool fallback = false) =>
             bool.TryParse(documents[file].Get(section, key, fallback ? "true" : "false"), out bool enabled) && enabled;
         if (Enabled(AtbFile, "Preview", "Enabled")
-            && (Enabled(AtbFile, "Preview", "ActiveAtb") || Enabled(AtbFile, "Preview", "OneShotAttack"))
+            && (Enabled(AtbFile, "Preview", "ActiveAtb") || Enabled(AtbFile, "Preview", "OneShotAttack") || Enabled(AtbFile, "CTB", "Enabled"))
             && (Enabled(S1File, "Battle", "ShuffledUnitesPreview") || Enabled(S1File, "Battle", "ShuffledTalismanPreview")))
-            errors.Add("S1 shuffled Unite attacks require standard turn-based combat. Turn off S1 shuffled-character Unite attacks (and legacy Talisman preview) before enabling ATB or the one-action test.");
+            errors.Add("S1 shuffled Unite attacks require standard turn-based combat. Turn off S1 shuffled-character Unite attacks (and legacy Talisman preview) before enabling ATB, CTB or the one-action test.");
+        if (Enabled(AtbFile, "CTB", "Enabled") && !Enabled(AtbFile, "Preview", "Enabled"))
+            errors.Add("CTB requires the battle preview component. Select Enable battle preview component in Battle & ATB.");
         return errors.AsReadOnly();
     }
 
@@ -139,12 +149,18 @@ public static class SettingsCatalog
         }
         yield return new("s1.treasureEnabled", S1File, "Treasure", "Enabled", "true", SettingKind.Boolean);
         yield return new("s1.talismanPreview", S1File, "Battle", "ShuffledTalismanPreview", "false", SettingKind.Boolean);
+        foreach (string key in new[] { "WarehouseMenu", "SharedBattleItems", "OptimizeEquipment", "MatchViktorStarterLevels" })
+            yield return new("s1." + key, S1File, "QualityOfLife", key, "true", SettingKind.Boolean);
         yield return new("s1.chests", S1File, "Treasure", "ShuffleChests", "false", SettingKind.Boolean);
         yield return new("shared.enabled", SharedFile, "General", "Enabled", "true", SettingKind.Boolean);
         yield return new("shared.dialogue", SharedFile, "Dialogue", "ReplaceCharacterMentions", "true", SettingKind.Boolean);
         yield return new("shared.view", SharedFile, "Interface", "ViewMode", "Hidden", SettingKind.Choice, new[] { "Full", "Compact", "Hidden" });
         foreach (string key in new[] { "Enabled", "OneShotAttack", "ActiveAtb", "RepeatTurns", "ReadyCommands", "NativeReadyMenus", "NativeSpdMeters", "ActiveInput", "EnemyDexCharge", "OpeningCharge" })
             yield return new("atb." + key, AtbFile, "Preview", key, key is "ActiveInput" or "EnemyDexCharge" or "OpeningCharge" ? "true" : "false", SettingKind.Boolean);
+        yield return new("ctb.Enabled", AtbFile, "CTB", "Enabled", "false", SettingKind.Boolean);
+        yield return new("ctb.Break", AtbFile, "CTB", "Break", "true", SettingKind.Boolean);
+        yield return new("ctb.ReserveSupport", AtbFile, "CTB", "ReserveSupport", "true", SettingKind.Boolean);
+        yield return new("ctb.ReserveRoleIds", AtbFile, "CTB", "ReserveRoleIds", "", SettingKind.ReserveRoles);
         foreach (var group in new[]
         {
             (Section: "Misc", Keys: new[] { "RememberBattleSpeed", "ExitApplication", "ResetGame", "PauseGame", "UncapMoney", "StallionBoons" }),

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "packageVersion": "0.14.5",
+  "packageVersion": "0.14.6",
   "scope": "Redistributed mod-only component notices; BepInEx is external and not bundled.",
   "files": [
     {
@@ -10,7 +10,7 @@
     },
     {
       "file": "Third-party notices.txt",
-      "sha256": "2fde4daefb51015b30442ef4e48bf6ea591d0285df89183a546304db09950253",
+      "sha256": "8f4b2883a7c4f4f86ac363c1c729ef41cc81da0d42bba048838ae0357acabcd7",
       "bytes": 1483
     }
   ],

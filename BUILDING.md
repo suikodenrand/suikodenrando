@@ -1,6 +1,6 @@
-# Building Stars of Destiny 0.14.5
+# Building Stars of Destiny 0.14.6
 
-This guide builds randomizer **0.14.5** and launcher **1.0.6**. The matching source is tagged [v0.14.5](https://github.com/suikodenrand/suikodenrando/tree/v0.14.5).
+This guide builds randomizer **0.14.6** and launcher **1.0.7**. The matching source is tagged [v0.14.6](https://github.com/suikodenrand/suikodenrando/tree/v0.14.6).
 
 Build on Windows x64 from a clean checkout. This repository contains the project source; it does not supply the game, generated game interop assemblies or a personal save. Building does not require changing files in the game installation.
 
@@ -40,13 +40,13 @@ From the repository root, set your local game path in PowerShell:
 ```powershell
 $game = 'D:\SteamLibrary\steamapps\common\Suikoden I and II HD Remaster'
 dotnet --version
-dotnet build src/SuikodenRandomizer.Unified/SuikodenRandomizer.Unified.csproj -c Release "-p:GamePath=$game" -p:Version=0.14.5
+dotnet build src/SuikodenRandomizer.Unified/SuikodenRandomizer.Unified.csproj -c Release "-p:GamePath=$game" -p:Version=0.14.6
 dotnet build src/SuikodenRandomizer.S1BattlePreview/SuikodenRandomizer.S1BattlePreview.csproj -c Release "-p:GamePath=$game"
 $atbSha256 = (Get-FileHash src/SuikodenRandomizer.S1BattlePreview/bin/Release/net6.0/SuikodenRandomizer.S1BattlePreview.dll -Algorithm SHA256).Hash.ToLowerInvariant()
-dotnet publish src/StarsOfDestiny.Launcher/StarsOfDestiny.Launcher.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:RuntimeFrameworkVersion=10.0.14 "-p:ReviewedAtbSha256=$atbSha256" -o artifacts/0.14.5/launcher
+dotnet publish src/StarsOfDestiny.Launcher/StarsOfDestiny.Launcher.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:RuntimeFrameworkVersion=10.0.14 "-p:ReviewedAtbSha256=$atbSha256" -o artifacts/0.14.6/launcher
 ```
 
-Apply the global `Version=0.14.5` property to the **unified runtime build only**, matching the production build's version metadata for all four runtime payload DLLs. Build the separate ATB component without that override so it retains **0.10.1**. Publish the launcher separately with its project product version **1.0.6**. Do not carry the unified build's version override into those separate commands.
+Apply the global `Version=0.14.6` property to the **unified runtime build only**, matching the production build's version metadata for all four runtime payload DLLs. Build the separate ATB component without that override so it retains **0.15.2**. Publish the launcher separately with its project product version **1.0.7**. Do not carry the unified build's version override into those separate commands.
 
 The combined runtime payload consists of these four files from `src/SuikodenRandomizer.Unified/bin/Release`:
 
@@ -65,7 +65,7 @@ The launcher publish target also copies the original core runtime license, core 
 
 The launcher deliberately checks the reviewed ATB binary's SHA-256 before copying it into the plugins tree. A locally rebuilt DLL can have a different hash because build paths and debug metadata can differ, even when its source behavior is unchanged. A clean compile alone does not qualify a new ATB binary for activation.
 
-When producing a custom reviewed ATB build, review/test that binary and pass its hash as `ReviewedAtbSha256` when publishing the matching launcher, as shown above. The build records a validated 64-digit hash in assembly metadata; the launcher continues to require an exact reviewed-binary match. `Build-Release.ps1` computes and passes this property automatically. Without the property, the launcher retains the original reviewed 0.10.1 hash as its default.
+When producing a custom reviewed ATB build, review/test that binary and pass its hash as `ReviewedAtbSha256` when publishing the matching launcher, as shown above. The build records a validated 64-digit hash in assembly metadata; the launcher continues to require an exact reviewed-binary match. `Build-Release.ps1` computes and passes this property automatically. Without the property, the launcher retains the original reviewed 0.15.2 hash as its default.
 
 Preserve the validation guard; do not turn it into unconditional acceptance of arbitrary DLLs. Keep the reviewed binary and the matching launcher together in a custom package. The published 0.14.3 assets retain the reviewed ATB hash recorded by their manifests.
 
@@ -87,7 +87,7 @@ dotnet run --project tests/StarsOfDestiny.Launcher.Ui.Tests/StarsOfDestiny.Launc
 The UI checks require a Windows desktop environment. The compiled-host metadata checks take the built unified DLL and an output report path:
 
 ```powershell
-dotnet run --project tests/SuikodenRandomizer.Unified.Metadata.Tests/SuikodenRandomizer.Unified.Metadata.Tests.csproj -c Release -- src/SuikodenRandomizer.Unified/bin/Release/SuikodenRandomizer.dll artifacts/0.14.5/metadata-checks.json
+dotnet run --project tests/SuikodenRandomizer.Unified.Metadata.Tests/SuikodenRandomizer.Unified.Metadata.Tests.csproj -c Release -- src/SuikodenRandomizer.Unified/bin/Release/SuikodenRandomizer.dll artifacts/0.14.6/metadata-checks.json
 ```
 
 After rebuilding ATB, the launcher pairing test verifies the build-property hash guard against that actual DLL:
@@ -108,7 +108,7 @@ Run both runtime fixture projects and both launcher projects listed above. The l
 python -m unittest discover -s packaging/release/tests -v
 ```
 
-The 0.14.5 checks cover S1 save admission and fixed rosters, S2 recruitment, save binding collisions and graphics, launcher settings and installer recovery. Record native playtesting separately. Historical evidence for the joining equipment feature is in the [0.14.4 notes](docs/release-0.14.4.md).
+The 0.14.6 checks cover S1 save admission and fixed rosters, S2 recruitment, save binding collisions and graphics, launcher settings and installer recovery. Record native playtesting separately. Historical evidence for the joining equipment feature is in the [0.14.4 notes](docs/release-0.14.4.md).
 
 For broader native coverage, record these checks separately in each game:
 
@@ -126,36 +126,37 @@ The remaining checklist requires live-game observations. Managed tests and catal
 
 ```powershell
 .\packaging\Build-Release.ps1 -GamePath $game -PackageMode Binaries
-.\packaging\Build-Release.ps1 -GamePath $game -PackageMode Manual -DownloadDependencies -OutputDirectory artifacts/0.14.5-manual
-.\packaging\Build-Release.ps1 -GamePath $game -PackageMode All -DownloadDependencies -MakeNsis 'C:\Tools\NSIS\makensis.exe' -OutputDirectory artifacts/0.14.5-full
+.\packaging\Build-Release.ps1 -GamePath $game -PackageMode Manual -DownloadDependencies -OutputDirectory artifacts/0.14.6-manual
+.\packaging\Build-Release.ps1 -GamePath $game -PackageMode All -DownloadDependencies -MakeNsis 'C:\Tools\NSIS\makensis.exe' -OutputDirectory artifacts/0.14.6-full
 ```
 
-The default output root is `artifacts/0.14.5`, with `runtime`, `atb`, `launcher`, `packages` and `dependencies` subfolders. Use `-Dotnet` to select an SDK executable, `-Python` to select Python, `-OutputDirectory` to change the output root, or `-DependenciesDirectory` to use another dependency cache. Use a fresh package output directory for each packaging run; the packager refuses to overwrite an existing staged package or target a game installation.
+The default output root is `artifacts/0.14.6`, with `runtime`, `atb`, `launcher`, `packages` and `dependencies` subfolders. Use `-Dotnet` to select an SDK executable, `-Python` to select Python, `-OutputDirectory` to change the output root, or `-DependenciesDirectory` to use another dependency cache. Use a fresh package output directory for each packaging run; the packager refuses to overwrite an existing staged package or target a game installation.
 
-`-DownloadDependencies` explicitly permits fetching the pinned upstream inputs. Without it, the required dependency files must already be in the cache with matching hashes. The manual package needs the pinned Suikoden Fix archive. The full setup also needs the pinned BepInEx archive and three corresponding source archives; it distributes their verified extracted source folders, not nested ZIP files. Packaging pins are recorded in `packaging/release/dependencies.json`. Do not substitute a current bleeding-edge loader and label it the tested 0.14.5 bundle.
+`-DownloadDependencies` explicitly permits fetching the pinned upstream inputs. Without it, the required dependency files must already be in the cache with matching hashes. The manual package needs the pinned Suikoden Fix archive. The full setup also needs the pinned BepInEx archive and three corresponding source archives; it distributes their verified extracted source folders, not nested ZIP files. Packaging pins are recorded in `packaging/release/dependencies.json`. Do not substitute a current bleeding-edge loader and label it the tested 0.14.6 bundle.
 
 `-StageOnly` can validate and assemble the full setup's payload without compiling its NSIS EXE. It does not constitute qualification of a finished installer.
 
 For already built binaries, the Python packager can also be invoked directly. This example downloads missing pinned inputs into an ignored cache and creates a manual ZIP in a fresh output directory:
 
 ```powershell
-python packaging/release/build.py --mode manual --runtime-dir src/SuikodenRandomizer.Unified/bin/Release --atb-dll src/SuikodenRandomizer.S1BattlePreview/bin/Release/net6.0/SuikodenRandomizer.S1BattlePreview.dll --launcher-dir artifacts/0.14.5/launcher --dependencies .cache/release-dependencies --output artifacts/manual-package-0.14.5 --download-dependencies --reviewed-atb-sha256 $atbSha256
+python packaging/release/build.py --mode manual --runtime-dir src/SuikodenRandomizer.Unified/bin/Release --atb-dll src/SuikodenRandomizer.S1BattlePreview/bin/Release/net6.0/SuikodenRandomizer.S1BattlePreview.dll --launcher-dir artifacts/0.14.6/launcher --dependencies .cache/release-dependencies --output artifacts/manual-package-0.14.6 --download-dependencies --reviewed-atb-sha256 $atbSha256
 ```
 
 Use `--mode all --makensis <path-to-makensis.exe>` for the full setup as well. `--stage-only` skips NSIS compilation. Pass the same reviewed ATB hash used when publishing the matching launcher.
 
 ## Produce the public downloads
 
-The official 0.14.5 packages reuse the optional public S1 ATB 0.10.1 DLL from the 0.14.4-r2 manual package. Its SHA-256 is `03d453f68ef7ce32083746d8ab34b541c66a54e9a603f64d18fd055b27c45a0d`. Pass its path with `-ReviewedAtbDll` to reproduce that pairing. The launcher and packager both verify the component.
+The release builds the S1 battle plugin 0.15.2 from this tag. The same DLL supports ATB and the opt-in CTB 0.5.2 preview. The launcher records its exact SHA-256, and the CTB tuning editor shares the launcher's Windows Desktop runtime.
 
 ```powershell
-.\packaging\Build-Release.ps1 -GamePath $game -PackageMode All -SourceCommit (git rev-parse HEAD) -ReviewedAtbDll $publicAtb -DependenciesDirectory $dependencies -MakeNsis $nsis -OutputDirectory $output
-$manual = Join-Path $output 'packages/Stars-of-Destiny-0.14.5-Mod-Only-Windows.zip'
+.\packaging\Build-Release.ps1 -GamePath $game -PackageMode All -SourceCommit (git rev-parse HEAD) -DependenciesDirectory $dependencies -MakeNsis $nsis -OutputDirectory $output
+$publicAtb = Join-Path $output 'atb/SuikodenRandomizer.S1BattlePreview.dll'
+$manual = Join-Path $output 'packages/Stars-of-Destiny-0.14.6-Mod-Only-Windows.zip'
 $hash = (Get-FileHash -Algorithm SHA256 $manual).Hash.ToLowerInvariant()
 python packaging/release/split_nexus.py --manual-zip $manual --manual-sha256 $hash --output (Join-Path $output 'split')
 python packaging/release/package_launcher.py --launcher-dir (Join-Path $output 'launcher') --atb-dll $publicAtb --source-commit (git rev-parse HEAD) --output (Join-Path $output 'standalone')
 ```
 
-Set `$publicAtb`, `$dependencies`, `$nsis` and `$output` to local paths. Use the plugins-only ZIP from the split output and the versioned 1.0.6 launcher ZIP from the standalone output. Hash the final setup EXE, manual ZIP, plugins-only ZIP and standalone launcher ZIP into `SHA256SUMS.txt`. Verify the four hashes against the uploaded assets and keep the checksum file with the same release tag.
+Set `$dependencies`, `$nsis` and `$output` to local paths. Use the plugins-only ZIP from the split output and the versioned 1.0.7 launcher ZIP from the standalone output. Produce the separate optional CTB download from the same release build. Hash all five final downloads into `SHA256SUMS.txt` and verify the uploaded files against those hashes.
 
 The previous distribution recipes and their original checksums are available at the [0.14.4-r2 packaging tag](https://github.com/suikodenrand/suikodenrando/tree/package-v0.14.4-r2). [Release process](CONTRIBUTING.md)

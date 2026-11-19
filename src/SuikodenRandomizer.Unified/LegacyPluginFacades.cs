@@ -23,6 +23,8 @@ namespace SuikodenRandomizer.AvatarPlugin
         internal static void Configure(ConfigFile config, ManualLogSource log)
         {
             PluginLog = log;
+            S1QualityOfLife.Configure(config);
+            EquipmentOptimizer.Configure(config);
             AvatarTalismanPreview.Configure(config.Bind("Battle", "ShuffledTalismanPreview", false,
                 "Experimental native turn-based Talisman for the actual Gremio and Pahn avatars. ATB and other shuffled Unites are excluded.").Value);
             AvatarShuffledUnites.Configure(config.Bind("Battle", "ShuffledUnitesPreview", false,

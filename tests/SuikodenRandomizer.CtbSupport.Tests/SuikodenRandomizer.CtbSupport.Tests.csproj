@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/SuikodenRandomizer.Core/Combat/CtbReserveSupport.cs" Link="CtbReserveSupport.cs" />
+    <Compile Include="../../src/SuikodenRandomizer.Core/Combat/CtbTimeline.cs" Link="CtbTimeline.cs" />
+  </ItemGroup>
+</Project>

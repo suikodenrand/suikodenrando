@@ -29,6 +29,8 @@ public sealed class AvatarPlugin : BasePlugin
         PluginLog = Log;
         try
         {
+            S1QualityOfLife.Configure(Config);
+            EquipmentOptimizer.Configure(Config);
             var seed = Config.Bind("Shuffle", "Seed", "agilen-080",
                 "Seed for future NEW GAME campaigns (1 to 128 characters). Saved campaigns retain their complete mapping.");
             ConfiguredSeed = seed.Value;

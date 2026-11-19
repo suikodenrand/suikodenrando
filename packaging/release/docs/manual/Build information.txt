@@ -1,14 +1,14 @@
-Stars of Destiny 0.14.5 - Mod-only Manual Windows Release
+Stars of Destiny 0.14.6 - Mod-only Manual Windows Release
 Windows x64 / Steam Suikoden I & II HD Remaster
 
-Gameplay, launcher and packaging source: v0.14.5
-https://github.com/suikodenrand/suikodenrando/tree/v0.14.5
-Optional ATB uses the published 0.10.1 build.
+Gameplay, launcher and packaging source: v0.14.6
+https://github.com/suikodenrand/suikodenrando/tree/v0.14.6
+Battle plugin 0.15.2 supports ATB and the optional CTB 0.5.2 preview.
 
 BUNDLED
-Combined randomizer 0.14.5
-Launcher 1.0.6 with private Windows Desktop .NET 10.0.14 runtime
-Optional Suikoden I ATB Preview 0.10.1, dormant outside active plugins
+Combined randomizer 0.14.6
+Launcher 1.0.7 with private Windows Desktop .NET 10.0.14 runtime
+Optional Suikoden I ATB Preview 0.15.2, dormant outside active plugins
 Suikoden Fix upstream release 1.5.2b
 Fresh mod configuration files and manual instructions
 

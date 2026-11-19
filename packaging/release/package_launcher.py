@@ -18,16 +18,17 @@ from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
-VERSION = "1.0.6"
-SUPPORTED_HOST = "0.14.5"
+VERSION = "1.0.7"
+SUPPORTED_HOST = "0.14.6"
 ROOT = "StarsOfDestiny Launcher/"
 SUPPORT = "StarsOfDestiny Launcher Package/"
-EXES = {"StarsOfDestiny.Launcher.exe", "createdump.exe"}
-JSON_FILES = {"StarsOfDestiny.Launcher.deps.json", "StarsOfDestiny.Launcher.runtimeconfig.json"}
+EXES = {"StarsOfDestiny.Launcher.exe", "StarsOfDestiny.CtbEditor.exe", "createdump.exe"}
+JSON_FILES = {name + suffix for name in ("StarsOfDestiny.Launcher", "StarsOfDestiny.CtbEditor")
+              for suffix in (".deps.json", ".runtimeconfig.json")}
 NOTICES = {"dotnet10-Core-LICENSE.txt", "dotnet10-Core-THIRD-PARTY-NOTICES.txt",
            "dotnet10-WindowsDesktop-LICENSE.txt"}
 REQUIRED_DLLS = {"StarsOfDestiny.Launcher.dll", "StarsOfDestiny.Launcher.Core.dll",
-                 "coreclr.dll", "clrjit.dll", "hostfxr.dll", "hostpolicy.dll",
+                 "StarsOfDestiny.CtbEditor.dll", "coreclr.dll", "clrjit.dll", "hostfxr.dll", "hostpolicy.dll",
                  "System.Private.CoreLib.dll", "System.Windows.Forms.dll"}
 FORBIDDEN_DLLS = {"gameassembly.dll", "unityplayer.dll", "gsd1.dll", "gsd2.dll",
                   "suikodenrandomizer.dll", "suikodenrandomizer.suikoden2.dll",
@@ -35,17 +36,18 @@ FORBIDDEN_DLLS = {"gameassembly.dll", "unityplayer.dll", "gsd1.dll", "gsd2.dll",
                   "winhttp.dll", "dobby.dll"}
 ZIP_TIME = (2026, 11, 15, 0, 0, 0)
 
-START_HERE = """STARS OF DESTINY LAUNCHER 1.0.6 - OPTIONAL WINDOWS DOWNLOAD
-For Stars of Destiny randomizer plug-ins 0.14.5 | Steam | Windows x64
+START_HERE = """STARS OF DESTINY LAUNCHER 1.0.7 - OPTIONAL WINDOWS DOWNLOAD
+For Stars of Destiny randomizer plug-ins 0.14.6 | Steam | Windows x64
 
-This is the launcher only. Install the randomizer plug-ins, Suikoden Fix and
+This download includes the settings launcher and CTB tuning editor. Install the
+randomizer plug-ins, Suikoden Fix and
 the required BepInEx 6 Unity IL2CPP Windows x64 loader separately. This ZIP
 does not install or replace them and cannot randomize the game by itself.
-It contains the launcher's complete private .NET 10 runtime; a separate
+Both tools share the included .NET 10 desktop runtime; a separate
 .NET runtime, SDK or compiler is not required.
 
 MANUAL INSTALL / UPGRADE
-1. Close both the game and any running launcher.
+1. Close the game, launcher and CTB tuning editor.
 2. In Steam, open the game's Properties > Installed Files > Browse, or use
    Manage > Browse local files. Locate Suikoden I and II HD Remaster.exe.
 3. Back up the entire existing StarsOfDestiny Launcher folder outside the
@@ -64,9 +66,10 @@ MANUAL INSTALL / UPGRADE
 Simply copying these files does not change randomizer settings or saves.
 Applying settings or launching through the launcher is a separate action.
 Saved campaigns retain their own seed, mapping and joining policies.
-The optional S1 ATB DLL is not bundled here. Existing reviewed ATB can be
-activated through the launcher when the plug-in package supplies it; turn
-off S1 shuffled Unite attacks before enabling ATB. S2 has no ATB support.
+Install battle plugin 0.15.2 from the 0.14.6 plugins or CTB preview download
+to use ATB or CTB. In Suikoden I > Battle & ATB, disable shuffled Unites and
+the legacy Talisman preview, activate the component if needed, then enable
+the component and select your battle mode. Open the tuning editor on that tab.
 
 To undo this launcher-only upgrade, close the game and launcher, preserve
 any new preferences you want to keep, and restore your complete backed-up
@@ -153,7 +156,7 @@ def read_publish(folder: Path, reviewed_atb_sha256: str, dotnet: str) -> dict[st
             or deps["libraries"][own_key].get("type") != "project"
             or own_key not in deps["targets"].get(target, {})
             or any(k.startswith("StarsOfDestiny.Launcher/") and k != own_key for k in deps["libraries"])):
-        raise ValueError("Publish dependencies must identify StarsOfDestiny.Launcher/1.0.6 for win-x64")
+        raise ValueError("Publish dependencies must identify StarsOfDestiny.Launcher/1.0.7 for win-x64")
     declared_assets = set()
     for library in deps["targets"][target].values():
         for asset_type in ("runtime", "native", "resources"):
@@ -161,10 +164,19 @@ def read_publish(folder: Path, reviewed_atb_sha256: str, dotnet: str) -> dict[st
                 safe_name(name)
                 if not name.endswith("/_._"):
                     declared_assets.add(name)
+    editor = json.loads(files["StarsOfDestiny.CtbEditor.deps.json"])
+    if editor["runtimeTarget"]["name"] != target or "StarsOfDestiny.CtbEditor/0.5.1" not in editor["targets"][target]:
+        raise ValueError("Expected the Windows x64 CTB tuning editor 0.5.1")
+    for library in editor["targets"][target].values():
+        for asset_type in ("runtime", "native", "resources"):
+            declared_assets.update(safe_name(n) for n in library.get(asset_type, {}) if not n.endswith("/_._"))
     missing_assets = {name for name in declared_assets if name not in files or not files[name]}
     if missing_assets:
         raise ValueError("Publish is missing dependency-declared runtime assets: " + ", ".join(sorted(missing_assets)))
     options = json.loads(files["StarsOfDestiny.Launcher.runtimeconfig.json"])["runtimeOptions"]
+    editor_options = json.loads(files["StarsOfDestiny.CtbEditor.runtimeconfig.json"])["runtimeOptions"]
+    if editor_options.get("includedFrameworks") != options.get("includedFrameworks"):
+        raise ValueError("The CTB editor and launcher must share the same Desktop runtime")
     frameworks = {x["name"]: x["version"] for x in options.get("includedFrameworks", [])}
     if (options.get("tfm") != "net10.0" or options.get("framework") or options.get("frameworks")
             or any(not frameworks.get(n, "").startswith("10.")
@@ -209,10 +221,10 @@ def package(launcher_dir: Path, atb_dll: Path, output: Path, source_commit: str,
         raise ValueError("--atb-dll must identify the reviewed SuikodenRandomizer.S1BattlePreview.dll")
     atb_hash = digest(atb_dll.read_bytes())
     publish = read_publish(launcher_dir, atb_hash, dotnet)
-    notes = REPO / "docs/launcher-1.0.6.md"
+    notes = REPO / "docs/launcher-1.0.7.md"
     license_file = REPO / "LICENSE"
     if not notes.is_file() or not notes.read_text(encoding="utf-8").strip():
-        raise ValueError("Missing docs/launcher-1.0.6.md release notes")
+        raise ValueError("Missing docs/launcher-1.0.7.md release notes")
     if not license_file.is_file() or not license_file.read_bytes():
         raise ValueError("Missing project MIT LICENSE")
     files = {ROOT + name: data for name, data in publish.items()}
@@ -264,7 +276,7 @@ def package(launcher_dir: Path, atb_dll: Path, output: Path, source_commit: str,
         "bytes": archive_path.stat().st_size, "files": len(files), "status": "passed",
         "launcherVersion": VERSION, "supportedRandomizerHostVersion": SUPPORTED_HOST,
         "sourceCommit": source_commit.lower(), "reviewedAtbSha256": atb_hash,
-        "checks": ["Complete self-contained win-x64 launcher 1.0.6", "Private runtime license notices preserved",
+        "checks": ["Complete self-contained win-x64 launcher 1.0.7", "Private runtime license notices preserved",
                    "No personal preferences, scripts, nested archives, links or unexpected executable files",
                    "Every ZIP member and CRC checked against original input bytes"],
         "claim": "Packaging checks only; no install, launch, native gameplay or publication performed.",

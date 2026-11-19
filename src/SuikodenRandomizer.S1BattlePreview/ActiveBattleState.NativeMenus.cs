@@ -4,6 +4,7 @@ using System;
 using HarmonyLib;
 using Il2CppInterop.Runtime;
 using Share.Battle;
+using SuikodenRandomizer.Core.Combat;
 using UnityEngine;
 using NativeStep = Il2CppSystem.Func<int, int>;
 using Battle = GSD1::BattleBase;
@@ -30,6 +31,7 @@ internal static partial class ActiveBattleState
         internal readonly IntPtr Window = window;
         internal readonly int EnemyCount = enemyCount;
         internal NativeCommand Draft = new(actor.c_koudou, 0, actor.c_mokuhyo);
+        internal NativeCommand StockCommand;
         internal IntPtr TargetIdentity;
         internal IntPtr Step;
         internal bool Complete;
@@ -38,6 +40,12 @@ internal static partial class ActiveBattleState
         internal string? Failure;
         internal int LastPumpFrame = -1;
         internal bool WindowsClosed;
+        internal bool Queued;
+        internal bool ItemHandedToQueue;
+        internal CtbMenuRoster? OpeningRoster;
+        internal CtbActionCost? CtbPreview = CtbActionTiming.Describe(CtbActionKind.Attack);
+        internal string CtbTransition = "";
+        internal string CtbLoggedPreview = "";
     }
 
     private readonly record struct NativeCommand(sbyte Kind, sbyte Resource, sbyte Target)
@@ -61,7 +69,11 @@ internal static partial class ActiveBattleState
         WindowType.Command, WindowType.Item, WindowType.Emblem, WindowType.Unite, WindowType.Bag, WindowType.Magic
     };
     private static int _turnDepth = -1;
+    private static IntPtr _ctbTurnStep;
     private static int _escapePenaltyRound = -1;
+    private enum FailedRunDialog { None, AwaitingConfirm, Closing }
+    private static FailedRunDialog _ctbFailedRunDialog;
+    private static int _ctbRunDialogInputFrame;
     private static NativeStep? _heroCommandStep;
     private static NativeStep? _partyCommandStep;
     private static NativeStep? _retreatStep;
@@ -122,7 +134,7 @@ internal static partial class ActiveBattleState
         }
     }
 
-    private static bool TryOpenNativeReadyMenu(GSD1.BATTLE_WORK work, int slot, GSD1.PM_DATA actor, int turnDepth)
+    private static bool TryOpenNativeReadyMenu(GSD1.BATTLE_WORK work, int slot, GSD1.PM_DATA actor, int turnDepth, bool queued = false)
     {
         if (!BattlePreviewPlugin.NativeReadyMenusEnabled || _nativeMenusFailed) return false;
         try
@@ -150,6 +162,12 @@ internal static partial class ActiveBattleState
             int enemyCount = RefreshNativeEnemyTargets(work, window);
             if (enemyCount == 0) return false;
             var menu = new NativeHeroMenu(depth, slot, actor, window.Pointer, enemyCount);
+            if (queued)
+            {
+                menu.Queued = true;
+                menu.OpeningRoster = new CtbMenuRoster(work, slot);
+                menu.LastPumpFrame = Time.frameCount;
+            }
             _nativeMenu = menu;
             window.window_step = 0;
             window.window_index = 0;
@@ -157,13 +175,18 @@ internal static partial class ActiveBattleState
             window.selected_player = slot;
             window.selected_player_data = player;
             int stockEnemyCount = work.nokori_monster;
+            var stockCommand = NativeCommand.Read(actor);
             work.nokori_monster = enemyCount;
             try
             {
                 Battle.make_monster_data(slot);
                 Battle.make_command_data(slot);
             }
-            finally { work.nokori_monster = stockEnemyCount; }
+            finally
+            {
+                work.nokori_monster = stockEnemyCount;
+                if (queued) stockCommand.Apply(actor);
+            }
             for (int row = 0; row < RetreatRow; row++)
             {
                 if (window.command_flg[row] == 0) continue;
@@ -173,7 +196,7 @@ internal static partial class ActiveBattleState
             var manager = Manager.Instance;
             Battle.disp_hp();
             bool panelsWereHeld = _nativeTargetPanelsHeld;
-            _nativeTargetPanelsHeld = BattlePreviewPlugin.ActiveInputEnabled;
+            _nativeTargetPanelsHeld = BattlePreviewPlugin.ActiveInputEnabled || queued;
             if (!panelsWereHeld || manager.IsCloseWindowUI(WindowType.Unit)) manager.OpenWindowUI(WindowType.Unit, true);
             if (!panelsWereHeld || manager.IsCloseWindowUI(WindowType.Enemy)) manager.OpenWindowUI(WindowType.Enemy, true);
             Battle.InitGameStep(_heroCommandStep, turnDepth, "ATB ready hero");
@@ -183,7 +206,12 @@ internal static partial class ActiveBattleState
         }
         catch (Exception error)
         {
-            DisableNativeReadyMenus(error.Message);
+            if (queued)
+            {
+                ClearCtbHeroQueue();
+                Trace("CTB deferred the full menu until the hero's turn: " + error.Message);
+            }
+            else DisableNativeReadyMenus(error.Message);
             return false;
         }
     }
@@ -247,10 +275,20 @@ internal static partial class ActiveBattleState
 
     internal static bool TryHandleNativeTurnInput(int depth)
     {
-        if (!BattlePreviewPlugin.ActiveInputEnabled) return TryPumpNativeMenu(depth);
-        _inputTurnDepth = depth;
         try
         {
+            if (BattlePreviewPlugin.CtbEnabled)
+            {
+                if (PumpCtbFailedRunDialog()) return true;
+                _inputTurnDepth = depth;
+                _ctbTurnStep = ReadMenuStep(depth);
+                TryAdvanceCtbEnemyQueue();
+                // The frame callback pumps an early menu. The turn driver must
+                // still run so the previous action finishes and CTB can select.
+                if (_nativeMenu is { Queued: true }) return false;
+            }
+            if (!BattlePreviewPlugin.ActiveInputEnabled) return TryPumpNativeMenu(depth);
+            _inputTurnDepth = depth;
             ObserveQueuedTurnReturn();
             return _nativeMenu is { PartyCommand: > 0 } && Scheduler.PendingSlot == 0 && TryPumpNativeMenu(depth);
         }
@@ -260,25 +298,25 @@ internal static partial class ActiveBattleState
     private static IntPtr ReadMenuStep(int depth)
     {
         var chapter = GSD1.ChapterManager.GR1Instance;
-        return chapter?.g1_game_step is { } steps && depth < steps.Count
+        return chapter?.g1_game_step is { } steps && depth >= 0 && depth < steps.Count
             ? steps[depth]?.Pointer ?? IntPtr.Zero : IntPtr.Zero;
     }
 
     private static bool TryPumpNativeMenu(int depth, bool allowPartyCommand = true)
     {
         var menu = _nativeMenu;
-        if (menu is null || menu.Complete || menu.Depth != depth + 1) return false;
+        if (menu is null || menu.Depth != depth + 1 || (menu.Complete && menu.PartyCommand == 0)) return false;
         try
         {
             if (!TryGetNativeMenu(menu, out var work, out var window, out var actor)
                 || !UsesReadyCommands(work) || work.battle_phase_no != 4 || work.battle_kaisuu != _round)
                 throw new InvalidOperationException("the ready hero's native command context changed");
             bool activeInput = BattlePreviewPlugin.ActiveInputEnabled;
-            bool ownsTurn = activeInput ? Scheduler.PendingSlot == 0 : Scheduler.PendingSlot == menu.Slot;
+            bool ownsTurn = NativeHeroMenuInputPolicy.OwnsTurn(menu.Slot, Scheduler.PendingSlot, menu.Queued, activeInput);
             if (!IsLiving(actor) || (!activeInput && ownsTurn && !Battle.ukeire_check(menu.Slot)))
             {
                 Trace($"ATB canceled hero slot {menu.Slot}'s native menu after its eligibility changed.");
-                ClearHeroCommand(cancelReservation: true, keepTargetPanels: _nativeTargetPanelsHeld);
+                ClearHeroCommand(cancelReservation: !menu.Queued, keepTargetPanels: _nativeTargetPanelsHeld);
                 return false;
             }
             if (!Application.isFocused || Time.timeScale <= 0f) return true;
@@ -286,7 +324,7 @@ internal static partial class ActiveBattleState
             {
                 if (!HasLiveFormationEnemy(work))
                 {
-                    ClearHeroCommand(cancelReservation: true);
+                    ClearHeroCommand(cancelReservation: !menu.Queued);
                     return false;
                 }
                 if (!ownsTurn || !allowPartyCommand) return false;
@@ -301,8 +339,9 @@ internal static partial class ActiveBattleState
             menu.LastPumpFrame = frame;
 
             int result;
-            var stockCommand = NativeCommand.Read(actor);
+            menu.StockCommand = NativeCommand.Read(actor);
             int stockEnemyCount = work.nokori_monster;
+            if (BattlePreviewPlugin.CtbEnabled) ClearCtbTarget();
             _pumpingNativeMenu = true;
             try
             {
@@ -316,7 +355,7 @@ internal static partial class ActiveBattleState
             {
                 _pumpingNativeMenu = false;
                 work.nokori_monster = stockEnemyCount;
-                stockCommand.Apply(actor);
+                menu.StockCommand.Apply(actor);
             }
             if (menu.Failure is not null) throw new InvalidOperationException(menu.Failure);
             menu.Step = ReadMenuStep(menu.Depth);
@@ -327,7 +366,7 @@ internal static partial class ActiveBattleState
                 if (ownsTurn && allowPartyCommand) HandOffPartyCommand(depth, work, window, menu);
                 else
                 {
-                    CloseNativeHeroWindows(window);
+                    CloseNativeHeroWindows(window, keepTargetPanels: _nativeTargetPanelsHeld);
                     menu.WindowsClosed = true;
                 }
                 return true;
@@ -335,7 +374,11 @@ internal static partial class ActiveBattleState
             if (menu.Back)
             {
                 ClearNativeReadyMenu(keepTargetPanels: _nativeTargetPanelsHeld);
-                if (!TryOpenNativeReadyMenu(work, menu.Slot, actor, depth)) OpenOverlayPrompt(work, menu.Slot, actor);
+                if (!TryOpenNativeReadyMenu(work, menu.Slot, actor, depth, menu.Queued))
+                {
+                    if (menu.Queued) ClearHeroCommand(cancelReservation: false);
+                    else OpenOverlayPrompt(work, menu.Slot, actor);
+                }
                 return true;
             }
             if (!menu.Complete)
@@ -349,6 +392,13 @@ internal static partial class ActiveBattleState
         }
         catch (Exception error)
         {
+            if (menu.Queued)
+            {
+                _ctbEarlyMenuUnavailable = true;
+                ClearCtbHeroQueue();
+                Trace("CTB deferred the full menu after its native context changed: " + error.Message);
+                return false;
+            }
             DisableNativeReadyMenus(error.Message);
             var work = Battle.battle_work;
             int slot = _heroCommand.Slot;
@@ -387,33 +437,39 @@ internal static partial class ActiveBattleState
         var pad = GSD1.OldSrcBase.sys_work;
         if (pad is null || !manager.IsChoosableWindowUI(WindowType.Command)) return true;
         uint pressed = pad.PadTrig;
-        if ((pressed & ConfirmButton) != 0)
-        {
-            if (index < RetreatRow) return false;
-            GSD1.P_sound_c.Qsd_call(0x503, false);
-            menu.PartyCommand = index - RetreatRow + 1;
-            return true;
-        }
-        if ((pressed & CancelButton) != 0)
-        {
-            // Native targeting and resource submenus still handle Back themselves.
-            GSD1.P_sound_c.Qsd_call(0x504, false);
-            return true;
-        }
         uint direction = pad.PadRTrig & (UpButton | DownButton);
-        if (direction is UpButton or DownButton)
+        Span<bool> heroEnabled = stackalloc bool[RetreatRow];
+        for (int row = 0; row < heroEnabled.Length; row++)
+            heroEnabled[row] = window.command_flg[row] != 0;
+        var input = NativeHeroMenuInputPolicy.Evaluate(index, heroEnabled,
+            (pressed & ConfirmButton) != 0, (pressed & CancelButton) != 0,
+            (direction & UpButton) != 0, (direction & DownButton) != 0);
+        switch (input.Kind)
         {
-            int increment = direction == UpButton ? -1 : 1;
-            do { index = (index + increment + CommandRows) % CommandRows; }
-            while (index < RetreatRow && window.command_flg[index] == 0);
-            window.window_index = index;
-            manager.SetCursorUI(WindowType.Command, index);
-            if (index < RetreatRow) manager.SetTipsTextFightCommand(index);
-            else manager.SetTipsTextTopCommand(index - RetreatRow + 1);
-            GSD1.P_sound_c.Qsd_call(0x502, false);
-            return true;
+            case NativeHeroMenuInputKind.PassNative:
+                return false;
+            case NativeHeroMenuInputKind.ConfirmParty:
+                GSD1.P_sound_c.Qsd_call(0x503, false);
+                menu.PartyCommand = input.PartyCommand;
+                return true;
+            case NativeHeroMenuInputKind.Cancel:
+                // Native targeting and resource submenus still handle Back themselves.
+                GSD1.P_sound_c.Qsd_call(0x504, false);
+                return true;
+            case NativeHeroMenuInputKind.Move:
+                window.window_index = input.Row;
+                manager.SetCursorUI(WindowType.Command, input.Row);
+                if (input.Row < RetreatRow) manager.SetTipsTextFightCommand(input.Row);
+                else if (BattlePreviewPlugin.CtbEnabled && input.Row == CommandRows - 1)
+                    manager.CloseTipsUI();
+                else manager.SetTipsTextTopCommand(input.Row - RetreatRow + 1);
+                GSD1.P_sound_c.Qsd_call(0x502, false);
+                return true;
+            case NativeHeroMenuInputKind.Consume:
+                return true;
+            default:
+                throw new InvalidOperationException("Unexpected native hero menu input.");
         }
-        return index >= RetreatRow;
     }
 
     internal static int NativeHeroRowResult => _nativeMenu is { PartyCommand: > 0 } ? 0 : Wait;
@@ -444,7 +500,7 @@ internal static partial class ActiveBattleState
         enabled.Add(true);
         labels.Add(GSD1.G1_string_id_h.G1_SID_MSG(partyLabels[2]));
         enabled.Add(true);
-        labels.Add(GSD1.G1_string_id_h.G1_SID_MSG(partyLabels[AutoCommand]));
+        labels.Add(BattlePreviewPlugin.CtbEnabled ? "Wait" : GSD1.G1_string_id_h.G1_SID_MSG(partyLabels[AutoCommand]));
         enabled.Add(true);
         var manager = Manager.Instance;
         manager.battleWindow.UpdateCommandText(WindowType.Command, labels, enabled, null);
@@ -474,12 +530,15 @@ internal static partial class ActiveBattleState
         }
 
         var target = ReadNativeTarget(work, command.Target);
+        bool validSelection = menu.OpeningRoster?.Accepts(work, slot, actor, command)
+            ?? (command.Kind != Item || ReadQueuedResource(work, slot, command, reservedItem: true).Id > 0);
         if ((menu.TargetIdentity != IntPtr.Zero && target?.Pointer != menu.TargetIdentity)
-            || (command.Kind == Attack && (!IsLiving(target) || Battle.dead_check(command.Target))))
+            || (command.Kind == Attack && (!IsLiving(target) || Battle.dead_check(command.Target)))
+            || !validSelection)
         {
             ClearNativeReadyMenu();
             if (!TryOpenNativeReadyMenu(work, slot, actor, _turnDepth)) OpenOverlayPrompt(work, slot, actor);
-            Trace($"ATB refreshed hero slot {slot}'s menu after the confirmed target became unavailable.");
+            Trace($"ATB refreshed hero slot {slot}'s menu after the confirmed target or resource changed.");
             return true;
         }
 
@@ -498,11 +557,37 @@ internal static partial class ActiveBattleState
 
     private static void HandOffPartyCommand(int depth, GSD1.BATTLE_WORK work, Battle.WINDOW_WORK window, NativeHeroMenu menu)
     {
+        if (BattlePreviewPlugin.CtbEnabled && menu.PartyCommand == AutoCommand)
+        {
+            PerformCtbWait(work, menu);
+            return;
+        }
         bool auto = menu.PartyCommand == AutoCommand;
+        bool ctbRun = BattlePreviewPlugin.CtbEnabled && menu.PartyCommand == 1;
+        if (ctbRun)
+        {
+            if (Scheduler.IsAdmitted || Scheduler.PendingSlot != menu.Slot || _heroCommand.Slot != menu.Slot
+                || _heroCommand.Identity != menu.Actor)
+                throw new InvalidOperationException("the CTB Run reservation changed");
+            if (Battle.nigeru_check() == 0)
+            {
+                if (!Scheduler.SpendCtbMenuTurn(menu.Slot, menu.Actor, 1.0))
+                    throw new InvalidOperationException("the failed CTB Run could not spend its turn");
+                ClearHeroCommand(cancelReservation: false);
+                Manager.Instance.OpenDialogWindowUI(GSD1.G1_string_id_h.G1_SID_MSG(0x103d3));
+                _ctbFailedRunDialog = FailedRunDialog.AwaitingConfirm;
+                _ctbRunDialogInputFrame = Time.frameCount;
+                Trace(FormattableString.Invariant($"CTB Run failed for slot {menu.Slot}; recovery x1.00, next opportunity {Scheduler.Ctb.GetNextReady(menu.Slot):F1}."));
+                RefreshCtbPresentation(work);
+                return;
+            }
+        }
         var step = auto ? (_autoStep ??= WrapStep(Battle.omakase_window))
             : menu.PartyCommand == 1 ? _retreatStep : _bribeStep;
         CloseNativeHeroWindows(window);
-        window.window_step = 0;
+        // nige_window stage 0 rolls for escape and assigns Defend to the whole party.
+        // CTB already rolled. Stage 10 displays stock success and continues the normal battle exit.
+        window.window_step = ctbRun ? 10 : 0;
         window.window_player_index = -1;
         window.window_index = menu.PartyCommand;
         window.return_value = menu.PartyCommand;
@@ -513,7 +598,7 @@ internal static partial class ActiveBattleState
             work.auto_turn = 0;
             NativeAutoOwnsBattle = true;
         }
-        else
+        else if (!ctbRun)
         {
             // Stock owns this round's escape and, on failure, the next round of Defend.
             _escapePenaltyRound = work.battle_kaisuu + 1;
@@ -521,12 +606,40 @@ internal static partial class ActiveBattleState
         Battle.NextGameStep(_partyCommandStep, depth - 1, "ATB party command");
         Battle.NextGameStep(step, depth, auto ? "ATB native Auto" : "ATB native escape");
         _nativeMenu = null;
-        QueuedHeroActions.Clear();
+        DiscardQueuedHeroes();
         ClearHeroCommand(cancelReservation: true);
         if (auto) Scheduler.Reset();
         _waitStarted = -1;
         string label = auto ? "Auto" : menu.PartyCommand == 1 ? "Run / Let Go" : "Bribe";
         Trace($"ATB handed {label} to the native battle flow.");
+        if (BattlePreviewPlugin.CtbEnabled)
+            Fallback(ctbRun ? "the party escaped" : "CTB handed Bribe to native battle flow");
+    }
+
+    private static bool PumpCtbFailedRunDialog()
+    {
+        if (_ctbFailedRunDialog == FailedRunDialog.None) return false;
+        if (Battle.battle_work is not { battle_phase_no: 4 } work || work.Pointer != _battle || _fellBack)
+        {
+            _ctbFailedRunDialog = FailedRunDialog.None;
+            return false;
+        }
+        var manager = Manager.Instance;
+        if (_ctbFailedRunDialog == FailedRunDialog.AwaitingConfirm)
+        {
+            if (Time.frameCount != _ctbRunDialogInputFrame && Application.isFocused && Time.timeScale > 0f
+                && manager.IsOpenedDialogUI() && GSD1.OldSrcBase.sys_work is { } pad && (pad.PadTrig & ConfirmButton) != 0)
+            {
+                manager.CloseDialogWindowUI();
+                _ctbFailedRunDialog = FailedRunDialog.Closing;
+                _ctbRunDialogInputFrame = Time.frameCount;
+            }
+            return true;
+        }
+        if (Time.frameCount == _ctbRunDialogInputFrame || !manager.IsClosedDialogUI()) return true;
+        _ctbFailedRunDialog = FailedRunDialog.None;
+        Trace("CTB resumed turn order after the failed Run message closed.");
+        return false;
     }
 
     private static bool NativeEscapeOwnsRound(int round)
@@ -583,6 +696,7 @@ internal static partial class ActiveBattleState
         {
             if (Battle.battle_work?.Pointer != _battle || Battle.window_work is not { } window
                 || window.Pointer != menu.Window) return;
+            if (menu.Draft.Kind == Item && !menu.ItemHandedToQueue) SharedBattleItemBridge.Release(menu.Slot);
             if (!_pumpingNativeMenu && menu.Step != IntPtr.Zero)
             {
                 var chapter = GSD1.ChapterManager.GR1Instance;
@@ -594,7 +708,7 @@ internal static partial class ActiveBattleState
                     chapter.current_func_name[menu.Depth] = string.Empty;
                 }
             }
-            if (!menu.WindowsClosed) CloseNativeHeroWindows(window, keepTargetPanels);
+            if (!menu.WindowsClosed) CloseNativeHeroWindows(window, keepTargetPanels || menu.Queued);
         }
         catch (Exception error) { Trace("ATB native menu cleanup failed: " + error.Message); }
     }
@@ -647,10 +761,12 @@ internal static partial class ActiveBattleState
 
     private static void ResetNativeReadyState()
     {
+        _ctbTurnStep = IntPtr.Zero;
         ClearNativeReadyMenu();
         ReleaseNativeTargetPanels();
         _nativeMenusFailed = false;
         _escapePenaltyRound = -1;
+        _ctbFailedRunDialog = FailedRunDialog.None;
         NativeAutoOwnsBattle = false;
     }
 }
@@ -706,11 +822,15 @@ internal static class NativeReadyCommandPatch
         return false;
     }
 
-    private static void Postfix(bool __state)
+    private static void Postfix(bool __state, int __0, int __result)
     {
-        if (!__state) return;
-        try { ActiveBattleState.RefreshNativeHeroRows(); }
-        catch (Exception error) { ActiveBattleState.NoteNativeMenuError(error); }
+        if (__state)
+        {
+            try { ActiveBattleState.RefreshNativeHeroRows(); }
+            catch (Exception error) { ActiveBattleState.NoteNativeMenuError(error); }
+        }
+        // Postfix runs even when our own movement/Wait-row prefix consumes input.
+        ActiveBattleState.ObserveCtbCommandPreview(__0, __result);
     }
 }
 

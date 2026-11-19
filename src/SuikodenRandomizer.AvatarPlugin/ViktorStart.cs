@@ -2,14 +2,18 @@ extern alias GSD1;
 
 using HarmonyLib;
 using SuikodenRandomizer.Core;
+using SuikodenRandomizer.Core.Avatars;
 using System;
+using System.Collections.Generic;
 
 namespace SuikodenRandomizer.AvatarPlugin;
 
 internal static class ViktorStart
 {
-    private enum Phase { Off, Armed, Applied }
+    private enum Phase { Off, Armed, Applied, WaitingForCompanions }
     private static Phase _phase;
+    internal static bool AwaitingFirstSpawn => S1QualityOfLife.MatchViktorStarterLevels && _phase == Phase.Applied;
+    internal static bool WaitingForCompanions => _phase == Phase.WaitingForCompanions;
 
     internal static void Arm(bool requested)
     {
@@ -130,11 +134,11 @@ internal static class ViktorStart
 
     internal static void ObserveSpawn(int x, int y)
     {
-        if (AvatarRuntime.Current?.IsAdmitted != true) return;
+        var runtime = AvatarRuntime.Current;
+        if (runtime?.IsAdmitted != true) return;
         if (_phase != Phase.Applied) return;
         Cancel();
         TraceState("first native player spawn (" + x + "," + y + ")");
-        var runtime = AvatarRuntime.Current;
         try
         {
             var game = GSD1.OldSrcBase.game_work ?? throw new InvalidOperationException("No native campaign state.");
@@ -154,12 +158,57 @@ internal static class ViktorStart
                     || party.chara_code[slot] != ViktorCheckpointData.CharacterCodes[ViktorCheckpointData.PartyOrder[i]])
                     throw new InvalidOperationException("Native initialization did not retain the pre-Viktor party.");
             }
-            runtime?.Trace("VIKTOR START checkpoint verified at first native spawn.");
+            runtime.Trace("VIKTOR START checkpoint verified at first native spawn.");
+            if (!S1QualityOfLife.MatchViktorStarterLevels) return;
+            // Reconstruction can publish the first companion before it binds the second.
+            _phase = Phase.WaitingForCompanions;
+            runtime.EnsureProxy("Viktor checkpoint starting party", false, force: true);
         }
         catch (Exception exception)
         {
-            runtime?.Fail("Viktor checkpoint spawn check failed: " + exception.Message);
+            runtime.Fail("Viktor checkpoint spawn check failed: " + exception.Message);
         }
+    }
+
+    internal static bool FinishStartingParty(AvatarRuntime runtime)
+    {
+        if (!WaitingForCompanions) return true;
+
+        var roles = new int[ViktorCheckpointData.ActiveCount - 1];
+        var bases = new Dictionary<int, GSD1.PLAYER_BASE>();
+        for (int i = 0; i < roles.Length; i++)
+        {
+            int slot = ViktorCheckpointData.PartyOrder[i + 1];
+            int role = ViktorCheckpointData.CharacterCodes[slot];
+            var fighter = runtime.ProxyFor(role)?.player_base;
+            if (fighter is null || fighter.Pointer != AvatarNativeData.FindBase(role).Pointer) return false;
+            roles[i] = role;
+            bases.Add(role, fighter);
+        }
+
+        int target = AvatarNativeData.FindBase(CombatCatalog.TirId).level;
+        string layout = runtime.CanonicalLayoutFingerprint();
+        var result = AvatarShuffleTransaction.Execute<GSD1.PLAYER_BASE>(roles,
+            id => AvatarNativeData.CloneBase(bases[id]),
+            (id, _) =>
+            {
+                var fighter = bases[id];
+                if (fighter.level >= target) return;
+                for (int level = fighter.level; level < target; level++)
+                    GSD1.BattleBase.g1_level_up(fighter);
+                GSD1.G_monsyo_h.calc_magic_point(fighter);
+            },
+            (id, before, after) => after.chara_no == id && after.level == Math.Max((int)before.level, target),
+            (id, before) => AvatarNativeData.CopyBase(before, bases[id]),
+            (left, right) => AvatarNativeData.Fingerprint(left) == AvatarNativeData.Fingerprint(right),
+            () => runtime.CanonicalLayoutFingerprint() == layout);
+        if (!result.Committed)
+            throw new InvalidOperationException("Viktor starting party growth failed at " + result.FailureStage, result.Failure);
+        Cancel();
+        foreach (int role in roles)
+            runtime.Trace("VIKTOR START companion role=" + role + "; fighter=" + CombatCatalog.Format(runtime.MapDisplayId(role))
+                + "; level=" + bases[role].level + "; max HP=" + bases[role].max_hp + "; Tir level=" + target);
+        return true;
     }
 
     internal static void TraceState(string checkpoint)

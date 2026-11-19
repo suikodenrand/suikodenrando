@@ -30,7 +30,7 @@ internal static class AvatarSavePreparationPatch
             if (runtime is null || !runtime.IsAdmitted || runtime.FaultReason is not null)
                 throw new InvalidOperationException(runtime?.FaultReason ?? "Randomizer save admission is incomplete or suspended; finish loading a native campaign or restore its valid campaign binding.");
             SuikodenRandomizer.Integration.RejectedSaveMirrorGuard.Ensure(AvatarStorageGuardPatch.AllowMirrorWrite);
-            if (!runtime.EnsureProxy("save preparation", false, force: true))
+            if (ViktorStart.AwaitingFirstSpawn || !runtime.EnsureProxy("save preparation", false, force: true))
                 throw new InvalidOperationException("Complete shuffle roster is not ready; save again after native initialization completes.");
             runtime.VerifyFinalParty("save preparation");
             runtime.CheckCampaignBindingWritable();

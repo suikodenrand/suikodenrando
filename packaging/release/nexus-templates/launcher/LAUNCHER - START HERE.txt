@@ -1,10 +1,10 @@
-STARS OF DESTINY 0.14.5 - OPTIONAL WINDOWS LAUNCHER 1.0.6
+STARS OF DESTINY 0.14.6 - OPTIONAL WINDOWS LAUNCHER 1.0.7
 
-This download contains ONLY the optional settings launcher and its complete
+This download contains the optional settings launcher, CTB tuning editor and their
 self-contained Microsoft .NET 10.0.14 Windows x64 runtime. It does not install
 the randomizer plugins, Suikoden Fix, ATB or BepInEx. Get the plugins-only
-0.14.5 ZIP and install its external BepInEx requirement first.
-https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.5
+0.14.6 ZIP and install its external BepInEx requirement first.
+https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.6
 
 INSTALL / RUN
 1. Close the game and launcher. Back up an existing launcher folder and its
@@ -29,6 +29,25 @@ INSTALL / RUN
    plugins package's SETTINGS.txt. Never run S1 shuffled Unites and ATB
    together. ATB remains experimental and S1 only.
 
+SUIKODEN I QUALITY OF LIFE
+The four options start enabled. In the launcher, open Suikoden I > Quality of
+Life to switch any option off or disable the group.
+- Warehouse access adds Roc's Warehouse after Party Items once recruited.
+- Shared battle items let each living active fighter use another living
+  fighter's carried item. The charge comes from the owner's stack.
+- Optimize equips one fighter from loose active-party gear and, after Roc
+  joins, warehouse stock. Select either source or both in the launcher.
+  Other fighters keep the gear they are wearing.
+- The Viktor quick start matches starting companions to Tir's level with
+  each companion's own stat growth.
+
+S1 COUNT TIME BATTLE (OPTIONAL PREVIEW 0.5.2)
+The battle plugin supports CTB and ATB. Both start off. With the component
+installed, open Suikoden I > Battle & ATB, disable shuffled Unites and the
+legacy Talisman preview, activate the component if needed, then enable the
+battle preview and CTB. The CTB tuning editor opens from the same tab.
+Guide: https://github.com/suikodenrand/suikodenrando/blob/v0.14.6/docs/CTB-PROTOTYPE.md
+
 TROUBLESHOOTING
 If the launcher does not open, confirm the entire folder was extracted and
 has not been mixed with files from a different launcher version. If the game
@@ -49,5 +68,5 @@ does not undo settings already applied. Keep any prior installer recovery.
 NOTICES / SOURCE
 Microsoft runtime notices remain inside StarsOfDestiny Launcher. Project MIT
 and download details are in StarsOfDestiny Launcher Package. Source/build:
-https://github.com/suikodenrand/suikodenrando/tree/v0.14.5
-The launcher files match the 1.0.6 publish used in the full release.
+https://github.com/suikodenrand/suikodenrando/tree/v0.14.6
+The launcher files match the 1.0.7 publish used in the full release.

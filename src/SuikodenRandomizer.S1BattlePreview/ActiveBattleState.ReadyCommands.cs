@@ -6,9 +6,6 @@ using UnityEngine;
 
 namespace SuikodenRandomizer.S1BattlePreview;
 
-internal sealed record HeroCommandPrompt(int Slot, IntPtr Identity, string Name, HeroCommandTarget[] Targets,
-    HeroResourceOption[] Runes, HeroResourceOption[] Items);
-
 internal static partial class ActiveBattleState
 {
     private const sbyte UnselectedCommand = -1;
@@ -94,6 +91,11 @@ internal static partial class ActiveBattleState
 
     private static void OpenOverlayPrompt(GSD1.BATTLE_WORK work, int slot, GSD1.PM_DATA actor)
     {
+        if (BattlePreviewPlugin.CtbEnabled)
+        {
+            Fallback("the CTB native command menu was unavailable; overlay commands are disabled in this prototype");
+            return;
+        }
         if (!HasLiveFormationEnemy(work))
         {
             ClearHeroCommand(cancelReservation: true);
@@ -144,7 +146,8 @@ internal static partial class ActiveBattleState
             if (target.Slot == choice.TargetSlot && target.Identity == choice.TargetIdentity)
                 targetName = target.Name;
         bool targetUnavailable = targets.Length > 0 ? targetName is null : choice.TargetSlot != 0;
-        if ((choice.Kind is HeroCommandKind.Rune or HeroCommandKind.Item && resource is null) || targetUnavailable)
+        if ((choice.Kind is HeroCommandKind.Rune or HeroCommandKind.Item && resource is null) || targetUnavailable
+            || (choice.Kind == HeroCommandKind.Item && !SharedBattleItemBridge.Reserve(slot, resource!.Resource.Index)))
         {
             ClearHeroCommand(cancelReservation: false);
             OpenHeroCommand(work, slot, actor, now);

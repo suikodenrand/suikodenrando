@@ -498,8 +498,7 @@ try
         var workspace = SettingsWorkspace.Load(game, () => false);
         workspace.Set("s1.seed", "unsaved-edit");
         workspace.SetBoolean("atb.Enabled", true);
-        workspace.SetBoolean("s1.unites", true);
-        workspace.SetBoolean("atb.ActiveAtb", false);
+        workspace.SetBoolean("ctb.Enabled", true);
         string Preset(string battleText) => System.Text.Json.JsonSerializer.Serialize(new {
             schema = "stars-of-destiny-settings-v1",
             configFiles = new System.Collections.Generic.Dictionary<string, string> {
@@ -510,15 +509,15 @@ try
         var before = SettingsCatalog.FileNames.Select(name => workspace.Documents[name].Render()).ToArray();
         try
         {
-            workspace.StagePreset(Preset("[Preview]\nActiveAtb=true"));
-            throw new Exception("Preset would enable active ATB for a campaign with shuffled Unite attacks.");
+            workspace.StagePreset(Preset("[Preview]\nEnabled=false"));
+            throw new Exception("Preset would leave CTB enabled with the preview disabled.");
         }
-        catch (InvalidDataException error) when (error.Message.Contains("require standard turn-based combat", StringComparison.Ordinal)) { }
+        catch (InvalidDataException error) when (error.Message.Contains("CTB requires", StringComparison.Ordinal)) { }
         Check(SettingsCatalog.FileNames.Select(name => workspace.Documents[name].Render()).SequenceEqual(before),
             "Rejected preset lost a pending edit or partially imported an earlier file.");
-        workspace.StagePreset(Preset("[Preview]\rActiveAtb=false\rOpeningCharge=true"));
+        workspace.StagePreset(Preset("[CTB]\rEnabled=true\rBreak=false"));
         Check(workspace.Get("s1.seed") == "preset-edit" && workspace.GetBoolean("atb.Enabled")
-            && workspace.GetBoolean("s1.unites") && !workspace.GetBoolean("atb.ActiveAtb") && workspace.GetBoolean("atb.OpeningCharge"),
+            && workspace.GetBoolean("ctb.Enabled") && !workspace.GetBoolean("ctb.Break"),
             "Partial import lost an inherited setting or missed an imported value.");
         Check(!File.Exists(Config(game, SettingsCatalog.S1File)) && !File.Exists(Config(game, SettingsCatalog.AtbFile)),
             "Staging a preset wrote a config before Apply.");
@@ -665,6 +664,44 @@ try
         workspace.Set("fix.SpeedHackFactor", "2");
         Reject(() => workspace.Set("fix.SpeedHackFactor", "1.5"));
         workspace.Save();
+    });
+
+    Case("CTB settings have safe defaults and reserve IDs are bounded and normalized", () =>
+    {
+        var workspace = SettingsWorkspace.Load(NewGame(), () => false);
+        Check(!workspace.GetBoolean("ctb.Enabled") && workspace.GetBoolean("ctb.Break")
+            && workspace.GetBoolean("ctb.ReserveSupport") && workspace.Get("ctb.ReserveRoleIds") == "", "CTB defaults changed.");
+        workspace.Set("ctb.ReserveRoleIds", " 35, 17 ");
+        Check(workspace.Get("ctb.ReserveRoleIds") == "35,17", "Reserve IDs did not normalize.");
+        foreach (string invalid in new[] { "35,35", "-1", "108", "1,2,3", "35,", "Kai" })
+            Reject(() => workspace.Set("ctb.ReserveRoleIds", invalid));
+    });
+
+    Case("CTB rejects Unite conflicts and requires the battle preview master switch", () =>
+    {
+        var workspace = SettingsWorkspace.Load(NewGame(), () => false);
+        workspace.SetBoolean("ctb.Enabled", true);
+        Check(workspace.Validate().Count != 0, "A disabled preview cannot provide CTB.");
+        workspace.SetBoolean("atb.Enabled", true);
+        workspace.SetBoolean("s1.unites", true);
+        Check(workspace.Validate().Any(message => message.Contains("Unite", StringComparison.Ordinal)), "CTB incorrectly allowed shuffled Unites.");
+        workspace.SetBoolean("s1.unites", false);
+        workspace.SetBoolean("s2.unites", true);
+        Check(workspace.Validate().Count == 0, "S2 Unites should remain independent of S1 CTB.");
+    });
+
+    Case("CTB cannot be applied to a missing or older native preview", () =>
+    {
+        string game = NewGame();
+        var workspace = SettingsWorkspace.Load(game, () => false);
+        workspace.SetBoolean("atb.Enabled", true);
+        workspace.SetBoolean("ctb.Enabled", true);
+        Reject(() => workspace.Save());
+        Check(!File.Exists(Config(game, SettingsCatalog.AtbFile)), "Unsupported CTB settings were written.");
+        File.Copy(typeof(SettingsWorkspace).Assembly.Location,
+            Path.Combine(game, "BepInEx", "plugins", "SuikodenRandomizer.S1BattlePreview.dll"));
+        Reject(() => workspace.Save());
+        Check(!File.Exists(Config(game, SettingsCatalog.AtbFile)), "Older preview accepted CTB settings.");
     });
 
     Console.WriteLine(passed + " launcher settings checks passed.");

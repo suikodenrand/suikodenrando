@@ -1,9 +1,28 @@
-STARS OF DESTINY 0.14.5 - PLUGINS-ONLY FEATURES AND DEFAULTS
+STARS OF DESTINY 0.14.6 - PLUGINS-ONLY FEATURES AND DEFAULTS
 
-Included unchanged: combined randomizer 0.14.5, Suikoden Fix 1.5.2b (plugin
-reports 1.5.2), optional dormant S1 ATB Preview 0.10.1 and default CFG files.
+Included: combined randomizer 0.14.6, Suikoden Fix 1.5.2b (plugin
+reports 1.5.2), optional dormant S1 ATB Preview 0.15.2 and default CFG files.
 BepInEx 6 IL2CPP Windows x64 build 697 is required separately.
-Launcher 1.0.6 is an OPTIONAL separate GitHub download, not part of this ZIP.
+Launcher 1.0.7 is an OPTIONAL separate GitHub download, not part of this ZIP.
+
+SUIKODEN I QUALITY OF LIFE
+The four options start enabled. In the launcher, open Suikoden I > Quality of
+Life to switch any option off or disable the group.
+- Warehouse access adds Roc's Warehouse after Party Items once recruited.
+- Shared battle items let each living active fighter use another living
+  fighter's carried item. The charge comes from the owner's stack.
+- Optimize equips one fighter from loose active-party gear and, after Roc
+  joins, warehouse stock. Select either source or both in the launcher.
+  Other fighters keep the gear they are wearing.
+- The Viktor quick start matches starting companions to Tir's level with
+  each companion's own stat growth.
+
+S1 COUNT TIME BATTLE (OPTIONAL PREVIEW 0.5.2)
+The battle plugin supports CTB and ATB. Both start off. With the component
+installed, open Suikoden I > Battle & ATB, disable shuffled Unites and the
+legacy Talisman preview, activate the component if needed, then enable the
+battle preview and CTB. The optional launcher download also includes the CTB tuning editor.
+Guide: https://github.com/suikodenrand/suikodenrando/blob/v0.14.6/docs/CTB-PROTOTYPE.md
 
 BOTH GAMES
 Seeded role Shuffle, five chosen companions or seeded random fixed roster;
@@ -45,8 +64,7 @@ on upgrade and deliberately choose settings for new campaigns.
 NOT INCLUDED / LIMITS
 No BepInEx loader/core/runtime, launcher/runtime, EXEs, install scripts,
 nested archives, personal saves or generated interop assemblies in this ZIP.
-Nuzlocke, S2 ATB/chest shuffle, extra rune slots and shared inventory/storage
-rewrites are not included. Wider S1/S2 story, recruit and Unite playtesting is
-still needed. The native 0.14.5 equipment check observed Meg replacing Viktor,
+Nuzlocke, S2 ATB/chest shuffle, and extra rune slots are not included. Wider S1/S2 story, recruit and Unite playtesting is
+still needed. An earlier native equipment check observed Meg replacing Viktor,
 first-join gear and a save; reload was not observed. This packaging split
 does not change gameplay binaries or expand that native test coverage.

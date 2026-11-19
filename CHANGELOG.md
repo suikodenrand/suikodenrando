@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.6](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.6) — 2026-11-19
+
+- Open Roc’s Warehouse from Items after recruitment, share living teammates’ battle items, and optimize each fighter’s equipment from configurable gear sources.
+- Level both Viktor quick-start companions to Tir’s checkpoint level using their own stat growth.
+- Launcher 1.0.7 adds independent switches for all four features and a one-click option to disable them together.
+- Release optional S1 CTB preview 0.5.2 with a turn-order forecast, command queuing, Break, reserve Rally and a tuning editor. [Release notes](docs/release-0.14.6.md)
+
 ## [0.14.5](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.5) — 2026-11-18
 
 - Fix S1 save admission, editable save mirrors, fixed-roster battle entry and joining loadout updates.
