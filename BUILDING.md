@@ -142,26 +142,18 @@ For already built binaries, the Python packager can also be invoked directly. Th
 python packaging/release/build.py --mode manual --runtime-dir src/SuikodenRandomizer.Unified/bin/Release --atb-dll src/SuikodenRandomizer.S1BattlePreview/bin/Release/net6.0/SuikodenRandomizer.S1BattlePreview.dll --launcher-dir artifacts/0.14.6/launcher --dependencies .cache/release-dependencies --output artifacts/manual-package-0.14.6 --download-dependencies --reviewed-atb-sha256 $atbSha256
 ```
 
-Use `--mode all --makensis <path-to-makensis.exe>` for the full setup as well. `--stage-only` skips NSIS compilation. Pass the same reviewed ATB hash used when publishing the matching launcher.
+Use `--mode setup --makensis <path-to-makensis.exe>` for just the full setup or `--mode all` for setup and the manual ZIP. `--stage-only` skips NSIS compilation. Pass the same reviewed ATB hash used when publishing the matching launcher.
 
 ## Produce the public downloads
 
-For package revision **0.14.6-r2**, use the qualified 0.14.6 runtime, battle plugin 0.15.2 and CTB editor 0.5.1. Compare the original build files with the [0.14.6 manual ZIP and its checksums](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.6) first. The plugins-only ZIP from that release also applies to r2.
-
-Set `$original` to the original 0.14.6 release build directory, `$publish` to an empty launcher publish directory, and `$dependencies`, `$nsis` and `$output` to the dependency cache, NSIS compiler and new output directory. Run these commands from the clean, reviewed packaging commit.
+For Windows setup revision **0.14.6-r3**, use the verified gameplay plugin, battle preview and launcher files from the 0.14.6-r2 setup. Set `$original` to the verified runtime and battle preview staging folder, `$publish` to the complete launcher folder from that package, and `$dependencies`, `$nsis` and `$output` to the dependency cache, NSIS compiler and an empty output folder. [0.14.6 release files and checksums](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.6)
 
 ```powershell
 $runtimeCommit = git rev-parse v0.14.6
-$launcherCommit = git rev-parse HEAD
+$launcherCommit = git rev-parse package-v0.14.6-r2
 $publicAtb = Join-Path $original 'atb/SuikodenRandomizer.S1BattlePreview.dll'
 $hash = (Get-FileHash -Algorithm SHA256 $publicAtb).Hash.ToLowerInvariant()
-dotnet publish src/StarsOfDestiny.Launcher/StarsOfDestiny.Launcher.csproj -c Release -r win-x64 --self-contained true -p:RuntimeFrameworkVersion=10.0.14 "-p:ReviewedAtbSha256=$hash" -o $publish
-foreach ($suffix in '.exe','.dll','.runtimeconfig.json','.deps.json') {
-    Copy-Item -LiteralPath (Join-Path $original "launcher/StarsOfDestiny.CtbEditor$suffix") -Destination $publish
-}
-python packaging/release/build.py --mode all --package-revision r2 --runtime-dir (Join-Path $original 'runtime') --atb-dll $publicAtb --reviewed-atb-sha256 $hash --launcher-dir $publish --dependencies $dependencies --makensis $nsis --runtime-source-commit $runtimeCommit --launcher-source-commit $launcherCommit --output (Join-Path $output 'bundles')
-python packaging/release/package_launcher.py --launcher-dir $publish --atb-dll $publicAtb --source-commit $launcherCommit --output (Join-Path $output 'standalone')
-python packaging/release/package_ctb.py --build $original --launcher-dir $publish --runtime-source-commit $runtimeCommit --launcher-source-commit $launcherCommit --output (Join-Path $output 'ctb')
+python packaging/release/build.py --mode setup --package-revision r3 --runtime-dir (Join-Path $original 'runtime') --atb-dll $publicAtb --reviewed-atb-sha256 $hash --launcher-dir $publish --dependencies $dependencies --makensis $nsis --runtime-source-commit $runtimeCommit --launcher-source-commit $launcherCommit --output $output
 ```
 
-The full setup, manual ZIP and CTB preview use the suffix `-r2`. The standalone Windows launcher is version 1.0.8. Record checksums for the revised downloads separately and verify the uploaded files. The [original 0.14.6 source](https://github.com/suikodenrand/suikodenrando/tree/v0.14.6) contains the recipes for the original downloads, including the plugins-only ZIP. [Release process](CONTRIBUTING.md)
+Run install, repair and both uninstall choices in disposable game folders before publishing. The earlier revision 2 source documents the manual ZIP, standalone launcher and CTB preview. [Revision 2 source](https://github.com/suikodenrand/suikodenrando/tree/package-v0.14.6-r2) · [Release process](CONTRIBUTING.md)
