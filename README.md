@@ -1,4 +1,7 @@
 # Stars of Destiny
+
+This branch contains the **very early alpha** for the original PlayStation releases of Suikoden I and II. [PlayStation setup and known issues](tools/psx/README.md) · [Downloads](https://suikodenrand.github.io/#playstation)
+
 Disclaimer: to those that it matters. This was vibecoded by me with AI. I came up with all the features and tested and iterated on them, but AI took care of the Technical groundwork and making it happen.
 
 A seeded character randomizer for the Windows Steam release of **Suikoden I & II HD Remaster**. Both games share one plugin host and interface, with separate settings and saved campaign mappings. The **0.14.6-r3** Windows setup includes launcher **1.0.8** and offers repair and uninstall for an existing installation. Select **Join our Discord** at the top right of the launcher to find the randomizer community.

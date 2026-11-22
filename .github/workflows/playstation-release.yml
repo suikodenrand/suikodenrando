@@ -1,0 +1,40 @@
+name: Publish PlayStation alpha
+
+on:
+  push:
+    branches: [playstation]
+    paths: [tools/psx/VERSION]
+
+permissions:
+  contents: write
+
+concurrency: playstation-release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.11'
+      - run: python -B -m unittest discover -s tools/psx -v
+      - run: python -B tools/psx/package_release.py HEAD "$RUNNER_TEMP/playstation"
+      - name: Publish a prerelease from the reviewed source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(cat tools/psx/VERSION)
+          tag="psx-v$version"
+          tagged_commit=$(git ls-remote --tags origin "refs/tags/$tag" | cut -f1)
+          if [ -z "$tagged_commit" ]; then
+            git push origin "HEAD:refs/tags/$tag"
+          elif [ "$tagged_commit" != "$GITHUB_SHA" ]; then
+            echo "Tag $tag already points to another commit."
+            exit 1
+          fi
+          if gh release view "$tag" >/dev/null 2>&1; then
+            exit 0
+          fi
+          gh release create "$tag" "$RUNNER_TEMP/playstation/"* --verify-tag --prerelease \
+            --title "Stars of Destiny for PlayStation $version" --notes-file tools/psx/RELEASE.md
