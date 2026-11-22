@@ -3,7 +3,7 @@ Windows x64 / Steam Suikoden I & II HD Remaster
 
 Gameplay and CTB editor source: v0.14.6
 https://github.com/suikodenrand/suikodenrando/tree/v0.14.6
-Launcher and distribution source: package-v0.14.6-r2
+Launcher source: package-v0.14.6-r2
 https://github.com/suikodenrand/suikodenrando/tree/package-v0.14.6-r2
 Battle plugin 0.15.2 supports ATB and the optional CTB 0.5.2 preview.
 
@@ -12,7 +12,7 @@ Launcher 1.0.8 with private Windows Desktop .NET 10.0.14 runtime
 Optional Suikoden I ATB Preview 0.15.2, unchecked and installed disabled
 Suikoden Fix upstream release 1.5.2b
 BepInEx 6.0.0-be.697 IL2CPP Windows x64 with private .NET 6.0.7 loader runtime
-NSIS 3.11 setup
+NSIS 3.11 setup includes Repair and Uninstall.
 
 Supported GameAssembly.dll SHA-256:
 e093f175eaf3734d293ca0a236c652dd7fcc72ea5fa10d7b21103edf12f11c3a

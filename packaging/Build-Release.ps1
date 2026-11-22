@@ -5,7 +5,7 @@ param(
     [string]$Dotnet = 'dotnet',
     [string]$Python = 'python',
     [string]$OutputDirectory,
-    [ValidateSet('Binaries', 'Manual', 'All')][string]$PackageMode = 'Binaries',
+    [ValidateSet('Binaries', 'Manual', 'Setup', 'All')][string]$PackageMode = 'Binaries',
     [string]$MakeNsis,
     [string]$DependenciesDirectory,
     [string]$SourceCommit,
@@ -26,7 +26,10 @@ function Get-Sha256([string]$Path) {
 $repo = Split-Path -Parent $PSScriptRoot
 $callerLocation = $ExecutionContext.SessionState.Path
 $game = $callerLocation.GetUnresolvedProviderPathFromPSPath($GamePath)
-if (-not $OutputDirectory) { $OutputDirectory = Join-Path $repo 'artifacts/0.14.6-r2' }
+if (-not $OutputDirectory) {
+    $buildFolder = if ($PackageMode -in @('Setup', 'All')) { 'artifacts/0.14.6-r3' } else { 'artifacts/0.14.6-r2' }
+    $OutputDirectory = Join-Path $repo $buildFolder
+}
 $output = $callerLocation.GetUnresolvedProviderPathFromPSPath($OutputDirectory)
 if ($output -eq $game -or $output.StartsWith($game.TrimEnd('\','/') + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
     throw 'Build output must be outside the game installation.'
@@ -34,7 +37,9 @@ if ($output -eq $game -or $output.StartsWith($game.TrimEnd('\','/') + [IO.Path]:
 if (-not $DependenciesDirectory) { $DependenciesDirectory = Join-Path $output 'dependencies' }
 $DependenciesDirectory = $callerLocation.GetUnresolvedProviderPathFromPSPath($DependenciesDirectory)
 if ($MakeNsis) { $MakeNsis = $callerLocation.GetUnresolvedProviderPathFromPSPath($MakeNsis) }
-if ($PackageMode -eq 'All' -and -not $StageOnly -and -not $MakeNsis) { throw 'All mode needs -MakeNsis, or -StageOnly for staging qualification.' }
+if ($PackageMode -in @('Setup', 'All') -and -not $StageOnly -and -not $MakeNsis) {
+    throw 'Building the setup needs -MakeNsis, or -StageOnly for staging qualification.'
+}
 $expectedGame = 'e093f175eaf3734d293ca0a236c652dd7fcc72ea5fa10d7b21103edf12f11c3a'
 $assembly = Join-Path $game 'GameAssembly.dll'
 if (-not (Test-Path -LiteralPath $assembly -PathType Leaf) -or (Get-Sha256 $assembly) -ne $expectedGame) {
@@ -85,7 +90,7 @@ try {
         if (-not (Test-Path -LiteralPath (Join-Path $launcher $name) -PathType Leaf)) { throw "Missing published runtime notice: $name" }
     }
     if ($PackageMode -ne 'Binaries') {
-        $mode = if ($PackageMode -eq 'All') { 'all' } else { 'manual' }
+        $mode = $PackageMode.ToLowerInvariant()
         $arguments = @((Join-Path $PSScriptRoot 'release/build.py'), '--mode', $mode,
             '--runtime-dir', $runtime, '--atb-dll', $atbDll, '--launcher-dir', $launcher,
             '--reviewed-atb-sha256', $reviewedAtbHash, '--dotnet', $Dotnet, '--dependencies', $DependenciesDirectory,

@@ -1,6 +1,9 @@
 # Release packaging
 
 Package revision 0.14.6-r2 pairs launcher 1.0.8 with the reviewed 0.14.6 gameplay binaries.
+The 0.14.6-r3 setup adds Repair and Uninstall to that package. Select the
+installed game folder when you rerun setup. The Uninstall page offers to keep
+configuration and campaign bindings. See the included `START HERE.txt`.
 The release builds battle preview 0.15.2 and pairs its hash with the launcher. Use the same release outputs when packaging the optional CTB 0.5.2 download.
 The release tag and published checksums identify the source and downloads.
 
@@ -15,21 +18,25 @@ optional ATB DLL, and a complete self-contained `win-x64` launcher publish.
 NSIS 3.11 is additionally required to compile the full setup.
 
 ```powershell
-python packaging/release/build.py --mode all `
+python packaging/release/build.py --mode setup `
   --runtime-dir artifacts/0.14.6/runtime `
   --atb-dll artifacts/0.14.6/atb/SuikodenRandomizer.S1BattlePreview.dll `
   --launcher-dir artifacts/0.14.6/launcher `
   --reviewed-atb-sha256 <reviewed-ATB-SHA256-used-to-publish-that-launcher> `
   --dependencies artifacts/dependencies `
   --download-dependencies `
-  --output artifacts/0.14.6-r2/packages `
+  --output artifacts/0.14.6-r3/packages `
   --makensis C:/Tools/NSIS/makensis.exe
 ```
 
-Use `--mode manual` to create only the mod-only manual ZIP. `--mode all`
-creates that ZIP and the full setup. `--stage-only` builds both staging trees
-and the manual ZIP without invoking NSIS. Use a fresh output directory:
-the recipe refuses to replace an existing staging tree.
+Use `--mode setup` for the full installer, `--mode manual` for the manual ZIP,
+or `--mode all` for both. With setup enabled, `--stage-only` verifies the
+staging tree without compiling NSIS. Choose a fresh output directory.
+
+For automated fixture testing, pass `/S /MODE=repair` or `/S /MODE=uninstall`.
+Uninstall keeps configuration by default. Pass `/KEEPCONFIG=0` to remove it.
+Use `/CHECKONLY=1` to preview the operation. End the command with `/D=` and
+the absolute fixture game path without quotes, following NSIS syntax.
 
 `--runtime-dir` must contain exactly the required four file names (other
 files in that directory are not copied):

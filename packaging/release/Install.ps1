@@ -2,9 +2,12 @@
 [CmdletBinding()]
 param(
     [string]$GamePath,
+    [ValidateSet('Install', 'Repair', 'Uninstall')][string]$Mode = 'Install',
     [switch]$CheckOnly,
     [string]$RestoreTransaction,
     [switch]$IncludeAtb,
+    [switch]$RemoveConfig,
+    [switch]$RemoveShortcuts,
     [switch]$NonInteractive
 )
 
@@ -12,6 +15,8 @@ $ErrorActionPreference = 'Stop'
 $gameExe = 'Suikoden I and II HD Remaster.exe'
 $pluginFolder = 'BepInEx\plugins\SuikodenRandomizer'
 $atbDll = 'SuikodenRandomizer.S1BattlePreview.dll'
+$activeAtb = "BepInEx\plugins\$atbDll"
+$dormantAtb = "BepInEx\$atbDll"
 $atbConfig = 'BepInEx\config\agilen.suikoden1.battle-preview.cfg'
 $legacyDll = 'SuikodenRandomizer.Suikoden2.dll'
 $launcherFolder = 'StarsOfDestiny Launcher'
@@ -30,6 +35,12 @@ $pluginNames = @(
     'SuikodenRandomizer.Core.dll'
     'SuikodenRandomizer.Suikoden2.Core.dll'
     'SuikodenRandomizer.Shared.dll'
+)
+$retiredSupportFiles = @(
+    "$supportFolder\Install.cmd"
+    "$supportFolder\Licenses\Source\BepInEx-source-5362580.zip"
+    "$supportFolder\Licenses\Source\Il2CppInterop-source-56bf1da.zip"
+    "$supportFolder\Licenses\Source\UnityDoorstop-source-v4.3.0.zip"
 )
 
 function Get-FileSystemItem([string]$Path) {
@@ -206,7 +217,7 @@ function Assert-NoDuplicatePlugins([string]$Root) {
 
 function Assert-TargetName([string]$Target) {
     $allowed = $Target -in @('.doorstop_version', 'changelog.txt', 'doorstop_config.ini', 'winhttp.dll',
-        "BepInEx\plugins\$atbDll", "BepInEx\plugins\$fixDll") -or
+        $activeAtb, $dormantAtb, "BepInEx\plugins\$fixDll") -or
         $Target -match '^(?:dotnet|BepInEx\\core)\\[^\\]+$' -or
         ($pluginNames | ForEach-Object { "$pluginFolder\$_" }) -contains $Target -or
         ($configNames | ForEach-Object { "BepInEx\config\$_" }) -contains $Target -or
@@ -220,8 +231,21 @@ function Assert-TargetName([string]$Target) {
     }
 }
 
-function Get-InstallPlan($Manifest, [string]$Root) {
-    $plan = New-Object 'System.Collections.Generic.List[object]'
+function Read-PackageManifest {
+    $path = Join-Path $PSScriptRoot 'payload-manifest.json'
+    $item = Assert-PlainPath $path $false
+    if ($null -eq $item -or $item.Length -gt 4194304) {
+        throw 'The package manifest is missing or invalid. Run the complete setup executable again.'
+    }
+    $manifest = [IO.File]::ReadAllText($path) | ConvertFrom-Json
+    if ($manifest.schema -ne 'stars-full-package-v1' -or $manifest.packageVersion -ne '0.14.6' -or
+        $manifest.gameAssemblySha256 -notmatch '^[0-9a-fA-F]{64}$' -or -not $manifest.files) {
+        throw 'The package manifest is missing or invalid. Run the complete setup executable again.'
+    }
+    $manifest
+}
+
+function Get-PayloadFiles($Manifest) {
     $seen = @{}
     foreach ($file in $Manifest.files) {
         $relative = [string]$file.path
@@ -235,13 +259,41 @@ function Get-InstallPlan($Manifest, [string]$Root) {
             throw "The package manifest contains an invalid entry. $relative"
         }
         $seen[$target] = $true
-        $source = Join-Path $PSScriptRoot $relative
-        if ($null -eq (Assert-PlainPath $source $false) -or (Get-Hash $source) -ine $file.sha256) {
-            throw "A preview file is missing or damaged. Download and run the complete installer again. $relative"
+        [pscustomobject]@{
+            Target = $target; Source = Join-Path $PSScriptRoot $relative; Hash = [string]$file.sha256
         }
-        # Verify every bundled input, including the optional component, before
-        # filtering. Omitting ATB never removes or edits an existing installation.
-        if (-not $IncludeAtb -and $target -in @("BepInEx\plugins\$atbDll", $atbConfig)) { continue }
+    }
+    $required = @('winhttp.dll', 'doorstop_config.ini', 'dotnet\coreclr.dll', 'BepInEx\core\BepInEx.Unity.IL2CPP.dll')
+    $required += $pluginNames | ForEach-Object { "$pluginFolder\$_" }
+    $required += @($activeAtb, "BepInEx\plugins\$fixDll", "$launcherFolder\$launcherExe")
+    $required += $configNames | ForEach-Object { "BepInEx\config\$_" }
+    $required += @("$supportFolder\Install.ps1", "$supportFolder\Restore.ps1", "$supportFolder\Restore.cmd")
+    foreach ($name in $required) {
+        if (-not $seen.ContainsKey($name)) { throw "The package manifest is missing a required file. $name" }
+    }
+}
+
+function Get-InstallPlan([object[]]$Files, [string]$Root) {
+    $plan = New-Object 'System.Collections.Generic.List[object]'
+    $includeBattle = $IncludeAtb
+    $parkBattle = $false
+    $repairLoader = $false
+    if ($Mode -eq 'Repair') {
+        $repairLoader = Test-BundledLoaderLayout $Files $Root
+        $activeBattle = $null -ne (Assert-PlainPath (Join-Path $Root $activeAtb) $false)
+        $parkBattle = -not $activeBattle -and -not $IncludeAtb -and
+            $null -ne (Assert-PlainPath (Join-Path $Root $dormantAtb) $false)
+        $includeBattle = $includeBattle -or $activeBattle -or $parkBattle -or
+            $null -ne (Assert-PlainPath (Join-Path $Root $atbConfig) $false)
+    }
+    foreach ($file in $Files) {
+        $target = $file.Target
+        $source = $file.Source
+        if ($null -eq (Assert-PlainPath $source $false) -or (Get-Hash $source) -ine $file.Hash) {
+            throw "A packaged file is missing or damaged. Download and run the complete installer again. $target"
+        }
+        if (-not $includeBattle -and $target -in @($activeAtb, $atbConfig)) { continue }
+        if ($parkBattle -and $target -eq $activeAtb) { $target = $dormantAtb }
         $destination = Join-Path $Root $target
         $existing = Assert-PlainPath $destination $false
         $originalHash = $null
@@ -250,9 +302,9 @@ function Get-InstallPlan($Manifest, [string]$Root) {
                 continue
             }
             $originalHash = Get-Hash $destination
-            if ($originalHash -ieq $file.sha256) { continue }
+            if ($originalHash -ieq $file.Hash) { continue }
             if ($target -eq 'doorstop_config.ini' -and (Test-DoorstopConfig $destination)) { continue }
-            if ($target -ine "BepInEx\plugins\$atbDll" -and $target -ine "BepInEx\plugins\$fixDll" -and
+            if (-not $repairLoader -and $target -notin @($activeAtb, $dormantAtb, "BepInEx\plugins\$fixDll") -and
                 -not $target.StartsWith("$launcherFolder\", [StringComparison]::OrdinalIgnoreCase) -and
                 -not $target.StartsWith("$supportFolder\", [StringComparison]::OrdinalIgnoreCase) -and
                 ($pluginNames | ForEach-Object { "$pluginFolder\$_" }) -notcontains $target) {
@@ -260,42 +312,17 @@ function Get-InstallPlan($Manifest, [string]$Root) {
             }
         }
         $plan.Add([pscustomobject]@{
-            Target = $target; Source = $source; Hash = [string]$file.sha256; OriginalHash = $originalHash
+            Target = $target; Source = $source; Hash = $file.Hash; OriginalHash = $originalHash
         })
     }
-    $required = @('winhttp.dll', 'doorstop_config.ini', 'dotnet\coreclr.dll', 'BepInEx\core\BepInEx.Unity.IL2CPP.dll')
-    $required += $pluginNames | ForEach-Object { "$pluginFolder\$_" }
-    $required += @("BepInEx\plugins\$atbDll", "BepInEx\plugins\$fixDll", "$launcherFolder\$launcherExe")
-    $required += $configNames | ForEach-Object { "BepInEx\config\$_" }
-    $required += @("$supportFolder\Install.ps1", "$supportFolder\Restore.ps1", "$supportFolder\Restore.cmd")
-    foreach ($name in $required) {
-        if (-not $seen.ContainsKey($name)) { throw "The package manifest is missing a required file. $name" }
-    }
-    $legacy = "$pluginFolder\$legacyDll"
-    $legacyPath = Join-Path $Root $legacy
-    if ($null -ne (Assert-PlainPath $legacyPath $false)) {
-        $plan.Add([pscustomobject]@{
-            Target = $legacy; Source = $null; Hash = $null; OriginalHash = Get-Hash $legacyPath
-        })
-    }
-    # Retire only the three former packaged source archives. The original
-    # bytes are journaled outside the active support tree for exact restore.
-    foreach ($archive in @('BepInEx-source-5362580.zip', 'Il2CppInterop-source-56bf1da.zip', 'UnityDoorstop-source-v4.3.0.zip')) {
-        $oldSource = "$supportFolder\Licenses\Source\$archive"
-        $oldSourcePath = Join-Path $Root $oldSource
-        if ($null -ne (Assert-PlainPath $oldSourcePath $false)) {
-            $plan.Add([pscustomobject]@{ Target=$oldSource; Source=$null; Hash=$null; OriginalHash=Get-Hash $oldSourcePath })
+    foreach ($legacy in @("$pluginFolder\$legacyDll") + $retiredSupportFiles) {
+        $existing = Join-Path $Root $legacy
+        if ($null -ne (Assert-PlainPath $existing $false)) {
+            $plan.Add([pscustomobject]@{ Target=$legacy; Source=$null; Hash=$null; OriginalHash=Get-Hash $existing })
         }
     }
-    # The former manual-install wrapper is not used by NSIS or restore.
-    # Retire only this owned path, with its original bytes kept for undo.
-    $oldWrapper = "$supportFolder\Install.cmd"
-    $oldWrapperPath = Join-Path $Root $oldWrapper
-    if ($null -ne (Assert-PlainPath $oldWrapperPath $false)) {
-        $plan.Add([pscustomobject]@{ Target=$oldWrapper; Source=$null; Hash=$null; OriginalHash=Get-Hash $oldWrapperPath })
-    }
     # Keep entry binaries last so their dependencies and fresh settings are ready first.
-    $plan | Sort-Object { $_.Target -in @("$pluginFolder\SuikodenRandomizer.dll", "BepInEx\plugins\$atbDll", "$launcherFolder\$launcherExe") }
+    $plan | Sort-Object { $_.Target -in @("$pluginFolder\SuikodenRandomizer.dll", $activeAtb, $dormantAtb, "$launcherFolder\$launcherExe") }
 }
 
 function Write-TransactionRecord([string]$Path, $Record) {
@@ -504,12 +531,23 @@ function Get-RestorePlan([string]$Transaction, [string]$Root, [string]$CurrentGa
     [pscustomobject]@{ Plan = $plan.ToArray(); GameAssemblySha256 = $record.gameAssemblySha256 }
 }
 
+function Enter-MaintenanceLock([string]$Exe) {
+    Assert-GameClosed
+    $script:installerMutex = [Threading.Mutex]::new($false, 'Local\StarsOfDestinyInstaller')
+    try { $script:ownsMutex = $script:installerMutex.WaitOne(0) }
+    catch [Threading.AbandonedMutexException] { $script:ownsMutex = $true }
+    if (-not $script:ownsMutex) { throw 'Close the other Stars of Destiny installer before continuing.' }
+    $null = Assert-PlainPath $Exe $false
+    $script:lock = [IO.File]::Open($Exe, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::None)
+    Assert-GameClosed
+}
+
 $lock = $null
 $installerMutex = $null
 $ownsMutex = $false
 try {
     if (-not [Environment]::Is64BitOperatingSystem) { throw 'This package requires 64-bit Windows.' }
-    $folder = Get-GameFolder
+    $folder = (Get-GameFolder).TrimEnd('\', '/')
     $exe = Join-Path $folder $gameExe
     $assembly = Join-Path $folder 'GameAssembly.dll'
     if ($null -eq (Assert-PlainPath $exe $false) -or $null -eq (Assert-PlainPath $assembly $false)) {
@@ -517,6 +555,42 @@ try {
     }
     Assert-GameClosed
     Write-Host "Game folder $folder"
+    if ($Mode -ne 'Install') {
+        if ($RestoreTransaction) { throw 'Choose Repair, Uninstall, or transaction restore separately.' }
+        $maintenance = Join-Path $PSScriptRoot 'Maintenance.ps1'
+        if ($null -eq (Assert-PlainPath $maintenance $false)) { throw 'Run the complete setup executable for maintenance.' }
+        . $maintenance
+    }
+    if ($Mode -eq 'Uninstall') {
+        $payload = @(Get-PayloadFiles (Read-PackageManifest))
+        if (-not $NonInteractive -and -not $CheckOnly -and -not $RemoveConfig) {
+            $RemoveConfig = (Read-Host 'Keep configuration and campaign bindings? [Y/n]').Trim() -match '^(n|no)$'
+        }
+        $plan = Get-UninstallPlan $payload $folder
+        Write-Host "Files to uninstall  $($plan.Files.Count)"
+        if ($RemoveConfig) { Write-Host 'Remove Stars of Destiny settings and campaign bindings.' }
+        else { Write-Host 'Keep settings and campaign bindings.' }
+        if ($plan.KeepLoader) { Write-Host 'Keep any shared or separately installed BepInEx loader.' }
+        if ($CheckOnly) {
+            $plan.Files | ForEach-Object { Write-Host "  $_" }
+            Write-Host 'Check complete.'
+            exit 0
+        }
+        if (-not $plan.Files.Count) { Write-Host 'No installed Stars of Destiny files were found.'; exit 0 }
+        if (-not $NonInteractive -and (Read-Host 'Uninstall from this game folder? [y/N]').Trim() -notmatch '^(y|yes)$') {
+            Write-Host 'Uninstall cancelled.'
+            exit 0
+        }
+        Enter-MaintenanceLock $exe
+        $plan = Get-UninstallPlan $payload $folder
+        Remove-SetupFiles $plan $folder
+        if ($RemoveShortcuts) {
+            try { Remove-SetupShortcuts $folder }
+            catch { Write-Warning "Could not remove a Start menu shortcut. $($_.Exception.Message)" }
+        }
+        Write-Host 'Stars of Destiny uninstalled.'
+        exit 0
+    }
     Assert-NoDuplicatePlugins $folder
     if ($RestoreTransaction) {
         $expectedGameHash = Get-Hash $assembly
@@ -525,21 +599,15 @@ try {
         $receiptGameHash = $restore.GameAssemblySha256
         Write-Host 'Restore previous installation files from the selected verified transaction.'
     } else {
-        $manifestPath = Join-Path $PSScriptRoot 'payload-manifest.json'
-        if ($null -eq (Assert-PlainPath $manifestPath $false) -or (Get-Item -LiteralPath $manifestPath).Length -gt 4194304) {
-            throw 'The package manifest is missing or invalid. Extract the complete ZIP again.'
-        }
-        $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-        if ($manifest.schema -ne 'stars-full-package-v1' -or $manifest.packageVersion -ne '0.14.6' -or
-            $manifest.gameAssemblySha256 -notmatch '^[0-9a-fA-F]{64}$' -or -not $manifest.files) {
-            throw 'The package manifest is missing or invalid. Extract the complete ZIP again.'
-        }
+        $manifest = Read-PackageManifest
         $expectedGameHash = [string]$manifest.gameAssemblySha256
         $receiptGameHash = $expectedGameHash
         Assert-GameBuild $assembly $expectedGameHash
-        $plan = @(Get-InstallPlan $manifest $folder)
+        $payload = @(Get-PayloadFiles $manifest)
+        $plan = @(Get-InstallPlan $payload $folder)
         Write-Host 'Required components: BepInEx, combined randomizer 0.14.6, launcher, and Suikoden Fix.'
-        if ($IncludeAtb) { Write-Host 'Optional S1 ATB / CTB selected. Its fresh configuration is disabled.' }
+        if ($Mode -eq 'Repair') { Write-Host 'Repairing packaged files and any installed S1 battle preview.' }
+        elseif ($IncludeAtb) { Write-Host 'Optional S1 ATB / CTB selected. Its fresh configuration is disabled.' }
         else { Write-Host 'Optional S1 ATB / CTB not selected. Any existing ATB files are preserved.' }
         Write-Host 'Existing settings are preserved. Fresh settings start with chest shuffle and ATB disabled.'
     }
@@ -561,22 +629,18 @@ try {
     if ($plan.Count -eq 0) {
         Write-Host 'No file changes are required.'
     } else {
-        if (-not $NonInteractive -and (Read-Host 'Install into this game folder? [y/N]').Trim() -notmatch '^(y|yes)$') {
+        if (-not $NonInteractive -and (Read-Host "Apply changes to this game folder? [y/N]").Trim() -notmatch '^(y|yes)$') {
             Write-Host 'Setup cancelled.'
             exit 0
         }
-        $installerMutex = [Threading.Mutex]::new($true, 'Local\StarsOfDestinyInstaller', [ref]$ownsMutex)
-        if (-not $ownsMutex) { throw 'Close the other Stars of Destiny installer before continuing.' }
-        Assert-GameClosed
-        $null = Assert-PlainPath $exe $false
-        $lock = [IO.File]::Open($exe, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::None)
-        Assert-GameClosed
+        Enter-MaintenanceLock $exe
         Assert-GameBuild $assembly $expectedGameHash
         Assert-NoDuplicatePlugins $folder
         $transaction = Install-Plan $plan $folder $receiptGameHash
         if ($RestoreTransaction -and $expectedGameHash -ine $receiptGameHash) {
             Write-Host 'Recovery complete. Previous loader and plugin binaries for the old game build remain in their backups.'
         } elseif ($RestoreTransaction) { Write-Host 'Previous installation files restored.' }
+        elseif ($Mode -eq 'Repair') { Write-Host 'Stars of Destiny repaired.' }
         else { Write-Host 'Stars of Destiny Full Preview 0.14.6 installed.' }
         Write-Host "Undo this transaction using StarsOfDestiny Setup\Restore.cmd -TransactionPath `"$transaction`""
     }

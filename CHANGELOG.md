@@ -1,5 +1,9 @@
 # Changelog
 
+## Windows setup revision 0.14.6-r3
+
+- Run setup again to repair or uninstall Stars of Destiny. Repair restores missing or damaged package files. Uninstall lets you keep or delete mod settings and campaign bindings, and checks for other mods before removing BepInEx.
+
 ## Launcher 1.0.8 and Windows package revision 0.14.6-r2 — 2026-11-19
 
 - Open the randomizer community invite from **Join our Discord** in the launcher header on every tab. The updated launcher is available on its own and in the Windows installer, manual mod package and CTB preview download. [Launcher notes](docs/launcher-1.0.8.md)

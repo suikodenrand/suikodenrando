@@ -36,7 +36,26 @@ WHAT IS INCLUDED
 - BepInEx 6 IL2CPP x64 build 697 and its private loader runtime.
 - Suikoden Fix 1.5.2b and its launcher settings.
 - Optional separate Suikoden I ATB Preview 0.15.2, installed disabled.
-- Transaction restore tools, instructions, troubleshooting and notices.
+- Repair and uninstall in the setup executable, plus transaction restore tools.
+
+REPAIR OR UNINSTALL
+
+Run the same setup executable again and select the existing game folder.
+Choose Repair to replace missing or damaged package files. Existing
+settings, campaign bindings and an installed S1 battle preview are kept.
+A damaged or disabled Doorstop configuration for the bundled loader can
+be replaced with the stock configuration.
+
+Choose Uninstall to remove the packaged mod and launcher files. Leave
+Keep configuration and campaign bindings checked if you plan to resume
+an existing randomized save. Uncheck it for clean settings on the next
+installation. Uninstall asks you to confirm before deleting files.
+
+Uninstall removes the bundled BepInEx loader and its generated files when
+the game has no other BepInEx plugins or patchers. Shared loaders and their
+settings are retained. The native Save folder, editable save mirrors and
+existing installer recovery folders stay in place. Configuration removal
+is permanent. Keep a copy of your bindings yourself if you need them.
 
 FRESH DEFAULTS AND UPGRADES
 Fresh installations use character Shuffle, the normal opening in both games,

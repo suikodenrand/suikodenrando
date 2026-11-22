@@ -20,6 +20,7 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 VERSION = '0.14.6'
 PACKAGE_REVISION = 'r2'
+SETUP_REVISION = 'r3'
 LAUNCHER_VERSION = '1.0.8'
 FRESH_DEFAULTS = dict(characterShuffle=True, dialogue=True, shuffledUnites=True, s1Atb=False,
     s1AtbInstalled=False, s1Treasure=False, f6View='Hidden',
@@ -287,7 +288,7 @@ def compile_setup(args, stage):
     if args.stage_only:
         return None
     if args.makensis is None:
-        raise ValueError('--makensis is required for --mode all unless --stage-only is used')
+        raise ValueError('--makensis is required when building setup unless --stage-only is used')
     target = args.output / artifact_name(args, 'Setup.exe')
     base = Path(tempfile.gettempdir()).resolve()
     temporary = Path(tempfile.mkdtemp(prefix='sod-release-', dir=base)).resolve()
@@ -301,6 +302,7 @@ def compile_setup(args, stage):
         if actual != expected:
             raise ValueError('Temporary compiler input changed')
         result = subprocess.run([str(args.makensis), '/V3', f'/DPACKAGE_DIR={payload}',
+                                 f'/DDISTRIBUTION_VERSION={distribution_version(args)}',
                                  f'/DOUTPUT_EXE={target}', str(HERE / 'StarsOfDestiny.Full.nsi')],
                                 capture_output=True, text=True, errors='replace', timeout=600)
         (args.output / 'nsis-build.log').write_text(result.stdout + result.stderr, encoding='utf-8')
@@ -314,6 +316,30 @@ def compile_setup(args, stage):
         shutil.rmtree(temporary)
 
 
+def add_setup_scripts(stage):
+    for name in ('START HERE.txt', 'Features and defaults.txt', 'Troubleshooting.txt', 'Build information.txt'):
+        stage.copy('Game Files/StarsOfDestiny Setup/' + name, HERE / 'docs/setup' / name)
+    for name in ('Install.ps1', 'Maintenance.ps1'):
+        stage.copy(name, HERE / name)
+    for name in ('Install.ps1', 'Restore.ps1', 'Restore.cmd'):
+        stage.copy('Game Files/StarsOfDestiny Setup/' + name, HERE / name)
+
+
+def finish_setup(stage, args):
+    payload = [entry for entry in stage.files if entry['path'].startswith('Game Files/')]
+    manifest = dict(schema='stars-full-package-v1', packageVersion=VERSION, kind='full-release',
+        **distribution_metadata(args),
+        launcherVersion=LAUNCHER_VERSION, atbVersion=PUBLIC_ATB_VERSION, bepInExVersion='6.0.0-be.697',
+        suikodenFixRelease='1.5.2b', gameAssemblySha256=GAME_HASH,
+        freshDefaults=FRESH_DEFAULTS,
+        sourcePackaging='extracted-folders', supportPackaging='single-installed-copy',
+        unusedInstallCmdRemoved=True, maintenance=True, published=False, files=payload)
+    stage.add('payload-manifest.json', (json.dumps(manifest, indent=2) + '\n').encode())
+    stage.verify()
+    return dict(payloadFiles=len(payload), stage=str(stage.directory),
+                **distribution_metadata(args), installer=compile_setup(args, stage))
+
+
 def setup(args):
     stage = Stage(args.output / 'setup-stage')
     for name, data in archive_members(args.dependencies / LOADER):
@@ -322,26 +348,11 @@ def setup(args):
             raise ValueError('Unexpected loader path: ' + name)
         stage.add('Game Files/' + name, data)
     common(stage, args, setup=True)
-    for name in ('START HERE.txt', 'Features and defaults.txt', 'Troubleshooting.txt', 'Build information.txt'):
-        stage.copy('Game Files/StarsOfDestiny Setup/' + name, HERE / 'docs/setup' / name)
-    stage.copy('Install.ps1', HERE / 'Install.ps1')
-    for name in ('Install.ps1', 'Restore.ps1', 'Restore.cmd'):
-        stage.copy('Game Files/StarsOfDestiny Setup/' + name, HERE / name)
+    add_setup_scripts(stage)
     for name, data in source_licenses(args).items():
         stage.add('Game Files/StarsOfDestiny Setup/Licenses/' + name, data)
     stage.copy('Game Files/StarsOfDestiny Setup/Licenses/Stars-of-Destiny-MIT-LICENSE.txt', REPO / 'LICENSE')
-    payload = [entry for entry in stage.files if entry['path'].startswith('Game Files/')]
-    manifest = dict(schema='stars-full-package-v1', packageVersion=VERSION, kind='full-release',
-        **distribution_metadata(args),
-        launcherVersion=LAUNCHER_VERSION, atbVersion=PUBLIC_ATB_VERSION, bepInExVersion='6.0.0-be.697',
-        suikodenFixRelease='1.5.2b', gameAssemblySha256=GAME_HASH,
-        freshDefaults=FRESH_DEFAULTS,
-        sourcePackaging='extracted-folders', supportPackaging='single-installed-copy',
-        unusedInstallCmdRemoved=True, published=False, files=payload)
-    stage.add('payload-manifest.json', (json.dumps(manifest, indent=2) + '\n').encode())
-    stage.verify()
-    return dict(payloadFiles=len(payload), stage=str(stage.directory),
-                **distribution_metadata(args), installer=compile_setup(args, stage))
+    return finish_setup(stage, args)
 
 
 def manual(args):
@@ -392,14 +403,14 @@ def manual(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--mode', choices=('manual', 'all'), required=True)
+    parser.add_argument('--mode', choices=('manual', 'setup', 'all'), required=True)
     parser.add_argument('--runtime-dir', type=Path, required=True, help='Directory containing the four combined runtime DLLs')
     parser.add_argument('--atb-dll', type=Path, required=True)
     parser.add_argument('--launcher-dir', type=Path, required=True, help='Self-contained win-x64 launcher publish directory')
     parser.add_argument('--dependencies', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--package-revision', type=package_revision, default=PACKAGE_REVISION,
-                        help='Distribution revision (default r2); runtime version remains ' + VERSION)
+    parser.add_argument('--package-revision', type=package_revision,
+                        help='Distribution revision. Default r3 for setup, r2 for manual only.')
     parser.add_argument('--runtime-source-commit', type=source_commit,
                         help='Declared reviewed source commit for reused runtime DLLs; bytes must be verified separately')
     parser.add_argument('--launcher-source-commit', type=source_commit,
@@ -408,8 +419,10 @@ def main():
     parser.add_argument('--reviewed-atb-sha256', help='Same reviewed hash passed as ReviewedAtbSha256 when publishing a custom launcher')
     parser.add_argument('--dotnet', default='dotnet', help='Path to the .NET 10 SDK host for metadata verification')
     parser.add_argument('--download-dependencies', action='store_true')
-    parser.add_argument('--stage-only', action='store_true', help='For all mode, qualify the setup stage without invoking NSIS')
+    parser.add_argument('--stage-only', action='store_true', help='Qualify the setup stage without invoking NSIS')
     args = parser.parse_args()
+    if args.package_revision is None:
+        args.package_revision = PACKAGE_REVISION if args.mode == 'manual' else SETUP_REVISION
     for name in ('runtime_dir', 'atb_dll', 'launcher_dir', 'dependencies', 'output'):
         setattr(args, name, getattr(args, name).resolve())
     if args.makensis:
@@ -431,8 +444,9 @@ def main():
     result = dict(packageVersion=VERSION, builtUtc=datetime.now(timezone.utc).isoformat(),
                   launcherVersion=LAUNCHER_VERSION, **distribution_metadata(args),
                   claim='Packaging checks only; no game launch, native gameplay, install or platform approval is claimed.')
-    result['manual'] = manual(args)
-    if args.mode == 'all':
+    if args.mode in ('manual', 'all'):
+        result['manual'] = manual(args)
+    if args.mode in ('setup', 'all'):
         result['setup'] = setup(args)
     save(args.output / 'build-verification.json', result)
     print(json.dumps(result, indent=2))
