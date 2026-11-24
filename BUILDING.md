@@ -75,6 +75,16 @@ Get-FileHash src/SuikodenRandomizer.S1BattlePreview/bin/Release/net6.0/SuikodenR
 
 ## Run checks
 
+Run the managed check from a checkout with Git, PowerShell 7, the pinned SDK and Python 3.12 or newer. GitHub Actions runs the same command.
+
+```powershell
+pwsh -File eng/Check-Quality.ps1
+```
+
+This verifies whitespace in new and edited C# files, builds the launcher and CTB editor with the shared .NET analyzer policy, runs the managed test executables and runs the Python packaging tests. These checks use repository fixtures and run on Windows without game files. The formatting check compares the working tree to `HEAD` by default. For committed changes, pass the intended comparison commit with `-BaseRef`, for example `pwsh -File eng/Check-Quality.ps1 -BaseRef origin/main`. Use `-FormatOnly` to check formatting by itself.
+
+The specialist tests for native signatures, real dialogue data or built release DLLs have separate inputs. Use the commands below and the individual test instructions when working on those boundaries. Native gameplay verification uses your own installation.
+
 Most tests are small executable projects. Run the relevant projects with `dotnet run`, rather than assuming a solution-wide `dotnet test` command will find them. These examples use managed fixtures rather than launching the actual game:
 
 ```powershell

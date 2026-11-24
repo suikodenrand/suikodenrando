@@ -5,6 +5,8 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <Deterministic>true</Deterministic>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>10.0</AnalysisLevel>
     <Version>0.8.7</Version>
     <!-- The game's BepInEx host uses .NET 6; the standalone tools use .NET 10. -->
     <CheckEolTargetFramework>false</CheckEolTargetFramework>

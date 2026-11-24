@@ -7,9 +7,15 @@ Contributions to the project's own code are made under the repository's [MIT Lic
 ## Before a pull request
 
 1. Follow [BUILDING.md](BUILDING.md) to use the pinned SDK and required local game references.
-2. Run the managed tests relevant to the changed behavior. Native-facing changes also need a clearly described in-game check when available.
+2. Run `pwsh -File eng/Check-Quality.ps1`. For changes that are already committed, pass the comparison commit with `-BaseRef`. Native-facing changes also need a clearly described in-game check when available.
 3. Document behavior, defaults and compatibility changes. State which checks passed and which native scenarios remain untested.
 4. Keep generated binaries, caches, test logs and local machine settings out of the source commit. Supply sanitized diagnostic excerpts when they help review.
+
+## Quality and security checks
+
+`.editorconfig` defines repository C# spacing and targeted correctness rules. The SDK's .NET analyzers run during builds, with warnings treated as errors. Keep fixes focused on the files you edit. To format one file, run `dotnet format whitespace . --folder --include path/to/file.cs` from the repository root. Document the reason for any analyzer exception at the narrowest applicable scope.
+
+GitHub Actions runs the **Managed quality** job on pull requests and pushes to `main`. Once the workflow has reported a successful check on GitHub, the repository owner can require **Managed quality** in the `main` branch ruleset. The separate CodeQL workflow scans C# source for security findings. Dependabot watches NuGet manifests and GitHub Actions. The release dependency manifest in `packaging/release/dependencies.json` uses its own hash pins and needs separate review when an upstream binary changes.
 
 ## Release policy
 

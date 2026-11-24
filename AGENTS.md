@@ -18,3 +18,12 @@ Keep manual BepInEx requirements explicit; setup and manual distributions
 have different dependency contents. State the limits of native playtesting.
 
 Publishing a GitHub release does not by itself authorize a website update.
+
+# Quality checks
+
+Run `pwsh -File eng/Check-Quality.ps1` after changes to C# source, managed
+tests, packaging tests, or the quality configuration. Use `-BaseRef`
+when the changes are already committed. Report the checks that ran and
+any command failures or missing inputs. Keep analyzer exceptions narrow
+and explain why they are needed. For native changes, also follow the
+game-reference checks in BUILDING.md.
