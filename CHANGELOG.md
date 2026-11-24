@@ -1,5 +1,9 @@
 # Changelog
 
+## [Windows package revision 0.14.6-r4](https://github.com/suikodenrand/suikodenrando/releases/tag/package-v0.14.6-r4) — 2026-11-24
+
+- Fix a freeze in the Suikoden I ending after Cleo’s line in Gregminster. The cutscene uses Hix’s and Gen’s original sprites so their scripted animations can play.
+
 ## Windows setup revision 0.14.6-r3
 
 - Run setup again to repair or uninstall Stars of Destiny. Repair restores missing or damaged package files. Uninstall lets you keep or delete mod settings and campaign bindings, and checks for other mods before removing BepInEx.

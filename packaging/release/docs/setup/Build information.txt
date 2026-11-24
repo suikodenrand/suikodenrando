@@ -1,10 +1,11 @@
 Stars of Destiny 0.14.6 - Full Windows Release
 Windows x64 / Steam Suikoden I & II HD Remaster
 
-Gameplay and CTB editor source: v0.14.6
-https://github.com/suikodenrand/suikodenrando/tree/v0.14.6
+Gameplay and distribution source: see runtimeSourceCommit in payload-manifest.json.
 Launcher source: package-v0.14.6-r2
 https://github.com/suikodenrand/suikodenrando/tree/package-v0.14.6-r2
+CTB editor source: v0.14.6
+https://github.com/suikodenrand/suikodenrando/tree/v0.14.6
 Battle plugin 0.15.2 supports ATB and the optional CTB 0.5.2 preview.
 
 Combined randomizer 0.14.6

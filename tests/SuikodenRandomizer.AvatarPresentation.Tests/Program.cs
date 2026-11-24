@@ -317,6 +317,41 @@ internal static class Program
                     Check(ReferenceEquals(result, before) && village.Calls == 0 && Runtime.OriginalReads == 0, "Unsupported pose touched sprite ownership or original assets.");
                 }
             }),
+            ("Gregminster ending lets the native factory create Hix and Gen", () => {
+                var sprites = new GSD1.OPD_DATA[13];
+                sprites[7] = new GSD1.OPD_DATA { id = "vac_map_31_07" };
+                sprites[10] = new GSD1.OPD_DATA { id = "vac_map_31_10" };
+                var village = new GSD1.Village_c { mapVillage = new GSD1.MAP { opd_table = sprites } };
+                var prefix = typeof(AvatarFieldSpritePatch).GetMethod("Prefix", BindingFlags.Static | BindingFlags.NonPublic)!;
+
+                foreach (int actor in new[] { 63, 20 })
+                {
+                    Check(Profile.GetDonor(actor) != actor, "Ending fixture needs a shuffled actor.");
+                    var result = OriginalResult();
+                    object?[] args = { village, actor, 2, result };
+                    Check((bool)prefix.Invoke(null, args)! && ReferenceEquals(args[3], result),
+                        "Ending choreography was given a replacement field sprite.");
+                }
+                Check(village.Calls == 0 && Runtime.OriginalReads == 0, "The ending attempted donor construction.");
+
+                const int tengaar = 33;
+                var otherResult = OriginalResult();
+                Check(AvatarPresentation.TryCreateFieldSprite(village, tengaar, 2, ref otherResult),
+                    "Tengaar lost her field shuffle.");
+            }),
+            ("Hix and Gen use their shuffled sprites on other maps", () => {
+                var sprites = new GSD1.OPD_DATA[8];
+                sprites[7] = new GSD1.OPD_DATA { id = "ordinary_field" };
+                var village = new GSD1.Village_c { mapVillage = new GSD1.MAP { opd_table = sprites } };
+
+                foreach (int actor in new[] { 63, 20 })
+                {
+                    var result = OriginalResult();
+                    Check(AvatarPresentation.TryCreateFieldSprite(village, actor, 2, ref result)
+                        && ReferenceEquals(result.opd_data, Runtime.Originals[Profile.GetDonor(actor)].field_data.opd_data),
+                        "The ending guard affected an ordinary field sprite.");
+                }
+            }),
             ("Protected field identities do not enter donor factory", () => {
                 foreach (int id in new[] { 8, 108, 109, 24, -1, 65537 })
                 {

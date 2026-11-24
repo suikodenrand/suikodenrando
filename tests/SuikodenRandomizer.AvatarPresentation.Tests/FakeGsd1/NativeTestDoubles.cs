@@ -13,6 +13,7 @@ public sealed class Ws_face_c
 public sealed class OPD_DATA
 {
     public IntPtr Pointer { get; set; }
+    public string id { get; set; }
 }
 public sealed class PLAYER_FIELD
 {
@@ -37,6 +38,7 @@ public sealed class AnimeSPRITE
 }
 public sealed class Village_c
 {
+    public MAP mapVillage { get; set; }
     public int Calls { get; private set; }
     public OPD_DATA LastOpd { get; private set; }
     public int LastDirection { get; private set; }
@@ -48,10 +50,17 @@ public sealed class Village_c
     }
     public static AnimeSPRITE ValidSprite(OPD_DATA opd, int direction) => new AnimeSPRITE
     {
-        opd_data = opd, opd_sprite = new OPDSprite { data = opd },
-        anime_no = direction, pattern_kazu = 1, pattern_no = 0,
+        opd_data = opd,
+        opd_sprite = new OPDSprite { data = opd },
+        anime_no = direction,
+        pattern_kazu = 1,
+        pattern_no = 0,
         pattern_table = new object()
     };
+}
+public sealed class MAP
+{
+    public OPD_DATA[] opd_table { get; set; }
 }
 public static class AnimeSpriteManager
 {

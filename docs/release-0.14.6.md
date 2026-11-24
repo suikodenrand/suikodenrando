@@ -1,5 +1,7 @@
 # Stars of Destiny 0.14.6
 
+**Windows package revision 0.14.6-r4** fixes a Suikoden I ending freeze after Cleo speaks in Gregminster. Hix and Gen use their original cutscene sprites during the ending so their scripted animations can play. A shuffled pre-ending save advanced past both animation commands to the later Liukan dialogue. Existing players can apply the update by running the revision 4 setup against their game folder. [Revision 4 downloads](https://github.com/suikodenrand/suikodenrando/releases/tag/package-v0.14.6-r4)
+
 **Windows setup revision 0.14.6-r3** adds **Repair** and **Uninstall**. Run the same setup again and select your game folder. Repair replaces missing or damaged package files and keeps your mod settings. Uninstall asks whether to keep configuration and campaign bindings, with the option checked by default. It preserves native saves and keeps a shared BepInEx loader available for other mods. [Download 0.14.6-r3 setup](https://github.com/suikodenrand/suikodenrando/releases/download/v0.14.6/Stars-of-Destiny-0.14.6-r3-Setup.exe)
 
 **Windows package revision 0.14.6-r2** ships launcher **1.0.8** with **Join our Discord** in its header. Existing players can use the standalone launcher ZIP. [Launcher update](https://github.com/suikodenrand/suikodenrando/blob/launcher-v1.0.8/docs/launcher-1.0.8.md)

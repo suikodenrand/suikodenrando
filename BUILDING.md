@@ -156,6 +156,18 @@ Use `--mode setup --makensis <path-to-makensis.exe>` for just the full setup or 
 
 ## Produce the public downloads
 
+For **0.14.6-r4**, build the four runtime DLLs from the revision 4 source tag using the unified runtime build command above. Use the verified battle preview from the revision 3 setup and the complete launcher folder from that setup. Package both downloads with the same reviewed battle preview hash.
+
+```powershell
+$runtimeCommit = git rev-parse package-v0.14.6-r4
+$launcherCommit = git rev-parse package-v0.14.6-r2
+$runtime = 'src/SuikodenRandomizer.Unified/bin/Release'
+$hash = (Get-FileHash -Algorithm SHA256 $publicAtb).Hash.ToLowerInvariant()
+python packaging/release/build.py --mode all --package-revision r4 --runtime-dir $runtime --atb-dll $publicAtb --reviewed-atb-sha256 $hash --launcher-dir $publish --dependencies $dependencies --makensis $nsis --runtime-source-commit $runtimeCommit --launcher-source-commit $launcherCommit --output $output
+```
+
+Set `$publicAtb`, `$publish`, `$dependencies`, `$nsis`, and `$output` to the verified inputs and a fresh output directory. [Revision 4 downloads and checksums](https://github.com/suikodenrand/suikodenrando/releases/tag/package-v0.14.6-r4)
+
 For Windows setup revision **0.14.6-r3**, use the verified gameplay plugin, battle preview and launcher files from the 0.14.6-r2 setup. Set `$original` to the verified runtime and battle preview staging folder, `$publish` to the complete launcher folder from that package, and `$dependencies`, `$nsis` and `$output` to the dependency cache, NSIS compiler and an empty output folder. [0.14.6 release files and checksums](https://github.com/suikodenrand/suikodenrando/releases/tag/v0.14.6)
 
 ```powershell

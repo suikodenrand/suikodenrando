@@ -86,6 +86,12 @@ internal static class AvatarPresentation
         GSD1.AnimeSPRITE? prepared = null;
         try
         {
+            if (UsesGregminsterEndingSprite(village, canonicalImageId))
+            {
+                Once(runtime, "gregminster-ending", "Native Hix and Gen sprites retained for the Gregminster ending.");
+                return false;
+            }
+
             // cache[donor] now belongs to that donor's assigned avatar. Read
             // the pristine original donor asset to avoid a second shuffle.
             if (!runtime.TryGetOriginal(donorId, out var donor) || donor.field_data?.opd_data is null)
@@ -122,6 +128,21 @@ internal static class AvatarPresentation
             }
         }
     }
+
+    private static bool UsesGregminsterEndingSprite(GSD1.Village_c village, int imageId)
+    {
+        const int gen = 20;
+        const int hix = 63;
+        const int endingHixSpriteIndex = 7;
+        if (imageId is not (gen or hix)) return false;
+
+        // The ending plays animation index 4 on both Hix and Gen.
+        // Let h2DACreate select both actors from the map's own sprite table.
+        var sprites = village.mapVillage?.opd_table;
+        return sprites is not null && sprites.Length > endingHixSpriteIndex
+            && string.Equals(sprites[endingHixSpriteIndex]?.id, "vac_map_31_07", StringComparison.Ordinal);
+    }
+
     private static void Once(AvatarRuntime runtime, string key, string message)
     {
         if (Reported.Count >= 32 || !Reported.Add(key)) return;
@@ -133,14 +154,16 @@ internal static class AvatarPresentation
 internal static class AvatarNamePatch
 {
     [HarmonyPrefix] private static void Prefix(ref int __0, out bool __state) => __state = AvatarPresentation.BeginName(ref __0);
-    [HarmonyFinalizer] private static Exception? Finalizer(Exception? __exception, bool __state)
+    [HarmonyFinalizer]
+    private static Exception? Finalizer(Exception? __exception, bool __state)
     { AvatarPresentation.EndName(__state); return __exception; }
 }
 [HarmonyPatch(typeof(GSD1.Fhuman_c), "GetCharacterNameTextID", new Type[] { typeof(int), typeof(bool) })]
 internal static class AvatarNameTextIdPatch
 {
     [HarmonyPrefix] private static void Prefix(ref int __0, out bool __state) => __state = AvatarPresentation.BeginName(ref __0);
-    [HarmonyFinalizer] private static Exception? Finalizer(Exception? __exception, bool __state)
+    [HarmonyFinalizer]
+    private static Exception? Finalizer(Exception? __exception, bool __state)
     { AvatarPresentation.EndName(__state); return __exception; }
 }
 [HarmonyPatch(typeof(GSD1.Ws_face_c), "CharacterIDConvertToFaceIDStatic", new Type[] { typeof(ushort) })]
@@ -148,7 +171,8 @@ internal static class AvatarStaticFaceCharacterPatch
 {
     [HarmonyPrefix] private static void Prefix(ref ushort __0, out bool __state) => __state = AvatarPresentation.BeginFaceCharacter(ref __0);
     [HarmonyPostfix] private static void Postfix(ushort __0, short __result, bool __state) => AvatarPresentation.ObserveFaceResult(__0, __result, __state);
-    [HarmonyFinalizer] private static Exception? Finalizer(Exception? __exception, bool __state)
+    [HarmonyFinalizer]
+    private static Exception? Finalizer(Exception? __exception, bool __state)
     { AvatarPresentation.EndFace(__state); return __exception; }
 }
 [HarmonyPatch(typeof(GSD1.Ws_face_c), "CharacterIDConvertToFaceID", new Type[] { typeof(ushort) })]
@@ -156,7 +180,8 @@ internal static class AvatarFaceCharacterPatch
 {
     [HarmonyPrefix] private static void Prefix(ref ushort __0, out bool __state) => __state = AvatarPresentation.BeginFaceCharacter(ref __0);
     [HarmonyPostfix] private static void Postfix(ushort __0, short __result, bool __state) => AvatarPresentation.ObserveFaceResult(__0, __result, __state);
-    [HarmonyFinalizer] private static Exception? Finalizer(Exception? __exception, bool __state)
+    [HarmonyFinalizer]
+    private static Exception? Finalizer(Exception? __exception, bool __state)
     { AvatarPresentation.EndFace(__state); return __exception; }
 }
 [HarmonyPatch(typeof(GSD1.Village_c), "h2DACreate", new Type[] { typeof(int), typeof(int) })]
